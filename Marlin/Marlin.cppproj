@@ -28,15 +28,15 @@
     <BootSegment>0</BootSegment>
     <AsfFrameworkConfig>
       <framework-data>
-  <options />
-  <configurations />
-  <files />
-  <documentation help="" />
-  <offline-documentation help="" />
-  <dependencies>
-    <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.34.1" />
-  </dependencies>
-</framework-data>
+        <options />
+        <configurations />
+        <files />
+        <documentation help="" />
+        <offline-documentation help="" />
+        <dependencies>
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.34.1" />
+        </dependencies>
+      </framework-data>
     </AsfFrameworkConfig>
     <preserveEEPROM>true</preserveEEPROM>
     <ResetRule>0</ResetRule>
@@ -55,6 +55,7 @@
   <avrgcc.compiler.symbols.DefSymbols>
     <ListValues>
       <Value>__AVR_ATmega2560__</Value>
+      <Value>_VMDEBUG=1</Value>
       <Value>ARDUINO=10809</Value>
       <Value>ARDUINO_MAIN</Value>
       <Value>F_CPU=16000000L</Value>
@@ -88,6 +89,7 @@
   <avrgcccpp.compiler.symbols.DefSymbols>
     <ListValues>
       <Value>__AVR_ATmega2560__</Value>
+      <Value>_VMDEBUG=1</Value>
       <Value>ARDUINO=10809</Value>
       <Value>ARDUINO_MAIN</Value>
       <Value>F_CPU=16000000L</Value>
@@ -134,6 +136,7 @@
   <avrgcc.compiler.symbols.DefSymbols>
     <ListValues>
       <Value>__AVR_ATmega2560__</Value>
+      <Value>_VMDEBUG=1</Value>
       <Value>ARDUINO=10809</Value>
       <Value>ARDUINO_MAIN</Value>
       <Value>F_CPU=16000000L</Value>
@@ -167,6 +170,7 @@
   <avrgcccpp.compiler.symbols.DefSymbols>
     <ListValues>
       <Value>__AVR_ATmega2560__</Value>
+      <Value>_VMDEBUG=1</Value>
       <Value>ARDUINO=10809</Value>
       <Value>ARDUINO_MAIN</Value>
       <Value>F_CPU=16000000L</Value>
