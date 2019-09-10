@@ -219,6 +219,28 @@ int8_t Stepper::count_direction[NUM_AXIS] = {
     #define X_APPLY_STEP(v,Q) do{ X_STEP_WRITE(v); X2_STEP_WRITE(v); }while(0)
   #endif
 #elif ENABLED(DUAL_X_CARRIAGE)
+	#if defined(BCN3D_MOD)
+#define X_APPLY_DIR(v,ALWAYS) \
+	if (extruder_duplication_enabled || ALWAYS) { \
+		X_DIR_WRITE(v); \
+		X2_DIR_WRITE(v); \
+	} \
+	else if (extruder_mirror_enabled) { \
+		X_DIR_WRITE(v); \
+		X2_DIR_WRITE(!v); \
+	} \
+	else { \
+		if (movement_extruder()) X2_DIR_WRITE(v); else X_DIR_WRITE(v); \
+	}
+	#define X_APPLY_STEP(v,ALWAYS) \
+	if (extruder_duplication_enabled || extruder_mirror_enabled || ALWAYS) { \
+		X_STEP_WRITE(v); \
+		X2_STEP_WRITE(v); \
+	} \
+	else { \
+		if (movement_extruder()) X2_STEP_WRITE(v); else X_STEP_WRITE(v); \
+	}	
+	#else
   #define X_APPLY_DIR(v,ALWAYS) \
     if (extruder_duplication_enabled || ALWAYS) { \
       X_DIR_WRITE(v); \
@@ -234,7 +256,8 @@ int8_t Stepper::count_direction[NUM_AXIS] = {
     } \
     else { \
       if (movement_extruder()) X2_STEP_WRITE(v); else X_STEP_WRITE(v); \
-    }
+    }	
+	#endif // BCN3D_MOD
 #else
   #define X_APPLY_DIR(v,Q) X_DIR_WRITE(v)
   #define X_APPLY_STEP(v,Q) X_STEP_WRITE(v)

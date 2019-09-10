@@ -56,6 +56,9 @@ extern const char axis_codes[XYZE];
 
 #if ENABLED(DUAL_X_CARRIAGE) || ENABLED(DUAL_NOZZLE_DUPLICATION_MODE)
   extern bool extruder_duplication_enabled;
+  #if defined(BCN3D_MOD)
+  extern bool extruder_mirror_enabled;
+  #endif
 #endif
 
 #if HAS_X2_ENABLE
@@ -341,6 +344,14 @@ extern float soft_endstop_min[XYZ], soft_endstop_max[XYZ];
 void tool_change(const uint8_t tmp_extruder, const float fr_mm_s=0.0, bool no_move=false);
 
 void home_all_axes();
+
+#if defined(BCN3D_MOD)
+void home_axis_from_code(bool x_c, bool y_c, bool z_c);
+void dual_mode_z_adjust_raft(void);
+void dual_mode_duplication_extruder_parked(void);
+void dual_mode_mirror_extruder_parked(void);
+void dual_mode_duplication_extruder_parked_purge(void);
+#endif
 
 void report_current_position();
 

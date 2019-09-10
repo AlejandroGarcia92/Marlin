@@ -82,7 +82,7 @@
 // Use only 0 or powers of 2 greater than 1
 // : [0, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, ...]
 #ifndef RX_BUFFER_SIZE
-  #define RX_BUFFER_SIZE 128
+  #define RX_BUFFER_SIZE 1024
 #endif
 // 256 is the max TX buffer limit due to uint8_t head and tail.
 #ifndef TX_BUFFER_SIZE

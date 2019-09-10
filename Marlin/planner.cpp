@@ -1858,10 +1858,17 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
           enable_E0();
           g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
           #if ENABLED(DUAL_X_CARRIAGE) || ENABLED(DUAL_NOZZLE_DUPLICATION_MODE)
+			#if defined(BCN3D_MOD)
+			if (extruder_duplication_enabled || extruder_mirror_enabled) {
+				enable_E1();
+				g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
+			}
+			#else			
             if (extruder_duplication_enabled) {
               enable_E1();
               g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
             }
+			#endif
           #endif
         break;
         #if EXTRUDERS > 1
