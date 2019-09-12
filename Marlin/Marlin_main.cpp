@@ -561,7 +561,6 @@ int raft_line_counter_g = 0;
 float raft_z_init = 0.0;
 bool Flag_serial_new_layer = false;
 bool Flag_raft_last_line = false;
-float raft_extrusion_adjusting = 1.0;
 float destination_X_2 = 0.0;
 float destination_Z_2 = 0.0;
 bool Flag_Raft_Dual_Mode_On_exit = false;
@@ -1449,10 +1448,11 @@ bool get_target_extruder_from_command(const uint16_t code) {
   return false;
 }
 
+
 #if ENABLED(DUAL_X_CARRIAGE) || ENABLED(DUAL_NOZZLE_DUPLICATION_MODE)
   bool extruder_duplication_enabled = false; // Used in Dual X mode 2
   #if defined(BCN3D_MOD)
-  bool extruder_mirror_enabled = false; // Used in Dual X mode 3
+  bool extruder_mirror_enabled = false; // Used in Dual X mode 4
   #endif
 #endif
 
@@ -1518,6 +1518,12 @@ bool get_target_extruder_from_command(const uint16_t code) {
           soft_endstop_min[X_AXIS] = base_min_pos(X_AXIS);
           soft_endstop_max[X_AXIS] = MIN(base_max_pos(X_AXIS), dual_max_x - duplicate_extruder_x_offset);
         }
+		else if (dual_x_carriage_mode == DXC_MIRROR_MODE) {
+			// In Duplication Mode, T0 can move as far left as X_MIN_POS
+			// but not so far to the right that T1 would move past the end
+			soft_endstop_min[X_AXIS] = base_min_pos(X_AXIS);
+			soft_endstop_max[X_AXIS] = base_max_pos(X_AXIS)-(X_BED_SIZE/2)-20;
+		}
         else {
           // In other modes, T0 can move from X_MIN_POS to X_MAX_POS
           soft_endstop_min[axis] = base_min_pos(axis);
@@ -13606,6 +13612,9 @@ void process_next_command() {
  */
 void flush_and_request_resend() {
   //char command_queue[cmd_queue_index_r][100]="Resend:";
+  #if defined (BCN3D_MOD)
+  //SERIAL_CLEARBUFFER();
+  #endif
   SERIAL_FLUSH();
   SERIAL_PROTOCOLPGM(MSG_RESEND);
   SERIAL_PROTOCOLLN(gcode_LastN + 1);
@@ -14721,6 +14730,8 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 						if(!Flag_Raft_Dual_Mode_On){
 							dual_mode_duplication_extruder_parked();
 							}else{
+							planner.flow_percentage[active_extruder] = 100;
+							planner.refresh_e_factor(active_extruder);
 							current_position[E_AXIS]-=RETRACT_PRINTER_FACTOR;
 							planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST), active_extruder);//Retract
 							planner.synchronize();
@@ -14739,7 +14750,6 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 							
 							current_position[E_AXIS] = -(RETRACT_PRINTER_FACTOR);
 							planner.set_e_position_mm(current_position[E_AXIS]);
-							raft_extrusion_adjusting=1.0;
 						}
 						}else{
 						if(!Flag_Raft_Dual_Mode_On){
@@ -14754,20 +14764,21 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 						if(!Flag_Raft_Dual_Mode_On){
 							dual_mode_duplication_extruder_parked();
 							}else{
+							planner.flow_percentage[active_extruder] = 100;
+							planner.refresh_e_factor(active_extruder);
 							current_position[E_AXIS]-=RETRACT_PRINTER_FACTOR;
 							planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST), active_extruder);//Retract
 							planner.synchronize();
 							current_position[Z_AXIS] = 5;
 							planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], 15, active_extruder);	//BACK PARKING
 							planner.synchronize();
-							current_position[X_AXIS] = x_home_pos(1);
+							current_position[X_AXIS] = inactive_extruder_x_pos + home_offset[X_AXIS];
 							planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], 200, active_extruder);	//BACK PARKING
 							planner.synchronize();
 							active_extruder=0;
 							dual_mode_duplication_extruder_parked_purge();
 							//DUAL PROTOCOL
 							current_position[X_AXIS] = 0.0;
-							raft_extrusion_adjusting=1.0;
 							Flag_Raft_Dual_Mode_On_exit = true;
 							dual_mode_duplication_extruder_parked();
 							Flag_Raft_Dual_Mode_On_exit = false;
@@ -14779,15 +14790,20 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 						
 						if(!Flag_Raft_Dual_Mode_On){
 							
-							planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS]-hotend_offset[Z_AXIS][1]-home_offset[Z_AXIS],current_position[E_AXIS], feedrate_mm_s, active_extruder);
+							planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS], feedrate_mm_s, active_extruder);
 							planner.set_position_mm(X_AXIS,current_position[X_AXIS] + inactive_extruder_x_pos + home_offset[X_AXIS]);
 							//planner.set_z_position_mm(current_position[Z_AXIS] + home_offset[Z_AXIS]);
 							active_extruder = 1;
 							Flag_Raft_Dual_Mode_On = true;
 							planner.synchronize();
+							dual_mode_z_adjust_raft();
+							destination[X_AXIS] = destination_X_2 + duplicate_extruder_x_offset;
+							destination[Z_AXIS]-=home_offset[Z_AXIS];
+						}else{
+							dual_mode_z_adjust_raft();
+							destination[X_AXIS] = destination_X_2 + duplicate_extruder_x_offset;
 						}
-						dual_mode_z_adjust_raft();
-						destination[X_AXIS] = destination_X_2 + duplicate_extruder_x_offset;
+						
 					}
 					
 					
@@ -14811,18 +14827,19 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 						if(!Flag_Raft_Dual_Mode_On){
 							dual_mode_mirror_extruder_parked();
 							}else{
+							planner.flow_percentage[active_extruder] = 100;
+							planner.refresh_e_factor(active_extruder);
 							current_position[E_AXIS]-=RETRACT_PRINTER_FACTOR;
 							planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST), active_extruder);//Retract
 							planner.synchronize();
 							current_position[Z_AXIS] = 5;
 							planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], 15, active_extruder);	//BACK PARKING
 							planner.synchronize();
-							current_position[X_AXIS] = 0;
+							current_position[X_AXIS] = x_home_pos(0);
 							planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], 200, active_extruder);	//BACK PARKING
 							planner.synchronize();
 							dual_mode_duplication_extruder_parked_purge();
 							//DUAL PROTOCOL
-							raft_extrusion_adjusting=1.0;
 							Flag_Raft_Dual_Mode_On_exit = true;
 							dual_mode_mirror_extruder_parked();
 							Flag_Raft_Dual_Mode_On_exit = false;
@@ -14846,18 +14863,20 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 							
 							dual_mode_mirror_extruder_parked();
 							}else{
+							planner.flow_percentage[active_extruder] = 100;
+							planner.refresh_e_factor(active_extruder);
 							current_position[E_AXIS]-=RETRACT_PRINTER_FACTOR;
 							planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST), active_extruder);//Retract
 							planner.synchronize();
 							current_position[Z_AXIS] = 5;
 							planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], 15, active_extruder);	//BACK PARKING
 							planner.synchronize();
-							current_position[X_AXIS] = x_home_pos(1);
+							current_position[X_AXIS] = inactive_extruder_x_pos - home_offset[X_AXIS];
 							planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], 200, active_extruder);	//BACK PARKING
 							planner.synchronize();
 							active_extruder=0;
 							dual_mode_duplication_extruder_parked_purge();
-							current_position[X_AXIS] = 0.0;
+							current_position[X_AXIS] = x_home_pos(0);
 							//DUAL PROTOCOL
 							Flag_Raft_Dual_Mode_On_exit = true;
 							dual_mode_mirror_extruder_parked();
@@ -14865,7 +14884,6 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 							Flag_Raft_Dual_Mode_On = true;
 							current_position[E_AXIS] = -(RETRACT_PRINTER_FACTOR);
 							planner.set_e_position_mm(current_position[E_AXIS]);
-							raft_extrusion_adjusting=1.0;
 						}
 					}else{
 						
@@ -14874,15 +14892,14 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 							planner.set_position_mm(X_AXIS, current_position[X_AXIS] + inactive_extruder_x_pos - home_offset[X_AXIS]);
 							active_extruder=1;
 							Flag_Raft_Dual_Mode_On = true;							
-							planner.synchronize();
-							destination[X_AXIS] = inactive_extruder_x_pos - destination_X_2;
+							planner.synchronize();							
 							dual_mode_z_adjust_raft();
+							destination[X_AXIS] = inactive_extruder_x_pos - destination_X_2;
 							destination[Z_AXIS]-=home_offset[Z_AXIS]; 
 							
-							SERIAL_PROTOCOLLN(destination[Z_AXIS]);
 						}else{
-							destination[X_AXIS] = inactive_extruder_x_pos - destination_X_2;
 							dual_mode_z_adjust_raft();
+							destination[X_AXIS] = inactive_extruder_x_pos - destination_X_2;							
 						}
 						
 					}
@@ -14902,15 +14919,13 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 	void dual_mode_z_adjust_raft(void){
 		if((raft_z_init*raft_line_counter+RAFT_Z_THRESHOLD) >= abs(hotend_offset[Z_AXIS][1]) && !Flag_raft_last_line){
 			destination[Z_AXIS] = abs(hotend_offset[Z_AXIS][1]) - raft_z_init*(raft_line_counter-1);
-			raft_extrusion_adjusting = destination[Z_AXIS]/raft_z_init;
+			planner.flow_percentage[active_extruder] = (int)(100.0f * destination[Z_AXIS]/raft_z_init);
+			planner.refresh_e_factor(active_extruder);
 			Flag_raft_last_line = true;
 			}else if(Flag_raft_last_line){
 			destination[Z_AXIS] = (abs(hotend_offset[Z_AXIS][1]) - raft_z_init*(raft_line_counter-1)) + (destination_Z_2 - raft_z_init);
 			//gestion de Z			
 		}
-		SERIAL_PROTOCOLLN(raft_line_counter);
-		SERIAL_PROTOCOLLN(raft_z_init);
-		SERIAL_PROTOCOLLN(destination[Z_AXIS]);
 		
 	}
 	void dual_mode_duplication_extruder_parked(void){
@@ -14942,9 +14957,13 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 		extruder_duplication_enabled = true;
 		active_extruder_parked = false;
 		dual_x_carriage_mode = DXC_DUPLICATION_MODE;
+		LOOP_XYZ(i){
+			update_software_endstops((AxisEnum)i); 
+		}
 		SERIAL_PROTOCOLLNPGM("Dupli Mode ON");
 	}
 	void dual_mode_mirror_extruder_parked(void){
+		SYNC_PLAN_POSITION_KINEMATIC();
 		if(!Flag_Raft_Dual_Mode_On_exit){
 			if(hotend_offset[Z_AXIS][1]>0.0  && Flag_Raft_Dual_Mode_On){
 				planner.set_position_mm(X_AXIS, current_position[X_AXIS]);
@@ -14963,6 +14982,9 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 		extruder_mirror_enabled = true;
 		active_extruder_parked = false;
 		dual_x_carriage_mode = DXC_MIRROR_MODE;
+		LOOP_XYZ(i){
+			update_software_endstops((AxisEnum)i);
+		}
 		SERIAL_PROTOCOLLNPGM("Mirror Mode ON");
 	}
 	void dual_mode_duplication_extruder_parked_purge(void){
@@ -14971,7 +14993,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 		
 		extruder_duplication_enabled = true;
 		current_position[E_AXIS]+=PURGE_PRINTER_FACTOR;
-		feedrate_mm_s = MMM_TO_MMS(50.0f);
+		planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(50.0f), active_extruder);//Retract
 		buffer_line_to_current_position();//Purge
 		
 		codenum =4000;
@@ -14984,8 +15006,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 		}
 		
 		current_position[E_AXIS]-=RETRACT_PRINTER_FACTOR;
-		feedrate_mm_s = MMM_TO_MMS(50.0f);
-		buffer_line_to_current_position();//Purge
+		planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST), active_extruder);//Retract
 		planner.synchronize();
 		extruder_duplication_enabled = false;
 	}

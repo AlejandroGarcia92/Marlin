@@ -1272,7 +1272,13 @@ void Planner::check_axes_activity() {
         thermalManager.soft_pwm_amount_fan[0] = CALC_FAN_SPEED(0);
       #endif
       #if HAS_FAN1
-        thermalManager.soft_pwm_amount_fan[1] = CALC_FAN_SPEED(1);
+		#if defined(BCN3D_MOD)
+		if(extruder_duplication_enabled || extruder_mirror_enabled){
+			thermalManager.soft_pwm_amount_fan[1] = CALC_FAN_SPEED(0);
+		}else{
+			thermalManager.soft_pwm_amount_fan[1] = CALC_FAN_SPEED(1);
+		}
+		#endif        
       #endif
       #if HAS_FAN2
         thermalManager.soft_pwm_amount_fan[2] = CALC_FAN_SPEED(2);
@@ -1282,7 +1288,13 @@ void Planner::check_axes_activity() {
         analogWrite(FAN_PIN, CALC_FAN_SPEED(0));
       #endif
       #if HAS_FAN1
-        analogWrite(FAN1_PIN, CALC_FAN_SPEED(1));
+		#if defined(BCN3D_MOD)
+		if(extruder_duplication_enabled || extruder_mirror_enabled){
+			analogWrite(FAN1_PIN, CALC_FAN_SPEED(0));
+			}else{
+			analogWrite(FAN1_PIN, CALC_FAN_SPEED(1));
+		}
+		#endif
       #endif
       #if HAS_FAN2
         analogWrite(FAN2_PIN, CALC_FAN_SPEED(2));

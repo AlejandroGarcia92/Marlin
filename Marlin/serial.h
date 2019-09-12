@@ -53,6 +53,10 @@ extern const char errormagic[] PROGMEM;
   #define SERIAL_FLUSHTX()     MYSERIAL0.flushTX()
 #endif
 
+#if defined(BCN3D_MOD)
+#define SERIAL_CLEARBUFFER()	while(MYSERIAL0.available()){MYSERIAL0.read();}
+#endif
+
 #define SERIAL_PROTOCOLCHAR(x)              SERIAL_CHAR(x)
 #define SERIAL_PROTOCOL(x)                  MYSERIAL0.print(x)
 #define SERIAL_PROTOCOL_F(x,y)              MYSERIAL0.print(x,y)
