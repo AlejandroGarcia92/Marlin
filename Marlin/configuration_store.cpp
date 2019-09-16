@@ -186,7 +186,7 @@ typedef struct SettingsDataStruct {
           delta_segments_per_second,                    // M665 S
           hangprinter_calibration_radius_placeholder;
 
-  #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || ENABLED(Z_DUAL_ENDSTOPS)
+  #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || ENABLED(Z_DUAL_ENDSTOPS) || defined(BCN3D_MOD)
 
     float x_endstop_adj,                                // M666 X
           y_endstop_adj,                                // M666 Y
@@ -602,7 +602,7 @@ void MarlinSettings::postprocess() {
       EEPROM_WRITE(delta_segments_per_second); // 1 float
       EEPROM_WRITE(dummy);                     // 1 float
 
-    #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || ENABLED(Z_DUAL_ENDSTOPS)
+    #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || ENABLED(Z_DUAL_ENDSTOPS) || defined(BCN3D_MOD)
 
       _FIELD_TEST(x_endstop_adj);
 
@@ -620,7 +620,7 @@ void MarlinSettings::postprocess() {
         EEPROM_WRITE(dummy);
       #endif
 
-      #if ENABLED(Z_DUAL_ENDSTOPS)
+      #if ENABLED(Z_DUAL_ENDSTOPS) || defined(BCN3D_MOD)
         EEPROM_WRITE(endstops.z_endstop_adj);   // 1 float
       #else
         EEPROM_WRITE(dummy);
@@ -1220,7 +1220,7 @@ void MarlinSettings::postprocess() {
         EEPROM_READ(delta_segments_per_second); // 1 float
         EEPROM_READ(dummy);                     // 1 float
 
-      #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || ENABLED(Z_DUAL_ENDSTOPS)
+      #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || ENABLED(Z_DUAL_ENDSTOPS) || defined(BCN3D_MOD)
 
         _FIELD_TEST(x_endstop_adj);
 
@@ -1234,7 +1234,7 @@ void MarlinSettings::postprocess() {
         #else
           EEPROM_READ(dummy);
         #endif
-        #if ENABLED(Z_DUAL_ENDSTOPS)
+        #if ENABLED(Z_DUAL_ENDSTOPS) || defined(BCN3D_MOD)
           EEPROM_READ(endstops.z_endstop_adj); // 1 float
         #else
           EEPROM_READ(dummy);
@@ -1861,7 +1861,7 @@ void MarlinSettings::reset() {
     anchor_D_z = float(ANCHOR_D_Z);
     delta_segments_per_second = KINEMATIC_SEGMENTS_PER_SECOND;
 
-  #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || ENABLED(Z_DUAL_ENDSTOPS)
+  #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || ENABLED(Z_DUAL_ENDSTOPS) || defined(BCN3D_MOD)
 
     #if ENABLED(X_DUAL_ENDSTOPS)
       endstops.x_endstop_adj = (
@@ -1881,7 +1881,7 @@ void MarlinSettings::reset() {
         #endif
       );
     #endif
-    #if ENABLED(Z_DUAL_ENDSTOPS)
+    #if ENABLED(Z_DUAL_ENDSTOPS) || defined(BCN3D_MOD)
       endstops.z_endstop_adj = (
         #ifdef Z_DUAL_ENDSTOPS_ADJUSTMENT
           Z_DUAL_ENDSTOPS_ADJUSTMENT
@@ -2390,7 +2390,7 @@ void MarlinSettings::reset() {
       SERIAL_ECHOPAIR(" S", delta_segments_per_second);
       SERIAL_EOL();
 
-    #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || ENABLED(Z_DUAL_ENDSTOPS)
+    #elif ENABLED(X_DUAL_ENDSTOPS) || ENABLED(Y_DUAL_ENDSTOPS) || ENABLED(Z_DUAL_ENDSTOPS) || defined(BCN3D_MOD)
 
       if (!forReplay) {
         CONFIG_ECHO_START;
@@ -2404,7 +2404,7 @@ void MarlinSettings::reset() {
       #if ENABLED(Y_DUAL_ENDSTOPS)
         SERIAL_ECHOPAIR(" Y", LINEAR_UNIT(endstops.y_endstop_adj));
       #endif
-      #if ENABLED(Z_DUAL_ENDSTOPS)
+      #if ENABLED(Z_DUAL_ENDSTOPS) || defined(BCN3D_MOD)
         SERIAL_ECHOPAIR(" Z", LINEAR_UNIT(endstops.z_endstop_adj));
       #endif
       SERIAL_EOL();

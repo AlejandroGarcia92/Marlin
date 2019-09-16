@@ -60,7 +60,7 @@ Endstops::esbits_t Endstops::live_state = 0;
 #if ENABLED(Y_DUAL_ENDSTOPS)
   float Endstops::y_endstop_adj;
 #endif
-#if ENABLED(Z_DUAL_ENDSTOPS)
+#if ENABLED(Z_DUAL_ENDSTOPS) || defined(BCN3D_MOD)
   float Endstops::z_endstop_adj;
 #endif
 
@@ -499,6 +499,11 @@ void Endstops::update() {
       #endif
     #elif ENABLED(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
       UPDATE_ENDSTOP_BIT(Z, MIN);
+	  #if HAS_Z2_MIN && defined(BCN3D_MOD)
+	  UPDATE_ENDSTOP_BIT(Z2, MIN);
+	  #else
+	  COPY_LIVE_STATE(Z_MIN, Z2_MIN);
+	  #endif
     #elif Z_HOME_DIR < 0
       UPDATE_ENDSTOP_BIT(Z, MIN);
     #endif
@@ -563,11 +568,11 @@ void Endstops::update() {
 
   // Call the endstop triggered routine for dual endstops
   #define PROCESS_DUAL_ENDSTOP(AXIS1, AXIS2, MINMAX) do { \
-    const byte dual_hit = TEST_ENDSTOP(_ENDSTOP(AXIS1, MINMAX)) | (TEST_ENDSTOP(_ENDSTOP(AXIS2, MINMAX)) << 1); \
+    const byte dual_hit = TEST_ENDSTOP(_ENDSTOP(AXIS1, MINMAX)) | TEST_ENDSTOP(_ENDSTOP(AXIS2, MINMAX)); \
     if (dual_hit) { \
       _ENDSTOP_HIT(AXIS1, MINMAX); \
       /* if not performing home or if both endstops were trigged during homing... */ \
-      if (!stepper.homing_dual_axis || dual_hit == 0b11) \
+      /*if (!stepper.homing_dual_axis || dual_hit == 0b11) */ \
         planner.endstop_triggered(_AXIS(AXIS1)); \
     } \
   }while(0)
@@ -634,7 +639,12 @@ void Endstops::update() {
           PROCESS_DUAL_ENDSTOP(Z, Z2, MIN);
         #else
           #if ENABLED(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
-            if (z_probe_enabled) PROCESS_ENDSTOP(Z, MIN);
+			#if defined(BCN3D_MOD) && HAS_Z2_MIN
+			if (z_probe_enabled) PROCESS_DUAL_ENDSTOP(Z, Z2, MIN);
+			#else
+			if (z_probe_enabled) PROCESS_ENDSTOP(Z, MIN);
+			#endif
+            
           #elif ENABLED(Z_MIN_PROBE_ENDSTOP)
             if (!z_probe_enabled) PROCESS_ENDSTOP(Z, MIN);
           #else
