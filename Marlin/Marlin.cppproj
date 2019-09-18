@@ -392,6 +392,9 @@
     <Compile Include="I2CPositionEncoder.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="bcn3dcfg_adv.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="language.h">
       <SubType>compile</SubType>
     </Compile>

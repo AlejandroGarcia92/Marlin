@@ -348,8 +348,8 @@ void home_all_axes();
 #if defined(BCN3D_MOD)
 void home_axis_from_code(bool x_c, bool y_c, bool z_c);
 void dual_mode_z_adjust_raft(void);
-void dual_mode_duplication_extruder_parked(void);
-void dual_mode_mirror_extruder_parked(void);
+void dual_mode_duplication_extruder_parked(bool skip = true);
+void dual_mode_mirror_extruder_parked(bool skip = true);
 void dual_mode_duplication_extruder_parked_purge(void);
 #endif
 
