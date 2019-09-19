@@ -373,6 +373,11 @@
   float coordinate_system[MAX_COORDINATE_SYSTEMS][XYZ];
 #endif
 
+#if defined(BCN3D_MOD)
+#include "FRS_Monitoring.h"
+#include "Door_Monitoring.h"
+#endif
+
 bool Running = true;
 
 uint8_t marlin_debug_flags = DEBUG_NONE;
@@ -13366,10 +13371,8 @@ inline void gcode_M999() {
 }
 
 inline void gcode_M1010(){
-	SERIAL_PROTOCOLPGM("Pin Status endstop 0");
-	SERIAL_PROTOCOLLN(READ(Z_MIN_PIN));
-	SERIAL_PROTOCOLPGM("Pin Status endstop 1");
-	SERIAL_PROTOCOLLN(READ(Z2_MIN_PIN));
+	FRS_Monitoring::report();
+	Door_Monitoring::report();
 }
 
 #if DO_SWITCH_EXTRUDER
@@ -15597,7 +15600,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 							planner.synchronize();
 							dual_mode_duplication_extruder_parked_purge();
 							//DUAL PROTOCOL
-							dual_mode_duplication_extruder_parked();/*true*/
+							dual_mode_duplication_extruder_parked(true);/*true*/
 							Flag_Raft_Dual_Mode_On = true;
 							
 							current_position[E_AXIS] = -(RETRACT_PRINTER_FACTOR);
@@ -15631,7 +15634,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 							dual_mode_duplication_extruder_parked_purge();
 							//DUAL PROTOCOL
 							current_position[X_AXIS] = 0.0;
-							dual_mode_duplication_extruder_parked();/*true*/
+							dual_mode_duplication_extruder_parked(true);/*true*/
 							Flag_Raft_Dual_Mode_On = true;
 							current_position[E_AXIS] = -(RETRACT_PRINTER_FACTOR);
 							planner.set_e_position_mm(current_position[E_AXIS]);
@@ -15690,7 +15693,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 							planner.synchronize();
 							dual_mode_duplication_extruder_parked_purge();
 							//DUAL PROTOCOL
-							dual_mode_mirror_extruder_parked();/*true*/
+							dual_mode_mirror_extruder_parked(true);/*true*/
 							Flag_Raft_Dual_Mode_On = true;
 							current_position[E_AXIS] = -(RETRACT_PRINTER_FACTOR);
 							planner.set_e_position_mm(current_position[E_AXIS]);
@@ -15727,7 +15730,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 							dual_mode_duplication_extruder_parked_purge();
 							current_position[X_AXIS] = x_home_pos(0);
 							//DUAL PROTOCOL
-							dual_mode_mirror_extruder_parked();/*true*/
+							dual_mode_mirror_extruder_parked(true);/*true*/
 							Flag_Raft_Dual_Mode_On = true;
 							current_position[E_AXIS] = -(RETRACT_PRINTER_FACTOR);
 							planner.set_e_position_mm(current_position[E_AXIS]);
@@ -15775,7 +15778,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 		}
 		
 	}
-	void dual_mode_duplication_extruder_parked(bool skip = true){
+	void dual_mode_duplication_extruder_parked(bool skip){
 
 		// move duplicate extruder into correct duplication position.
 		
@@ -15814,7 +15817,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 		}
 		SERIAL_PROTOCOLLNPGM("Dupli Mode ON");
 	}
-	void dual_mode_mirror_extruder_parked(bool skip = true){
+	void dual_mode_mirror_extruder_parked(bool skip){
 		SYNC_PLAN_POSITION_KINEMATIC();
 		if(!skip){
 			if(hotend_offset[Z_AXIS][1]>0.0  && Flag_Raft_Dual_Mode_On){
@@ -16373,6 +16376,11 @@ void manage_inactivity(const bool ignore_stepper_queue/*=false*/) {
   #if ENABLED(FILAMENT_RUNOUT_SENSOR)
     runout.run();
   #endif
+  
+  #if defined(BCN3D_MOD)
+	frs_monitor.run();
+	door_monitor.run();
+  #endif
 
   if (commands_in_queue < BUFSIZE) get_available_commands();
 
@@ -16706,6 +16714,10 @@ void setup() {
 
   #if ENABLED(FILAMENT_RUNOUT_SENSOR)
     runout.setup();
+  #endif
+  #if defined(BCN3D_MOD)
+	frs_monitor.setup();
+	door_monitor.setup();
   #endif
 
   setup_killpin();

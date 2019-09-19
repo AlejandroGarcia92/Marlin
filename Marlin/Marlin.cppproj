@@ -326,6 +326,12 @@
     <Compile Include="dogm_font_data_Marlin_symbols.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="Door_Monitoring.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Door_Monitoring.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="drivers.h">
       <SubType>compile</SubType>
     </Compile>
@@ -366,6 +372,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="fastio_AT90USB.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="FRS_Monitoring.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="FRS_Monitoring.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="fwretract.cpp">
