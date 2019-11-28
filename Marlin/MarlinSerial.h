@@ -125,6 +125,10 @@
       static ring_buffer_pos_t available(void);
       static void write(const uint8_t c);
       static void flushTX(void);
+	  
+	  #if defined(BCN3D_MOD)
+	  static void clear_buffer();	  
+	  #endif
 
       #if ENABLED(SERIAL_STATS_DROPPED_RX)
         FORCE_INLINE static uint32_t dropped() { return rx_dropped_bytes; }

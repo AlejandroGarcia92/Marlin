@@ -415,6 +415,12 @@
     CBI(M_UCSRxB, M_RXCIEx);
     CBI(M_UCSRxB, M_UDRIEx);
   }
+  
+  #if defined(BCN3D_MOD)
+  void MarlinSerial::clear_buffer() {
+	  memset(rx_buffer.buffer, ';', sizeof(rx_buffer.buffer));
+  }
+  #endif
 
   int MarlinSerial::peek(void) {
     const ring_buffer_pos_t h = atomic_read_rx_head(), t = rx_buffer.tail;

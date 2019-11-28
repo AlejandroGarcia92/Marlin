@@ -265,6 +265,7 @@ class Temperature {
     #if HAS_TEMP_CHAMBER
       static uint16_t raw_temp_chamber_value;
       static float current_temperature_chamber;
+	  static int16_t target_temperature_chamber;
       static int16_t current_temperature_chamber_raw;
     #endif
 
@@ -469,6 +470,18 @@ class Temperature {
         FORCE_INLINE static int16_t rawChamberTemp() { return current_temperature_chamber_raw; }
       #endif
       FORCE_INLINE static float degChamber() { return current_temperature_chamber; }
+	  FORCE_INLINE static float degTargetChamber() { return target_temperature_chamber; }
+	#if defined(BCN3D_MOD)
+	static void setTargetChamber(const int16_t celsius) {
+		target_temperature_chamber =
+		#ifdef BED_MAXTEMP
+		MIN(celsius, BED_MAXTEMP)
+		#else
+		celsius
+		#endif
+		;
+	}
+	#endif
     #endif
 
     FORCE_INLINE static bool wait_for_heating(const uint8_t e) {

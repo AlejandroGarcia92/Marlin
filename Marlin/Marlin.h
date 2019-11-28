@@ -55,10 +55,12 @@ void manage_inactivity(const bool ignore_stepper_queue=false);
 extern const char axis_codes[XYZE];
 
 #if ENABLED(DUAL_X_CARRIAGE) || ENABLED(DUAL_NOZZLE_DUPLICATION_MODE)
-  extern bool extruder_duplication_enabled;
-  #if defined(BCN3D_MOD)
-  extern bool extruder_mirror_enabled;
-  #endif
+  enum motordriver_mode {
+	  motordefault,
+	  motorduplication, // Used in Dual X mode 2
+	  motormirror // Used in Dual X mode 4
+  };
+  extern motordriver_mode motorMode;
 #endif
 
 #if HAS_X2_ENABLE
@@ -227,6 +229,8 @@ void ok_to_send();
 void kill(const char*);
 
 void quickstop_stepper();
+void dropSeriabuffer();
+void execPauseFromSerial();
 
 extern uint8_t marlin_debug_flags;
 #define DEBUGGING(F) (marlin_debug_flags & (DEBUG_## F))

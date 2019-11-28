@@ -75,8 +75,8 @@
  * THERMAL_PROTECTION_HYSTERESIS and/or THERMAL_PROTECTION_PERIOD
  */
 #if ENABLED(THERMAL_PROTECTION_HOTENDS)
-  #define THERMAL_PROTECTION_PERIOD 40        // Seconds
-  #define THERMAL_PROTECTION_HYSTERESIS 4     // Degrees Celsius
+  #define THERMAL_PROTECTION_PERIOD 120        // Seconds
+  #define THERMAL_PROTECTION_HYSTERESIS 20     // Degrees Celsius
 
   /**
    * Whenever an M104, M109, or M303 increases the target temperature, the
@@ -90,16 +90,16 @@
    * and/or decrease WATCH_TEMP_INCREASE. WATCH_TEMP_INCREASE should not be set
    * below 2.
    */
-  #define WATCH_TEMP_PERIOD 20                // Seconds
-  #define WATCH_TEMP_INCREASE 2               // Degrees Celsius
+  #define WATCH_TEMP_PERIOD 30                // Seconds
+  #define WATCH_TEMP_INCREASE 10               // Degrees Celsius
 #endif
 
 /**
  * Thermal Protection parameters for the bed are just as above for hotends.
  */
 #if ENABLED(THERMAL_PROTECTION_BED)
-  #define THERMAL_PROTECTION_BED_PERIOD 20    // Seconds
-  #define THERMAL_PROTECTION_BED_HYSTERESIS 2 // Degrees Celsius
+  #define THERMAL_PROTECTION_BED_PERIOD 1200    // Seconds
+  #define THERMAL_PROTECTION_BED_HYSTERESIS 20 // Degrees Celsius
 
   /**
    * As described above, except for the bed (M140/M190/M303).
@@ -158,7 +158,7 @@
 
 // The number of consecutive low temperature errors that can occur
 // before a min_temp_error is triggered. (Shouldn't be more than 10.)
-//#define MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED 0
+#define MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED 4
 
 // The number of milliseconds a hotend will preheat before starting to check
 // the temperature. This value should NOT be set to the time it takes the
@@ -242,8 +242,9 @@
 #define E2_AUTO_FAN_PIN -1
 #define E3_AUTO_FAN_PIN -1
 #define E4_AUTO_FAN_PIN -1
-#define CHAMBER_AUTO_FAN_PIN -1
+//#define CHAMBER_AUTO_FAN_PIN -1
 #define EXTRUDER_AUTO_FAN_TEMPERATURE 50
+#define CHAMBER_AUTO_FAN_TEMPERATURE 50
 #define EXTRUDER_AUTO_FAN_SPEED   255  // == full speed
 
 /**
@@ -346,8 +347,8 @@
   #define X1_MIN_POS X_MIN_POS  // set minimum to ensure first x-carriage doesn't hit the parked second X-carriage
   //#define X1_MAX_POS X_BED_SIZE // set maximum to ensure first x-carriage doesn't hit the parked second X-carriage
   #define X1_MAX_POS X_MAX_POS // set maximum to ensure first x-carriage doesn't hit the parked second X-carriage
-  #define X2_MIN_POS 50    // set minimum to ensure second x-carriage doesn't hit the parked first X-carriage
-  #define X2_MAX_POS 305    // set maximum to the distance between toolheads when both heads are homed
+  #define X2_MIN_POS -2    // set minimum to ensure second x-carriage doesn't hit the parked first X-carriage
+  #define X2_MAX_POS (X_BED_SIZE - (X_MIN_POS + BED_OFFSET_X * 2.0))    // set maximum to the distance between toolheads when both heads are homed (523.0 = 53.5  + 420.0 + 49.5)
   #define X2_HOME_DIR 1     // the second X-carriage always homes to the maximum endstop position
   #define X2_HOME_POS X2_MAX_POS // default home position is the maximum carriage position
       // However: In this mode the HOTEND_OFFSET_X value for the second extruder provides a software
@@ -374,11 +375,14 @@
   #define DEFAULT_DUAL_X_CARRIAGE_MODE DXC_FULL_SIGMA_MODE
 
   // Default settings in "Auto-park Mode"
-  #define TOOLCHANGE_PARK_ZLIFT   0.2      // the distance to raise Z axis when parking an extruder
-  #define TOOLCHANGE_UNPARK_ZLIFT 1        // the distance to raise Z axis when unparking an extruder
+  #define TOOLCHANGE_PARK_ZLIFT   0      // the distance to raise Z axis when parking an extruder
+  #define TOOLCHANGE_UNPARK_ZLIFT 0        // the distance to raise Z axis when unparking an extruder
 
   // Default x offset in duplication mode (typically set to half print bed width)
-  #define DEFAULT_DUPLICATION_X_OFFSET 100
+  #ifndef BCN3D_MOD
+  //#define DEFAULT_DUPLICATION_X_OFFSET 100
+  #endif
+  
 
 #endif // DUAL_X_CARRIAGE
 
@@ -391,7 +395,7 @@
 // Homing hits each endstop, retracts by these distances, then does a slower bump.
 #define X_HOME_BUMP_MM 2
 #define Y_HOME_BUMP_MM 2
-#define Z_HOME_BUMP_MM 1
+#define Z_HOME_BUMP_MM 2
 #define HOMING_BUMP_DIVISOR { 2, 2, 4 }  // Re-Bump Speed Divisor (Divides the Homing Feedrate)
 //#define QUICK_HOME                     // If homing includes X and Y, do a diagonal move initially
 
@@ -417,7 +421,7 @@
 // Default stepper release if idle. Set to 0 to deactivate.
 // Steppers will shut down DEFAULT_STEPPER_DEACTIVE_TIME seconds after the last move when DISABLE_INACTIVE_? is true.
 // Time can be set by M18 and M84.
-#define DEFAULT_STEPPER_DEACTIVE_TIME 120
+#define DEFAULT_STEPPER_DEACTIVE_TIME 0
 #define DISABLE_INACTIVE_X true
 #define DISABLE_INACTIVE_Y true
 #define DISABLE_INACTIVE_Z true  // set to false if the nozzle will fall down on your printed part when print has finished.
@@ -802,7 +806,7 @@
 //
 // G2/G3 Arc Support
 //
-#define ARC_SUPPORT               // Disable this feature to save ~3226 bytes
+//#define ARC_SUPPORT               // Disable this feature to save ~3226 bytes
 #if ENABLED(ARC_SUPPORT)
   #define MM_PER_ARC_SEGMENT  1   // Length of each arc segment
   #define N_ARC_CORRECTION   25   // Number of intertpolated segments between corrections
@@ -924,7 +928,7 @@
 // enter the serial receive buffer, so they cannot be blocked.
 // Currently handles M108, M112, M410
 // Does not work on boards using AT90USB (USBCON) processors!
-//#define EMERGENCY_PARSER
+#define EMERGENCY_PARSER
 
 // Bad Serial-connections can miss a received command by sending an 'ok'
 // Therefore some clients abort after 30 seconds in a timeout.
@@ -1472,7 +1476,7 @@
  *  - M206 and M428 are disabled.
  *  - G92 will revert to its behavior from Marlin 1.0.
  */
-//#define NO_WORKSPACE_OFFSETS
+#define NO_WORKSPACE_OFFSETS
 
 /**
  * Set the number of proportional font spaces required to fill up a typical character space.

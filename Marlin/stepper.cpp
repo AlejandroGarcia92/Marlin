@@ -221,11 +221,11 @@ int8_t Stepper::count_direction[NUM_AXIS] = {
 #elif ENABLED(DUAL_X_CARRIAGE)
 	#if defined(BCN3D_MOD)
 #define X_APPLY_DIR(v,ALWAYS) \
-	if (extruder_duplication_enabled || extruder_mirror_enabled || ALWAYS) { \
+	if (motorMode != motordriver_mode::motordefault || ALWAYS) { \
 		X_DIR_WRITE(v); \
-		if(extruder_duplication_enabled){ \
+		if(motorMode == motordriver_mode::motorduplication){ \
 			X2_DIR_WRITE(v); \
-		}else if(extruder_mirror_enabled){ \
+		}else if(motorMode == motordriver_mode::motormirror){ \
 			X2_DIR_WRITE(!v); \
 		} \
 	} \
@@ -233,7 +233,7 @@ int8_t Stepper::count_direction[NUM_AXIS] = {
 		if (movement_extruder()) X2_DIR_WRITE(v); else X_DIR_WRITE(v); \
 	}
 	#define X_APPLY_STEP(v,ALWAYS) \
-	if (extruder_duplication_enabled || extruder_mirror_enabled || ALWAYS) { \
+	if (motorMode != motordriver_mode::motordefault || ALWAYS) { \
 		X_STEP_WRITE(v); \
 		X2_STEP_WRITE(v); \
 	} \
@@ -242,7 +242,7 @@ int8_t Stepper::count_direction[NUM_AXIS] = {
 	}	
 	#else
   #define X_APPLY_DIR(v,ALWAYS) \
-    if (extruder_duplication_enabled || ALWAYS) { \
+    if (motorMode == motordriver_mode::motorduplication || ALWAYS) { \
       X_DIR_WRITE(v); \
       X2_DIR_WRITE(v); \
     } \
@@ -250,7 +250,7 @@ int8_t Stepper::count_direction[NUM_AXIS] = {
       if (movement_extruder()) X2_DIR_WRITE(v); else X_DIR_WRITE(v); \
     }
   #define X_APPLY_STEP(v,ALWAYS) \
-    if (extruder_duplication_enabled || ALWAYS) { \
+    if (motorMode == motordriver_mode::motorduplication || ALWAYS) { \
       X_STEP_WRITE(v); \
       X2_STEP_WRITE(v); \
     } \
@@ -2080,7 +2080,7 @@ void Stepper::init() {
   #endif
 
   // Init Stepper ISR to 122 Hz for quick starting
-  HAL_timer_start(STEP_TIMER_NUM, 122); // OCR1A = 0x4000
+  HAL_timer_start(STEP_TIMER_NUM, 122); // OCR3A = 0x4000
 
   ENABLE_STEPPER_DRIVER_INTERRUPT();
 

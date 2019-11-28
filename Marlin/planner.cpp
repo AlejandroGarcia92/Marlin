@@ -81,6 +81,10 @@
   #include "power.h"
 #endif
 
+#if defined(BCN3D_MOD)
+  #include "printerStats.h"
+#endif
+
 // Delay for delivery of first block to the stepper ISR, if the queue contains 2 or
 // fewer movements. The delay is measured in milliseconds, and must be less than 250ms
 #define BLOCK_DELAY_FOR_1ST_MOVE 100
@@ -1273,11 +1277,13 @@ void Planner::check_axes_activity() {
       #endif
       #if HAS_FAN1
 		#if defined(BCN3D_MOD)
-		if(extruder_duplication_enabled || extruder_mirror_enabled){
+		if(motorMode != motordriver_mode::motordefault){
 			thermalManager.soft_pwm_amount_fan[1] = CALC_FAN_SPEED(0);
 		}else{
 			thermalManager.soft_pwm_amount_fan[1] = CALC_FAN_SPEED(1);
 		}
+		#else
+		thermalManager.soft_pwm_amount_fan[1] = CALC_FAN_SPEED(1);
 		#endif        
       #endif
       #if HAS_FAN2
@@ -1289,12 +1295,15 @@ void Planner::check_axes_activity() {
       #endif
       #if HAS_FAN1
 		#if defined(BCN3D_MOD)
-		if(extruder_duplication_enabled || extruder_mirror_enabled){
+		if(motorMode != motordriver_mode::motordefault){
 			analogWrite(FAN1_PIN, CALC_FAN_SPEED(0));
 			}else{
 			analogWrite(FAN1_PIN, CALC_FAN_SPEED(1));
 		}
+		#else
+		analogWrite(FAN1_PIN, CALC_FAN_SPEED(1));
 		#endif
+		
       #endif
       #if HAS_FAN2
         analogWrite(FAN2_PIN, CALC_FAN_SPEED(2));
@@ -1871,12 +1880,12 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
           g_uc_extruder_last_move[0] = (BLOCK_BUFFER_SIZE) * 2;
           #if ENABLED(DUAL_X_CARRIAGE) || ENABLED(DUAL_NOZZLE_DUPLICATION_MODE)
 			#if defined(BCN3D_MOD)
-			if (extruder_duplication_enabled || extruder_mirror_enabled) {
+			if (motorMode != motordriver_mode::motordefault) {
 				enable_E1();
 				g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
 			}
 			#else			
-            if (extruder_duplication_enabled) {
+            if (motorMode != motordriver_mode::motordefault) {
               enable_E1();
               g_uc_extruder_last_move[1] = (BLOCK_BUFFER_SIZE) * 2;
             }
@@ -2606,6 +2615,9 @@ bool Planner::buffer_segment(const float &a, const float &b, const float &c
       #endif
     }
   }
+  #if defined(BCN3D_MOD)
+  LOOP_XYZE(i) printerStats.update(static_cast<AxisEnum>(i), abs((target[i] - position[i]) / axis_steps_per_mm[i]), extruder);  
+  #endif
 
   /* <-- add a slash to enable
     SERIAL_ECHOPAIR("  buffer_segment FR:", fr_mm_s);

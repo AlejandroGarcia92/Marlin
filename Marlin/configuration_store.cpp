@@ -2259,7 +2259,9 @@ void MarlinSettings::reset() {
         SERIAL_ECHOPAIR(" X", LINEAR_UNIT(hotend_offset[X_AXIS][e]));
         SERIAL_ECHOPAIR(" Y", LINEAR_UNIT(hotend_offset[Y_AXIS][e]));
         #if HAS_HOTEND_OFFSET_Z
-          SERIAL_ECHOPAIR(" Z", LINEAR_UNIT(hotend_offset[Z_AXIS][e]));
+          //SERIAL_ECHOPAIR(" Z", LINEAR_UNIT(hotend_offset[Z_AXIS][e]));
+		  SERIAL_ECHOPGM(" Z");
+		  MYSERIAL0.println(LINEAR_UNIT(hotend_offset[Z_AXIS][e]), 3);
         #endif
         SERIAL_EOL();
       }
@@ -2522,7 +2524,9 @@ void MarlinSettings::reset() {
         say_units(true);
       }
       CONFIG_ECHO_START;
-      SERIAL_ECHOLNPAIR("  M851 Z", LINEAR_UNIT(zprobe_zoffset));
+      //SERIAL_ECHOLNPAIR("  M851 Z", LINEAR_UNIT(zprobe_zoffset));
+	  SERIAL_ECHOPGM("  M851 Z");
+	  MYSERIAL0.println(LINEAR_UNIT(zprobe_zoffset),3);
     #endif
 
     /**

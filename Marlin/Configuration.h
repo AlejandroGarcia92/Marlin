@@ -39,6 +39,19 @@
 #define CONFIGURATION_H
 #define CONFIGURATION_H_VERSION 010109
 
+//BCN3D start
+
+#define BCN3D_PRINTER_IS_SIGMA	 	020
+#define BCN3D_PRINTER_IS_EPSILON	040
+
+#define TEST_TRULLAS
+
+#ifndef BCN3D_PRINTER_SETUP
+	#define BCN3D_PRINTER_SETUP BCN3D_PRINTER_IS_EPSILON
+#endif
+
+//BCN3D end
+
 //===========================================================================
 //============================= Getting Started =============================
 //===========================================================================
@@ -81,7 +94,7 @@
 // User-specified version info of this build to display in [Pronterface, etc] terminal window during
 // startup. Implementation of an idea by Prof Braino to inform user that any changes made to this
 // build by the user have been successfully uploaded into firmware.
-#define STRING_CONFIG_H_AUTHOR "(none, default config)" // Who made the changes.
+#define STRING_CONFIG_H_AUTHOR "(Alejandro G, Saiyan config)" // Who made the changes.
 #define SHOW_BOOTSCREEN
 #define STRING_SPLASH_LINE1 SHORT_BUILD_VERSION // will be shown during bootup in line 1
 #define STRING_SPLASH_LINE2 WEBSITE_URL         // will be shown during bootup in line 2
@@ -132,7 +145,6 @@
 // Please choose the name from boards.h that matches your setup
 #ifndef MOTHERBOARD
   #define MOTHERBOARD BOARD_BCN3D_ELEC
-  //#define  MOTHERBOARD BOARD_ULTIMAKER
 #endif
 
 // Optional custom name for your RepStrap or other custom machine
@@ -225,8 +237,8 @@
 // Offset of the extruders (uncomment if using more than one and relying on firmware to position when changing).
 // The offset has to be X=0, Y=0 for the extruder 0 hotend (default extruder).
 // For the other hotends it is their distance from the extruder 0 hotend.
-//#define HOTEND_OFFSET_X {0.0, 20.00} // (in mm) for each extruder, offset of the hotend on the X axis
-//#define HOTEND_OFFSET_Y {0.0, 5.00}  // (in mm) for each extruder, offset of the hotend on the Y axis
+#define HOTEND_OFFSET_X {0.0, X2_HOME_POS} // (in mm) for each extruder, offset of the hotend on the X axis
+#define HOTEND_OFFSET_Y {0.0, 0.0}  // (in mm) for each extruder, offset of the hotend on the Y axis
 
 // @section machine
 
@@ -316,8 +328,13 @@
 #define TEMP_SENSOR_2 0
 #define TEMP_SENSOR_3 0
 #define TEMP_SENSOR_4 0
-#define TEMP_SENSOR_BED 1
-#define TEMP_SENSOR_CHAMBER 0
+#ifdef TEST_TRULLAS
+#define TEMP_SENSOR_BED 1047 // for PT1000
+#else
+#define TEMP_SENSOR_BED 1    // for NTC 100k
+#endif
+
+#define TEMP_SENSOR_CHAMBER 1
 
 // Dummy thermistor constant temperature readings, for use with 998 and 999
 #define DUMMY_THERMISTOR_998_VALUE 25
@@ -329,12 +346,12 @@
 #define MAX_REDUNDANT_TEMP_SENSOR_DIFF 10
 
 // Extruder temperature must be close to target for this long before M109 returns success
-#define TEMP_RESIDENCY_TIME 10  // (seconds)
-#define TEMP_HYSTERESIS 3       // (degC) range of +/- temperatures considered "close" to the target one
+#define TEMP_RESIDENCY_TIME 2   // (seconds)
+#define TEMP_HYSTERESIS 7       // (degC) range of +/- temperatures considered "close" to the target one
 #define TEMP_WINDOW     1       // (degC) Window around target to start the residency timer x degC early.
 
 // Bed temperature must be close to target for this long before M190 returns success
-#define TEMP_BED_RESIDENCY_TIME 10  // (seconds)
+#define TEMP_BED_RESIDENCY_TIME 2   // (seconds)
 #define TEMP_BED_HYSTERESIS 3       // (degC) range of +/- temperatures considered "close" to the target one
 #define TEMP_BED_WINDOW     1       // (degC) Window around target to start the residency timer x degC early.
 
@@ -351,11 +368,11 @@
 // When temperature exceeds max temp, your heater will be switched off.
 // This feature exists to protect your hotend from overheating accidentally, but *NOT* from thermistor short/failure!
 // You should use MINTEMP for thermistor short/failure protection.
-#define HEATER_0_MAXTEMP 275
-#define HEATER_1_MAXTEMP 275
-#define HEATER_2_MAXTEMP 275
-#define HEATER_3_MAXTEMP 275
-#define HEATER_4_MAXTEMP 275
+#define HEATER_0_MAXTEMP 295
+#define HEATER_1_MAXTEMP 295
+#define HEATER_2_MAXTEMP 295
+#define HEATER_3_MAXTEMP 295
+#define HEATER_4_MAXTEMP 295
 #define BED_MAXTEMP 150
 
 //===========================================================================
@@ -373,7 +390,7 @@
   //#define PID_DEBUG // Sends debug data to the serial port.
   //#define PID_OPENLOOP 1 // Puts PID in open loop. M104/M140 sets the output power from 0 to PID_MAX
   //#define SLOW_PWM_HEATERS // PWM with very low frequency (roughly 0.125Hz=8s) and minimum state time of approximately 1s useful for heaters driven by a relay
-  //#define PID_PARAMS_PER_HOTEND // Uses separate PID parameters for each extruder (useful for mismatched extruders)
+  #define PID_PARAMS_PER_HOTEND // Uses separate PID parameters for each extruder (useful for mismatched extruders)
                                   // Set/get with gcode: M301 E[extruder number, 0-2]
   #define PID_FUNCTIONAL_RANGE 10 // If the temperature difference between the target temperature and the actual temperature
                                   // is more than PID_FUNCTIONAL_RANGE then the PID will be shut off and the heater will be set to min/max.
@@ -493,7 +510,7 @@
  */
 
 #define THERMAL_PROTECTION_HOTENDS // Enable thermal protection for all extruders
-//#define THERMAL_PROTECTION_BED     // Enable thermal protection for the heated bed
+#define THERMAL_PROTECTION_BED     // Enable thermal protection for the heated bed
 
 //===========================================================================
 //============================= Mechanical Settings =========================
@@ -627,7 +644,7 @@
  * Override with M203
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4]]]]
  */
-#define DEFAULT_MAX_FEEDRATE          {	200, 200, 12, 40}
+#define DEFAULT_MAX_FEEDRATE          {	180, 180, 10, 45}
 
 /**
  * Default Max Acceleration (change/s) change = mm/s
@@ -635,7 +652,7 @@
  * Override with M201
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4]]]]
  */
-#define DEFAULT_MAX_ACCELERATION      { 2250, 2250, 80, 40 }
+#define DEFAULT_MAX_ACCELERATION      { 800, 800, 10, 600 }
 
 /**
  * Default Acceleration (change/s) change = mm/s
@@ -645,9 +662,9 @@
  *   M204 R    Retract Acceleration
  *   M204 T    Travel Acceleration
  */
-#define DEFAULT_ACCELERATION          2000    // X, Y, Z and E acceleration for printing moves
-#define DEFAULT_RETRACT_ACCELERATION  2000    // E acceleration for retracts
-#define DEFAULT_TRAVEL_ACCELERATION   2000    // X, Y, Z acceleration for travel (non printing) moves
+#define DEFAULT_ACCELERATION          600    // X, Y, Z and E acceleration for printing moves
+#define DEFAULT_RETRACT_ACCELERATION  600    // E acceleration for retracts
+#define DEFAULT_TRAVEL_ACCELERATION   800    // X, Y, Z acceleration for travel (non printing) moves
 
 /**
  * Default Jerk (mm/s)
@@ -659,8 +676,8 @@
  */
 #define DEFAULT_XJERK                 5.0
 #define DEFAULT_YJERK                 5.0
-#define DEFAULT_ZJERK                  0.4
-#define DEFAULT_EJERK                  5.0
+#define DEFAULT_ZJERK                 0.4
+#define DEFAULT_EJERK                 5.0
 
 /**
  * S-Curve Acceleration
@@ -790,14 +807,14 @@
  */
 #define X_PROBE_OFFSET_FROM_EXTRUDER 17  // X offset: -left  +right  [of the nozzle]
 #define Y_PROBE_OFFSET_FROM_EXTRUDER 22  // Y offset: -front +behind [the nozzle]
-#define Z_PROBE_OFFSET_FROM_EXTRUDER 2.8   // Z offset: -below +above  [the nozzle]
+#define Z_PROBE_OFFSET_FROM_EXTRUDER 4.8   // Z offset: -below +above  [the nozzle]
 
-#define X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER	-13
+#define X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER	-13.4
 #define Y_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER	22
 #define Z_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER	0//2.90
 
 // Certain types of probes need to stay away from edges
-#define MIN_PROBE_EDGE 0
+#define MIN_PROBE_EDGE -8
 
 // X and Y axis travel speed (mm/m) between probes
 #define XY_PROBE_SPEED 8000
@@ -827,12 +844,12 @@
  * Example: `M851 Z-5` with a CLEARANCE of 4  =>  9mm from bed to nozzle.
  *     But: `M851 Z+1` with a CLEARANCE of 2  =>  2mm from bed to nozzle.
  */
-#define Z_CLEARANCE_DEPLOY_PROBE   10 // Z Clearance for Deploy/Stow
-#define Z_CLEARANCE_BETWEEN_PROBES  5 // Z Clearance between probe points
+#define Z_CLEARANCE_DEPLOY_PROBE	7 // Z Clearance for Deploy/Stow
+#define Z_CLEARANCE_BETWEEN_PROBES	7 // Z Clearance between probe points
 #define Z_CLEARANCE_MULTI_PROBE     5 // Z Clearance between multiple probes
 #define Z_AFTER_PROBING				5 // Z position after probing is done
 
-#define Z_PROBE_LOW_POINT          -2 // Farthest distance below the trigger-point to go before stopping
+#define Z_PROBE_LOW_POINT          -5 // Farthest distance below the trigger-point to go before stopping
 
 // For M851 give a range for adjusting the Z probe offset
 #define Z_PROBE_OFFSET_RANGE_MIN -20
@@ -881,9 +898,9 @@
 
 //#define NO_MOTION_BEFORE_HOMING  // Inhibit movement until all axes have been homed
 
-//#define UNKNOWN_Z_NO_RAISE // Don't raise Z (lower the bed) if Z is "unknown." For beds that fall when Z is powered off.
+#define UNKNOWN_Z_NO_RAISE // Don't raise Z (lower the bed) if Z is "unknown." For beds that fall when Z is powered off.
 
-//#define Z_HOMING_HEIGHT 4  // (in mm) Minimal z height before homing (G28) for Z clearance above the bed, clamps, ...
+#define Z_HOMING_HEIGHT 7  // (in mm) Minimal z height before homing (G28) for Z clearance above the bed, clamps, ...
                              // Be sure you have this distance over your Z_MAX_POS in case.
 
 // Direction of endstops when homing; 1=MAX, -1=MIN
@@ -895,17 +912,35 @@
 // @section machine
 
 // The size of the print bed
-#define X_BED_SIZE 210
-#define Y_BED_SIZE 297
+#if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_SIGMA
+	#define X_BED_SIZE 210
+	#define Y_BED_SIZE 297
+#else
+	#define X_BED_SIZE 420
+	#define Y_BED_SIZE 300
+#endif
+
+
 
 // Travel limits (mm) after homing, corresponding to endstop positions.
-#define X_MIN_POS 0
-#define Y_MIN_POS 0
+#if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_SIGMA
+    #define BED_OFFSET_X	 0
+	#define X_MIN_POS		 -47
+#else
+	#define BED_OFFSET_X	 2
+	#define X_MIN_POS		 -51.5 - BED_OFFSET_X
+	//#define X_MIN_POS -51
+#endif
+#define Y_MIN_POS -1
 #define Z_MIN_POS 0
-//#define X_MAX_POS X_BED_SIZE
-#define X_MAX_POS 255
-#define Y_MAX_POS Y_BED_SIZE
-#define Z_MAX_POS 210
+#define X_MAX_POS (X_BED_SIZE + 2) 
+#define Y_MAX_POS Y_BED_SIZE + 1
+#if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_SIGMA
+	#define Z_MAX_POS 210
+#else
+	#define Z_MAX_POS 400//PRO
+#endif
+
 
 /**
  * Software Endstops
@@ -1007,7 +1042,7 @@
  * Turn on with the command 'M111 S32'.
  * NOTE: Requires a lot of PROGMEM!
  */
-#define DEBUG_LEVELING_FEATURE
+//#define DEBUG_LEVELING_FEATURE
 
 #if ENABLED(MESH_BED_LEVELING) || ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(AUTO_BED_LEVELING_UBL)
   // Gradually reduce leveling correction until a set height is reached,
@@ -1163,8 +1198,13 @@
 #if ENABLED(Z_SAFE_HOMING)
   //#define Z_SAFE_HOMING_X_POINT ((X_BED_SIZE) / 2)    // X point for Z homing when homing all axes (G28).
   //#define Z_SAFE_HOMING_Y_POINT ((Y_BED_SIZE) / 2)    // Y point for Z homing when homing all axes (G28).
-  #define Z_SAFE_HOMING_X_POINT 49    // X point for Z homing when homing all axes (G28).
-  #define Z_SAFE_HOMING_Y_POINT 147    // Y point for Z homing when homing all axes (G28).
+  #if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_EPSILON
+	  #define Z_SAFE_HOMING_X_POINT -4.5 - BED_OFFSET_X   // X point for Z homing when homing all axes (G28).
+	  #define Z_SAFE_HOMING_Y_POINT 150    // Y point for Z homing when homing all axes (G28).
+  #else
+	  #define Z_SAFE_HOMING_X_POINT 4   // X point for Z homing when homing all axes (G28).
+	  #define Z_SAFE_HOMING_Y_POINT 147    // Y point for Z homing when homing all axes (G28). 
+  #endif
 #endif
 
 // Homing speeds (mm/m)
@@ -1823,12 +1863,12 @@
 // @section extras
 
 // Increase the FAN PWM frequency. Removes the PWM noise but increases heating in the FET/Arduino
-//#define FAST_PWM_FAN
+#define FAST_PWM_FAN
 
 // Use software PWM to drive the fan, as for the heaters. This uses a very low frequency
 // which is not as annoying as with the hardware PWM. On the other hand, if this frequency
 // is too low, you should also increment SOFT_PWM_SCALE.
-//#define FAN_SOFT_PWM
+#define FAN_SOFT_PWM
 
 // Incrementing this by 1 will double the software PWM frequency,
 // affecting heaters, and the fan if FAN_SOFT_PWM is enabled.

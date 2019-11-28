@@ -21,13 +21,15 @@ class FRS_Monitoring {
 	static void report();
 		
 	FORCE_INLINE static void run() {
+		bool change = false;
 		for(uint8_t i=0;i<EXTRUDERS;i++){
 			bool newstate = check(i);
 			if(newstate != runout_state[i]){
 				runout_state[i]=newstate;
-				report();
+				change = true;
 			}			
-		}		
+		}
+		if(change) report();		
 	}
 	private:
 	static uint8_t runout_count[EXTRUDERS];

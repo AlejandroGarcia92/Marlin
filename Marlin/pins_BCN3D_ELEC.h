@@ -101,6 +101,13 @@
 //Layer Fans
 #define FAN_PIN			45
 #define	FAN1_PIN		6
+/*#define PIN_A10  (64)
+#define PIN_A11  (65)
+#define PIN_A12  (66)
+#define PIN_A13  (67)
+*/
+#define	CHAMBER_AUTO_FAN_PIN 66 // es A12
+//#define	CHAMBER_AUTO_FAN_PIN 6 // es A13
 //RGB LEDs
 #define GREEN			11
 #define	RED				12
@@ -118,6 +125,7 @@
 #define TEMP_1_PIN		8//63//A8
 #define TEMP_2_PIN		-1
 #define TEMP_BED_PIN	15//69//A15
+#define TEMP_CHAMBER_PIN 13// analoginput
 
 #define MLED			68//A14
 

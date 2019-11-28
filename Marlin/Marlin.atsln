@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Atmel Studio Solution File, Format Version 11.00
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{E66E83B9-2572-4076-B26E-6BE79FF3018A}") = "Marlin", "Marlin.cppproj", "{9CFC880A-B8B1-4BBD-8753-2268DEC03113}"
+Project("{E66E83B9-2572-4076-B26E-6BE79FF3018A}") = "Marlin", "Marlin.cppproj", "{15666C61-1335-4296-BBB0-D8A8268EBD5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +11,10 @@ Global
 		Release|AVR = Release|AVR
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9CFC880A-B8B1-4BBD-8753-2268DEC03113}.Debug|AVR.ActiveCfg = Debug|AVR
-		{9CFC880A-B8B1-4BBD-8753-2268DEC03113}.Debug|AVR.Build.0 = Debug|AVR
-		{9CFC880A-B8B1-4BBD-8753-2268DEC03113}.Release|AVR.ActiveCfg = Release|AVR
-		{9CFC880A-B8B1-4BBD-8753-2268DEC03113}.Release|AVR.Build.0 = Release|AVR
+		{15666C61-1335-4296-BBB0-D8A8268EBD5C}.Debug|AVR.ActiveCfg = Debug|AVR
+		{15666C61-1335-4296-BBB0-D8A8268EBD5C}.Debug|AVR.Build.0 = Debug|AVR
+		{15666C61-1335-4296-BBB0-D8A8268EBD5C}.Release|AVR.ActiveCfg = Release|AVR
+		{15666C61-1335-4296-BBB0-D8A8268EBD5C}.Release|AVR.Build.0 = Release|AVR
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

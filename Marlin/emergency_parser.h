@@ -30,6 +30,8 @@
 // External references
 extern volatile bool wait_for_user, wait_for_heatup;
 void quickstop_stepper();
+void dropSeriabuffer();
+void execPauseFromSerial();
 
 class EmergencyParser {
 
@@ -48,6 +50,12 @@ public:
     EP_M4,
     EP_M41,
     EP_M410,
+	EP_M5,
+	EP_M54,
+	EP_M541,
+	EP_M6,
+	EP_M66,
+	EP_M669,
     EP_IGNORE // to '\n'
   };
 
@@ -85,6 +93,8 @@ public:
           case ' ': break;
           case '1': state = EP_M1;     break;
           case '4': state = EP_M4;     break;
+		  case '5': state = EP_M5;     break;
+		  case '6': state = EP_M6;     break;
           default: state  = EP_IGNORE;
         }
         break;
@@ -112,6 +122,22 @@ public:
       case EP_M41:
         state = (c == '0') ? EP_M410 : EP_IGNORE;
         break;
+		
+	  case EP_M5:
+	    state = (c == '4') ? EP_M54 : EP_IGNORE;
+	    break;
+
+	  case EP_M54:
+	    state = (c == '1') ? EP_M541 : EP_IGNORE;
+	    break;
+		
+	  case EP_M6:
+		state = (c == '6') ? EP_M66 : EP_IGNORE;
+	  break;
+
+	  case EP_M66:
+		state = (c == '9') ? EP_M669 : EP_IGNORE;
+	  break;
 
       case EP_IGNORE:
         if (c == '\n') state = EP_RESET;
@@ -129,6 +155,11 @@ public:
             case EP_M410:
               quickstop_stepper();
               break;
+			case EP_M541:
+			  dropSeriabuffer();			  			  
+			  break;
+			case EP_M669:
+			  execPauseFromSerial();
             default:
               break;
           }

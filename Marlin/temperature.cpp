@@ -50,6 +50,10 @@
   #include "emergency_parser.h"
 #endif
 
+#if defined(BCN3D_MOD)
+  #include "chamberFanPWM.h"
+#endif
+
 #if HOTEND_USES_THERMISTOR
   #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
     static void* heater_ttbl_map[2] = { (void*)HEATER_0_TEMPTABLE, (void*)HEATER_1_TEMPTABLE };
@@ -127,7 +131,9 @@ int16_t Temperature::current_temperature_raw[HOTENDS] = { 0 },
 #endif // HAS_HEATED_BED
 
 #if HAS_TEMP_CHAMBER
+
   float Temperature::current_temperature_chamber = 0.0;
+  int16_t Temperature::target_temperature_chamber = CHAMBER_AUTO_FAN_TEMPERATURE;
   int16_t Temperature::current_temperature_chamber_raw = 0;
   uint16_t Temperature::raw_temp_chamber_value = 0;
 #endif
@@ -536,7 +542,7 @@ int Temperature::getHeaterPower(const int heater) {
         SBI(fanState, pgm_read_byte(&fanBit[e]));
 
     #if HAS_TEMP_CHAMBER
-      if (current_temperature_chamber > EXTRUDER_AUTO_FAN_TEMPERATURE)
+      if (current_temperature_chamber > target_temperature_chamber)
         SBI(fanState, pgm_read_byte(&fanBit[5]));
     #endif
 
@@ -556,8 +562,17 @@ int Temperature::getHeaterPower(const int heater) {
           autofan_speed[f] = newFanSpeed;
         #endif
         // this idiom allows both digital and PWM fan outputs (see M42 handling).
+		#ifdef BCN3D_MOD
+		if(pin !=CHAMBER_AUTO_FAN_PIN){
+			digitalWrite(pin, newFanSpeed);
+			analogWrite(pin, newFanSpeed);
+		}else{
+			chamberFanPWM.setDuty(newFanSpeed?MAX_POWER_CHAMBER:DEFAULT_DUTYCYCLE_CHAMBER);
+		}		
+		#else
         digitalWrite(pin, newFanSpeed);
         analogWrite(pin, newFanSpeed);
+		#endif
         SBI(fanDone, bit);
       }
     }
@@ -2354,7 +2369,12 @@ void Temperature::isr() {
       );
     #endif
     #if HAS_TEMP_CHAMBER
-      print_heater_state(degChamber(), 0
+      print_heater_state(degChamber(), 
+	  #if defined(BCN3D_MOD)
+		degTargetChamber()
+	  #else
+		0
+	  #endif
         #if ENABLED(SHOW_TEMP_ADC_VALUES)
           , rawChamberTemp()
         #endif

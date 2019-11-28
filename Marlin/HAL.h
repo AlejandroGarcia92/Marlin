@@ -91,7 +91,7 @@ inline uint8_t HAL_get_reset_source(void) { return MCUSR; }
 // timers
 #define HAL_TIMER_RATE          ((F_CPU) / 8)    // i.e., 2MHz or 2.5MHz
 
-#define STEP_TIMER_NUM          1
+#define STEP_TIMER_NUM          3
 #define TEMP_TIMER_NUM          0
 #define PULSE_TIMER_NUM         STEP_TIMER_NUM
 
@@ -105,9 +105,9 @@ inline uint8_t HAL_get_reset_source(void) { return MCUSR; }
 #define PULSE_TIMER_PRESCALE   STEPPER_TIMER_PRESCALE
 #define PULSE_TIMER_TICKS_PER_US STEPPER_TIMER_TICKS_PER_US
 
-#define ENABLE_STEPPER_DRIVER_INTERRUPT()  SBI(TIMSK1, OCIE1A)
-#define DISABLE_STEPPER_DRIVER_INTERRUPT() CBI(TIMSK1, OCIE1A)
-#define STEPPER_ISR_ENABLED()             TEST(TIMSK1, OCIE1A)
+#define ENABLE_STEPPER_DRIVER_INTERRUPT()  SBI(TIMSK3, OCIE3A)
+#define DISABLE_STEPPER_DRIVER_INTERRUPT() CBI(TIMSK3, OCIE3A)
+#define STEPPER_ISR_ENABLED()             TEST(TIMSK3, OCIE3A)
 
 #define ENABLE_TEMPERATURE_INTERRUPT()     SBI(TIMSK0, OCIE0B)
 #define DISABLE_TEMPERATURE_INTERRUPT()    CBI(TIMSK0, OCIE0B)
@@ -118,22 +118,22 @@ FORCE_INLINE void HAL_timer_start(const uint8_t timer_num, const uint32_t freque
   switch (timer_num) {
     case STEP_TIMER_NUM:
       // waveform generation = 0100 = CTC
-      SET_WGM(1, CTC_OCRnA);
+      SET_WGM(3, CTC_OCRnA);
 
       // output mode = 00 (disconnected)
-      SET_COMA(1, NORMAL);
+      SET_COMA(3, NORMAL);
 
       // Set the timer pre-scaler
       // Generally we use a divider of 8, resulting in a 2MHz timer
       // frequency on a 16MHz MCU. If you are going to change this, be
       // sure to regenerate speed_lookuptable.h with
       // create_speed_lookuptable.py
-      SET_CS(1, PRESCALER_8);  //  CS 2 = 1/8 prescaler
+      SET_CS(3, PRESCALER_8);  //  CS 2 = 1/8 prescaler
 
       // Init Stepper ISR to 122 Hz for quick starting
       // (F_CPU) / (STEPPER_TIMER_PRESCALE) / frequency
-      OCR1A = 0x4000;
-      TCNT1 = 0;
+      OCR3A = 0x4000;
+      TCNT3 = 0;
       break;
 
     case TEMP_TIMER_NUM:
@@ -143,6 +143,9 @@ FORCE_INLINE void HAL_timer_start(const uint8_t timer_num, const uint32_t freque
       break;
   }
 }
+
+#define TIMER_OCR_3             OCR3A
+#define TIMER_COUNTER_3         TCNT3
 
 #define TIMER_OCR_1             OCR1A
 #define TIMER_COUNTER_1         TCNT1
@@ -166,9 +169,9 @@ FORCE_INLINE void HAL_timer_start(const uint8_t timer_num, const uint32_t freque
 
 /* 18 cycles maximum latency */
 #define HAL_STEP_TIMER_ISR \
-extern "C" void TIMER1_COMPA_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
-extern "C" void TIMER1_COMPA_vect_bottom (void) asm ("TIMER1_COMPA_vect_bottom") __attribute__ ((used, externally_visible, noinline)); \
-void TIMER1_COMPA_vect (void) { \
+extern "C" void TIMER3_COMPA_vect (void) __attribute__ ((signal, naked, used, externally_visible)); \
+extern "C" void TIMER3_COMPA_vect_bottom (void) asm ("TIMER3_COMPA_vect_bottom") __attribute__ ((used, externally_visible, noinline)); \
+void TIMER3_COMPA_vect (void) { \
   __asm__ __volatile__ ( \
     A("push r16")                      /* 2 Save R16 */ \
     A("in r16, __SREG__")              /* 1 Get SREG */ \
@@ -177,10 +180,10 @@ void TIMER1_COMPA_vect (void) { \
     A("push r16")                      /* 2 Save TIMSK0 into the stack */ \
     A("andi r16,~%[msk0]")             /* 1 Disable the temperature ISR */ \
     A("sts %[timsk0], r16")            /* 2 And set the new value */ \
-    A("lds r16, %[timsk1]")            /* 2 Load into R0 the stepper timer Interrupt mask register [TIMSK1] */ \
-    A("andi r16,~%[msk1]")             /* 1 Disable the stepper ISR */ \
-    A("sts %[timsk1], r16")            /* 2 And set the new value */ \
-    A("push r16")                      /* 2 Save TIMSK1 into stack */ \
+    A("lds r16, %[timsk3]")            /* 2 Load into R0 the stepper timer Interrupt mask register [TIMSK3] */ \
+    A("andi r16,~%[msk3]")             /* 1 Disable the stepper ISR */ \
+    A("sts %[timsk3], r16")            /* 2 And set the new value */ \
+    A("push r16")                      /* 2 Save TIMSK3 into stack */ \
     A("in r16, 0x3B")                  /* 1 Get RAMPZ register */ \
     A("push r16")                      /* 2 Save RAMPZ into stack */ \
     A("in r16, 0x3C")                  /* 1 Get EIND register */ \
@@ -199,7 +202,7 @@ void TIMER1_COMPA_vect (void) { \
     A("push r30")                      \
     A("push r31")                      \
     A("clr r1")                        /* C runtime expects this register to be 0 */ \
-    A("call TIMER1_COMPA_vect_bottom") /* Call the bottom handler - No inlining allowed, otherwise registers used are not saved */   \
+    A("call TIMER3_COMPA_vect_bottom") /* Call the bottom handler - No inlining allowed, otherwise registers used are not saved */   \
     A("pop r31")                       \
     A("pop r30")                       \
     A("pop r27")                       \
@@ -217,10 +220,10 @@ void TIMER1_COMPA_vect (void) { \
     A("out 0x3C, r16")                 /* 1 Restore EIND register */ \
     A("pop r16")                       /* 2 Get the original RAMPZ register value */ \
     A("out 0x3B, r16")                 /* 1 Restore RAMPZ register to its original value */ \
-    A("pop r16")                       /* 2 Get the original TIMSK1 value but with stepper ISR disabled */ \
-    A("ori r16,%[msk1]")               /* 1 Reenable the stepper ISR */ \
+    A("pop r16")                       /* 2 Get the original TIMSK3 value but with stepper ISR disabled */ \
+    A("ori r16,%[msk3]")               /* 1 Reenable the stepper ISR */ \
     A("cli")                           /* 1 Disable global interrupts - Reenabling Stepper ISR can reenter amd temperature can reenter, and we want that, if it happens, after this ISR has ended */ \
-    A("sts %[timsk1], r16")            /* 2 And restore the old value - This reenables the stepper ISR */ \
+    A("sts %[timsk3], r16")            /* 2 And restore the old value - This reenables the stepper ISR */ \
     A("pop r16")                       /* 2 Get the temperature timer Interrupt mask register [TIMSK0] */ \
     A("sts %[timsk0], r16")            /* 2 And restore the old value - This reenables the temperature ISR */ \
     A("pop r16")                       /* 2 Get the old SREG value */ \
@@ -229,13 +232,13 @@ void TIMER1_COMPA_vect (void) { \
     A("reti")                          /* 4 Return from interrupt */ \
     :                                   \
     : [timsk0] "i" ((uint16_t)&TIMSK0), \
-      [timsk1] "i" ((uint16_t)&TIMSK1), \
+      [timsk3] "i" ((uint16_t)&TIMSK3), \
       [msk0] "M" ((uint8_t)(1<<OCIE0B)),\
-      [msk1] "M" ((uint8_t)(1<<OCIE1A)) \
+      [msk3] "M" ((uint8_t)(1<<OCIE3A)) \
     : \
   ); \
 } \
-void TIMER1_COMPA_vect_bottom(void)
+void TIMER3_COMPA_vect_bottom(void)
 
 /* 14 cycles maximum latency */
 #define HAL_TEMP_TIMER_ISR \

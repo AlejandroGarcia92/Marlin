@@ -35,7 +35,7 @@ class Door_Monitoring {
 	FORCE_INLINE static bool check() {
 		
 		// Read the sensor for the active extruder
-		bool is_out = digitalRead(SAFE_STOP_PIN) == true; 
+		bool is_out = digitalRead(SAFE_STOP_PIN) == false; 
 		
 		if(is_out){
 			
