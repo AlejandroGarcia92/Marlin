@@ -35,7 +35,7 @@
   /**
    * Marlin release version identifier
    */
-  #define SHORT_BUILD_VERSION "v0.4.9t" 
+  #define SHORT_BUILD_VERSION "v0.4.10" 
 		
   /**
    * Verbose version identifier which should contain a reference to the location
@@ -48,7 +48,7 @@
    * here we define this default string as the date where the latest release
    * version was tagged.
    */
-  #define STRING_DISTRIBUTION_DATE "2019-11-19"
+  #define STRING_DISTRIBUTION_DATE "2019-12-05"
 
   /**
    * Required minimum Configuration.h and Configuration_adv.h file versions.
@@ -70,7 +70,7 @@
   /**
    * Defines a generic printer name to be output to the LCD after booting Marlin.
    */
-  #define MACHINE_NAME "BCN3D Saiyan"
+  #define MACHINE_NAME "BCN3D Epsilon"
 
   /**
    * The SOURCE_CODE_URL is the location where users will find the Marlin Source
@@ -78,7 +78,7 @@
    * has a distinct Github fork— the Source Code URL should just be the main
    * Marlin repository.
    */
-  #define SOURCE_CODE_URL "https://github.com/BCN3D/BCN3DSaiyan-Firmware"
+  #define SOURCE_CODE_URL "https://github.com/BCN3D/Marlin"
 
   /**
    * Default generic printer UUID.
@@ -89,6 +89,6 @@
    * The WEBSITE_URL is the location where users can get more information such as
    * documentation about a specific Marlin release.
    */
-  #define WEBSITE_URL "https://github.com/BCN3D/BCN3DSaiyan-Firmware/releases"
+  #define WEBSITE_URL "https://github.com/BCN3D/Marlin"
 
 #endif // USE_AUTOMATIC_VERSIONING
