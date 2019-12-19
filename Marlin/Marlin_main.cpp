@@ -16607,6 +16607,8 @@ void execPauseFromSerial() {
 	discard_serial = true;
 	//enqueue_and_echo_command("M668");
 	gcode_LastN = tracking_lastgcode - 1;
+	
+	SERIAL_PROTOCOLLNPGM("M669 executed");
 }
 
 /**
