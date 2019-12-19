@@ -45,6 +45,7 @@
 #define BCN3D_PRINTER_IS_EPSILON	040
 
 //#define TEST_TRULLAS
+//#define PROTO_EPSILON
 
 #ifndef BCN3D_PRINTER_SETUP
 	#define BCN3D_PRINTER_SETUP BCN3D_PRINTER_IS_EPSILON
@@ -921,13 +922,16 @@
 #endif
 
 
-
 // Travel limits (mm) after homing, corresponding to endstop positions.
 #if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_SIGMA
     #define BED_OFFSET_X	 0
 	#define X_MIN_POS		 -47
 #else
+#ifdef PROTO_EPSILON
+	#define BED_OFFSET_X	 0
+#else
 	#define BED_OFFSET_X	 2
+#endif	
 	#define X_MIN_POS		 -51.5 - BED_OFFSET_X
 	//#define X_MIN_POS -51
 #endif
@@ -1199,7 +1203,11 @@
   //#define Z_SAFE_HOMING_X_POINT ((X_BED_SIZE) / 2)    // X point for Z homing when homing all axes (G28).
   //#define Z_SAFE_HOMING_Y_POINT ((Y_BED_SIZE) / 2)    // Y point for Z homing when homing all axes (G28).
   #if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_EPSILON
-	  #define Z_SAFE_HOMING_X_POINT -4.5 - BED_OFFSET_X   // X point for Z homing when homing all axes (G28).
+	  #ifdef PROTO_EPSILON
+		#define Z_SAFE_HOMING_X_POINT	4.5
+	  #else
+		#define Z_SAFE_HOMING_X_POINT	-4.5 - BED_OFFSET_X   // X point for Z homing when homing all axes (G28).
+	  #endif	  
 	  #define Z_SAFE_HOMING_Y_POINT 150    // Y point for Z homing when homing all axes (G28).
   #else
 	  #define Z_SAFE_HOMING_X_POINT 4   // X point for Z homing when homing all axes (G28).
