@@ -13,6 +13,8 @@ ChamberFanPWM chamberFanPWM;
 //Timer
 uint32_t timeelapsed_fan = 0;
 
+//#define ENABLE_PWM_CHAMBER
+
 void ChamberFanPWM::setup(){
 
 	// Set led pins as output and low
@@ -25,7 +27,7 @@ void ChamberFanPWM::setup(){
 	TCCR4B = 0;// same for TCCR1B
 	TCNT4  = 0;//initialize counter value to 0
 	// set compare match register for 1hz increments
-	OCR4A = 500;// = (16*10^6) / (1*1024) - 1 (must be <65536)
+	OCR4A = 3500;// = (16*10^6) / (1*1024) - 1 (must be <65536)
 	// turn on CTC mode
 	TCCR4B |= (1 << WGM12);
 	// Set CS12 and CS10 bits for 64 prescaler
@@ -63,7 +65,7 @@ void ChamberFanPWM::setup(uint16_t timer_period){
 
 
 ISR(TIMER4_COMPA_vect) {
-	
+#ifdef ENABLE_PWM_CHAMBER
 	if(millis() > timeelapsed_fan + 500)
 	{
 		if(counter_timer < dutycycle){
@@ -73,11 +75,12 @@ ISR(TIMER4_COMPA_vect) {
 		}
 		counter_timer++;
 		if(counter_timer > PWM_MAX_PERIOD - 1) counter_timer = 0;
-	}else{
+		}else{
 		digitalWrite(CHAMBER_AUTO_FAN_PIN,HIGH);
 	}
-	
-	
+#else
+	digitalWrite(CHAMBER_AUTO_FAN_PIN,HIGH);
+#endif
 }
 void ChamberFanPWM::setDuty(uint8_t duty) {
 	

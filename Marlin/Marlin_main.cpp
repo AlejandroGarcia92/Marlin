@@ -7797,7 +7797,6 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	SYNC_PLAN_POSITION_KINEMATIC();
 	
 	
-	#if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_SIGMA
 	//MOVING THE EXTRUDERS TO AVOID HITTING THE CASE WHEN PROBING-------------------------
 	current_position[X_AXIS] += X_GAP_AVOID_COLLISION_LEFT;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
@@ -7818,9 +7817,6 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	current_position[X_AXIS]+=X_GAP_AVOID_COLLISION_LEFT;
 	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]); // We are now at position
 	planner.synchronize();
-	#else
-	tool_change(0);
-	#endif
 	
 	
 	// Probe at 3 arbitrary points
@@ -7849,7 +7845,6 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	current_position[Z_AXIS] += Z_RAISE_BET_PROBINGS;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(600), 0);
 	
-	#if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_SIGMA
 	current_position[X_AXIS]=x_home_pos(active_extruder)+X_GAP_AVOID_COLLISION_LEFT;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
 		
@@ -7862,10 +7857,7 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	current_position[X_AXIS]-=X_GAP_AVOID_COLLISION_RIGHT;
 	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]);
 	
-	#else
-	tool_change(1);
-	#endif
-	
+		
 	//Probe at 3 arbitrary points
 	//probe left extruder
 	setup_for_endstop_or_probe_move();
@@ -7891,7 +7883,6 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	current_position[Z_AXIS] = Z_AFTER_PROBING;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(480), 1);
 			
-	#if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_SIGMA
 	current_position[X_AXIS]=x_home_pos(active_extruder)-10;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 1);
 	
@@ -7899,9 +7890,6 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	
 	home_axis_from_code(true, true, false);
 	tool_change(0);
-	#else	
-	tool_change(0);
-	#endif
 		
 	matrix_3x3 plan_bed_level_matrix;
 	
@@ -13696,10 +13684,10 @@ inline void invalid_extruder_error(const uint8_t e) {
 		
     // Apply Y & Z extruder offset (X offset is used as home pos with Dual X)
 	#if defined(BCN3D_MOD)
-	current_position[Y_AXIS] -= hotend_offset[Y_AXIS][active_extruder] - hotend_offset[Y_AXIS][tmp_extruder]; //Compensate after move
+	const float yoffset = current_position[Y_AXIS] + (hotend_offset[Y_AXIS][active_extruder] - hotend_offset[Y_AXIS][tmp_extruder]); // Compensate before
 	const float zoffset = current_position[Z_AXIS] + (hotend_offset[Z_AXIS][active_extruder] - hotend_offset[Z_AXIS][tmp_extruder]); // Compensate before
 	//Move to new position
-	planner.buffer_line(xhome, current_position[Y_AXIS], zoffset, current_position[E_CART], planner.max_feedrate_mm_s[Z_AXIS], active_extruder);
+	planner.buffer_line(xhome, yoffset, zoffset, current_position[E_CART], planner.max_feedrate_mm_s[Z_AXIS], active_extruder);
 	planner.synchronize();
     #else
 	current_position[Y_AXIS] -= hotend_offset[Y_AXIS][active_extruder] - hotend_offset[Y_AXIS][tmp_extruder];
