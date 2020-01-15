@@ -27,7 +27,7 @@ void ChamberFanPWM::setup(){
 	TCCR4B = 0;// same for TCCR1B
 	TCNT4  = 0;//initialize counter value to 0
 	// set compare match register for 1hz increments
-	OCR4A = 3500;// = (16*10^6) / (1*1024) - 1 (must be <65536)
+	OCR4A = 500;// = (16*10^6) / (1*1024) - 1 (must be <65536)
 	// turn on CTC mode
 	TCCR4B |= (1 << WGM12);
 	// Set CS12 and CS10 bits for 64 prescaler

@@ -8044,6 +8044,10 @@ inline void gcode_M538() { // Printer stats report
 inline void gcode_M539() { // Printer stats reset
 	printerStats.reset();
 }
+
+inline void gcode_M543() { // Printer trigger
+	if (parser.seen('V')) digitalWrite(SDA_PIN,parser.value_byte()); 
+}
 #endif  //BCN3D Mod
 
 void report_xyz_from_stepper_position() {
@@ -14537,6 +14541,7 @@ void process_parsed_command() {
 		case 537: gcode_M537(); break;							  // M537: Set led level
 		case 538: gcode_M538(); break;							  // M538: Printer Stats report
 		case 539: gcode_M539(); break;							  // M539: Printer Stats reset
+		case 543: gcode_M543(); break;							  // M543: Printer Stats reset
 	  #endif
 		
       #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
@@ -16961,6 +16966,8 @@ void setup() {
 	leds_handler.setup();
 	chamberFanPWM.setup();
 	printerStats.reset();
+	pinMode(SDA_PIN, OUTPUT);
+	digitalWrite(SDA_PIN, HIGH);
   #endif
 
   setup_killpin();
