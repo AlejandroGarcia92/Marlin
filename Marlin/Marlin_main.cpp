@@ -15850,6 +15850,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 							
 							planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS], feedrate_mm_s, active_extruder);
 							planner.set_position_mm(X_AXIS, inactive_extruder_x_pos);
+							planner.set_position_mm(Z_AXIS, current_position[Z_AXIS] + hotend_offset[Z_AXIS][1]);
 							//planner.set_z_position_mm(current_position[Z_AXIS] + home_offset[Z_AXIS]);
 							active_extruder = 1;
 							Flag_Raft_Dual_Mode_On = true;
@@ -15936,6 +15937,7 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
 						if(!Flag_Raft_Dual_Mode_On){
 							planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], feedrate_mm_s, active_extruder);
 							planner.set_position_mm(X_AXIS, inactive_extruder_x_pos);
+							planner.set_position_mm(Z_AXIS, current_position[Z_AXIS] + hotend_offset[Z_AXIS][1]);
 							active_extruder=1;
 							Flag_Raft_Dual_Mode_On = true;							
 							planner.synchronize();							
