@@ -7535,26 +7535,26 @@ inline void gcode_G241() {//BCN3D Calib pattern for X axis
 			planner.synchronize();
 
 			
-			draw_print_line_scrirt(X_AXIS, -88.0);
+			draw_print_line_scrirt(X_AXIS, -88.0, hotend_size_setup[0]);
 
 			
-			draw_print_line_scrirt(Y_AXIS, -84.0);
+			draw_print_line_scrirt(Y_AXIS, -84.0, hotend_size_setup[0]);
 			
-			draw_print_line_scrirt(X_AXIS, hotend_size_setup[active_extruder]);
+			draw_print_line_scrirt(X_AXIS, hotend_size_setup[active_extruder], hotend_size_setup[0]);
 			
-			draw_print_line_scrirt(Y_AXIS, 80.0);
+			draw_print_line_scrirt(Y_AXIS, 80.0, hotend_size_setup[0]);
 			
-			draw_print_line_scrirt(X_AXIS, 8.0-hotend_size_setup[active_extruder]);
+			draw_print_line_scrirt(X_AXIS, 8.0-hotend_size_setup[active_extruder], hotend_size_setup[0]);
 			
 			planner.synchronize();
 
 		}
 		
 		if (i != 0){
-			draw_print_line_scrirt(X_AXIS, 8.0 - hotend_size_setup[active_extruder]);
+			draw_print_line_scrirt(X_AXIS, 8.0 - hotend_size_setup[active_extruder], hotend_size_setup[0]);
 		}
 		
-		draw_print_line(X_AXIS, -37.5 ,LINES_LAYER_HEIGHT_XY);
+		draw_print_line(X_AXIS, -37.5 ,LINES_LAYER_HEIGHT_XY, hotend_size_setup[0]);
 		
 		planner.synchronize();
 
@@ -7598,15 +7598,15 @@ inline void gcode_G241() {//BCN3D Calib pattern for X axis
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST) , active_extruder);
 	planner.synchronize();
 	
-	draw_print_line_scrirt(Y_AXIS, -84.0);
+	draw_print_line_scrirt(Y_AXIS, -84.0, hotend_size_setup[1]);
 	
-	draw_print_line_scrirt(X_AXIS, -88.0 + hotend_size_setup[active_extruder]);
+	draw_print_line_scrirt(X_AXIS, -88.0 + hotend_size_setup[active_extruder], hotend_size_setup[1]);
 
-	draw_print_line_scrirt(Y_AXIS, hotend_size_setup[active_extruder]);
+	draw_print_line_scrirt(Y_AXIS, hotend_size_setup[active_extruder], hotend_size_setup[1]);
 	
-	draw_print_line_scrirt(X_AXIS, 8.0-hotend_size_setup[active_extruder] - 0.5);
+	draw_print_line_scrirt(X_AXIS, 8.0-hotend_size_setup[active_extruder] - 0.5, hotend_size_setup[1]);
 	
-	draw_print_line_scrirt(Y_AXIS, 4.0-hotend_size_setup[active_extruder]);
+	draw_print_line_scrirt(Y_AXIS, 4.0-hotend_size_setup[active_extruder], hotend_size_setup[1]);
 	
 	planner.synchronize();
 
@@ -7615,10 +7615,10 @@ inline void gcode_G241() {//BCN3D Calib pattern for X axis
 	{
 		
 		if (j != 0){
-			draw_print_line_scrirt(X_AXIS, 8.0 - hotend_size_setup[active_extruder] + 0.1);
+			draw_print_line_scrirt(X_AXIS, 8.0 - hotend_size_setup[active_extruder] + 0.1, hotend_size_setup[1]);
 		}
 		
-		draw_print_line(X_AXIS, 37.5,LINES_LAYER_HEIGHT_XY);
+		draw_print_line(X_AXIS, 37.5,LINES_LAYER_HEIGHT_XY, hotend_size_setup[1]);
 		
 	}
 	current_position[E_AXIS]-=RETRACT_PRINTER_FACTOR;
@@ -7694,26 +7694,26 @@ inline void gcode_G242(){//BCN3D Calib pattern for Y axis
 			planner.synchronize();
 
 			
-			draw_print_line_scrirt(Y_AXIS, 80.0);
+			draw_print_line_scrirt(Y_AXIS, 80.0, hotend_size_setup[0]);
 			
-			draw_print_line_scrirt(X_AXIS, 88.0);
+			draw_print_line_scrirt(X_AXIS, 88.0, hotend_size_setup[0]);
 			
-			draw_print_line_scrirt(Y_AXIS, -hotend_size_setup[active_extruder]);
+			draw_print_line_scrirt(Y_AXIS, -hotend_size_setup[active_extruder], hotend_size_setup[0]);
 			
-			draw_print_line_scrirt(X_AXIS, -84.0);
+			draw_print_line_scrirt(X_AXIS, -84.0, hotend_size_setup[0]);
 			
-			draw_print_line_scrirt(Y_AXIS, -4.0+hotend_size_setup[active_extruder]);
+			draw_print_line_scrirt(Y_AXIS, -4.0+hotend_size_setup[active_extruder], hotend_size_setup[0]);
 			
 			planner.synchronize();
 
 		}
 		
-		draw_print_line(Y_AXIS, 39,LINES_LAYER_HEIGHT_XY);
+		draw_print_line(Y_AXIS, 39,LINES_LAYER_HEIGHT_XY, hotend_size_setup[0]);
 		
 		
 		if(i!=9){
 			
-			draw_print_line_scrirt(Y_AXIS, -8.0+hotend_size_setup[active_extruder]);
+			draw_print_line_scrirt(Y_AXIS, -8.0+hotend_size_setup[active_extruder], hotend_size_setup[0]);
 			
 		}
 	}
@@ -7752,27 +7752,27 @@ inline void gcode_G242(){//BCN3D Calib pattern for Y axis
 			planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST) , active_extruder);
 			planner.synchronize();			
 			
-			draw_print_line_scrirt(X_AXIS, 88.0);
+			draw_print_line_scrirt(X_AXIS, 88.0, hotend_size_setup[1]);
 			
 			
-			draw_print_line_scrirt(Y_AXIS, 80.0-hotend_size_setup[active_extruder]);
+			draw_print_line_scrirt(Y_AXIS, 80.0-hotend_size_setup[active_extruder], hotend_size_setup[1]);
 			
 			
-			draw_print_line_scrirt(X_AXIS, -hotend_size_setup[active_extruder]);
+			draw_print_line_scrirt(X_AXIS, -hotend_size_setup[active_extruder], hotend_size_setup[1]);
 			
 			
-			draw_print_line_scrirt(Y_AXIS, -4.0+hotend_size_setup[active_extruder]+0.5);
+			draw_print_line_scrirt(Y_AXIS, -4.0+hotend_size_setup[active_extruder]+0.5, hotend_size_setup[1]);
 			
 			
-			draw_print_line_scrirt(X_AXIS, -4.0);
+			draw_print_line_scrirt(X_AXIS, -4.0, hotend_size_setup[1]);
 			
 			
 		}
 		
-		draw_print_line(Y_AXIS,-39,LINES_LAYER_HEIGHT_XY);
+		draw_print_line(Y_AXIS,-39,LINES_LAYER_HEIGHT_XY, hotend_size_setup[1]);
 		
 		if(j!=9){
-			draw_print_line_scrirt(Y_AXIS, -8.0+hotend_size_setup[active_extruder]-0.1);
+			draw_print_line_scrirt(Y_AXIS, -8.0+hotend_size_setup[active_extruder]-0.1, hotend_size_setup[1]);
 		}
 		
 	}
