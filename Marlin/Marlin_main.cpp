@@ -7299,7 +7299,7 @@ float extrusion_multiplier(float distance, float layerh, float hSize=0.4/*defaul
 }
 void draw_print_line(int8_t patternid, float xy_destination_relative, float layerh, float hSize=0.4/*default value*/){// pattern id Z = 2 ; X = 0, Y = 1;
 	
-	float extrusion_distance = extrusion_multiplier(abs(xy_destination_relative), layerh);
+	float extrusion_distance = extrusion_multiplier(abs(xy_destination_relative), layerh, hSize);
 	
 	uint8_t mainaxis = (patternid==Y_AXIS || patternid==-1?X_AXIS:Y_AXIS);
 	uint8_t secondaryaxis = (patternid==Y_AXIS || patternid==-1?Y_AXIS:X_AXIS);
