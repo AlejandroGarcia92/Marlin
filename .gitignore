@@ -149,3 +149,4 @@ CMakeListsPrivate.txt
 cmake-build-*
 
 *.cppproj
+*.atsln
