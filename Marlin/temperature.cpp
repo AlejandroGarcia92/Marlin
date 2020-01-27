@@ -1037,6 +1037,7 @@ float Temperature::analog2temp(const int raw, const uint8_t e) {
  * as it would block the stepper routine.
  */
 void Temperature::updateTemperaturesFromRawValues() {
+#ifndef BCN3D_PRINT_SIMULATION	
   #if ENABLED(HEATER_0_USES_MAX6675)
     current_temperature_raw[0] = read_max6675();
   #endif
@@ -1058,7 +1059,43 @@ void Temperature::updateTemperaturesFromRawValues() {
     // Reset the watchdog after we know we have a temperature measurement.
     watchdog_reset();
   #endif
+#else //else BCN3D_PRINT_SIMULATION
+	static uint32_t time_stamp = millis();
+	if(millis() + 500 > time_stamp) { // every 500 millis
+		#if ENABLED(HEATER_0_USES_MAX6675)
+		current_temperature_raw[0] = read_max6675();
+		#endif
+		HOTEND_LOOP() {
+			if(target_temperature[e] > SIMULATION_TEMP_AMB) {	// Heating
+				current_temperature[e] = constrain(current_temperature[e] + 4.7 , SIMULATION_TEMP_AMB, target_temperature[e]);				
+			} else {											// Cooling
+				current_temperature[e] = constrain(current_temperature[e] - 2.2 , SIMULATION_TEMP_AMB, HEATER_0_MAXTEMP);	
+			}
+		}
+		#if HAS_HEATED_BED
+		if(target_temperature_bed > SIMULATION_TEMP_AMB) {	// Heating
+			current_temperature_bed = constrain(current_temperature_bed + 4.7 , SIMULATION_TEMP_AMB, target_temperature_bed);
+			} else {											// Cooling
+			current_temperature_bed = constrain(current_temperature_bed - 2.2 , SIMULATION_TEMP_AMB, BED_MAXTEMP);
+		}
+		#endif
+		#if HAS_TEMP_CHAMBER
+		current_temperature_chamber = Temperature::analog2tempChamber(current_temperature_chamber_raw);
+		#endif
+		#if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
+		redundant_temperature = Temperature::analog2temp(redundant_temperature_raw, 1);
+		#endif
+		#if ENABLED(FILAMENT_WIDTH_SENSOR)
+		filament_width_meas = analog2widthFil();
+		#endif
 
+		#if ENABLED(USE_WATCHDOG)
+		// Reset the watchdog after we know we have a temperature measurement.
+		watchdog_reset();
+		#endif
+	time_stamp = millis();
+	}
+#endif
   temp_meas_ready = false;
 }
 
@@ -2181,7 +2218,11 @@ void Temperature::isr() {
     case StartSampling:                                   // Start of sampling loops. Do updates/checks.
       if (++temp_count >= OVERSAMPLENR) {                 // 10 * 16 * 1/(16000000/64/256)  = 164ms.
         temp_count = 0;
+		#ifndef BCN3D_PRINT_SIMULATION
         readings_ready();
+		#else
+		temp_meas_ready = true;
+		#endif
       }
       break;
 

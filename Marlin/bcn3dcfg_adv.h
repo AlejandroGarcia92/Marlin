@@ -8,6 +8,11 @@
 
 #define BCN3D_MOD
 
+#define BCN3D_PRINT_SIMULATION							//Dummy driver emulator, this define must be disabled
+#ifdef BCN3D_PRINT_SIMULATION
+	#define SIMULATION_TEMP_AMB							22.5
+#endif
+
 //	DUAL MODE SETTINGS
 // This defines the Z offset threshold tolerance
 #define RAFT_Z_THRESHOLD 0.05

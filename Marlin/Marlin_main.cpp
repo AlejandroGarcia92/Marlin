@@ -3634,51 +3634,62 @@ void gcode_get_destination() {
   #define G0_G1_CONDITION true
 #endif
 
+void dwell(millis_t time) {
+	time += millis();
+	while (PENDING(millis(), time)) idle();
+}
+
 /**
  * G0, G1: Coordinated movement of X Y Z E axes
  */
+
 inline void gcode_G0_G1(
-  #if IS_SCARA
-    bool fast_move=false
-  #endif
+	#if IS_SCARA
+	bool fast_move=false
+	#endif
 ) {
-  if (IsRunning() && G0_G1_CONDITION) {
-    gcode_get_destination(); // For X Y Z E F
+#ifndef BCN3D_PRINT_SIMULATION	
+	if (IsRunning() && G0_G1_CONDITION) {
+	gcode_get_destination(); // For X Y Z E F
 
-    #if ENABLED(FWRETRACT)
-      if (MIN_AUTORETRACT <= MAX_AUTORETRACT) {
-        // When M209 Autoretract is enabled, convert E-only moves to firmware retract/prime moves
-        if (fwretract.autoretract_enabled && parser.seen('E') && !(parser.seen('X') || parser.seen('Y') || parser.seen('Z'))) {
-          const float echange = destination[E_CART] - current_position[E_CART];
-          // Is this a retract or prime move?
-          if (WITHIN(ABS(echange), MIN_AUTORETRACT, MAX_AUTORETRACT) && fwretract.retracted[active_extruder] == (echange > 0.0)) {
-            current_position[E_CART] = destination[E_CART]; // Hide a G1-based retract/prime from calculations
-            sync_plan_position_e();                         // AND from the planner
-            return fwretract.retract(echange < 0.0);        // Firmware-based retract/prime (double-retract ignored)
-          }
-        }
-      }
-    #endif // FWRETRACT
+	#if ENABLED(FWRETRACT)
+		if (MIN_AUTORETRACT <= MAX_AUTORETRACT) {
+		// When M209 Autoretract is enabled, convert E-only moves to firmware retract/prime moves
+		if (fwretract.autoretract_enabled && parser.seen('E') && !(parser.seen('X') || parser.seen('Y') || parser.seen('Z'))) {
+			const float echange = destination[E_CART] - current_position[E_CART];
+			// Is this a retract or prime move?
+			if (WITHIN(ABS(echange), MIN_AUTORETRACT, MAX_AUTORETRACT) && fwretract.retracted[active_extruder] == (echange > 0.0)) {
+			current_position[E_CART] = destination[E_CART]; // Hide a G1-based retract/prime from calculations
+			sync_plan_position_e();                         // AND from the planner
+			return fwretract.retract(echange < 0.0);        // Firmware-based retract/prime (double-retract ignored)
+			}
+		}
+		}
+	#endif // FWRETRACT
 
-    #if IS_SCARA
-      fast_move ? prepare_uninterpolated_move_to_destination() : prepare_move_to_destination();
-    #else
-      prepare_move_to_destination();
-    #endif
+	#if IS_SCARA
+		fast_move ? prepare_uninterpolated_move_to_destination() : prepare_move_to_destination();
+	#else
+		prepare_move_to_destination();
+	#endif
 
-    #if ENABLED(NANODLP_Z_SYNC)
-      #if ENABLED(NANODLP_ALL_AXIS)
-        #define _MOVE_SYNC parser.seenval('X') || parser.seenval('Y') || parser.seenval('Z') // For any move wait and output sync message
-      #else
-        #define _MOVE_SYNC parser.seenval('Z')  // Only for Z move
-      #endif
-      if (_MOVE_SYNC) {
-        planner.synchronize();
-        SERIAL_ECHOLNPGM(MSG_Z_MOVE_COMP);
-      }
-    #endif
-  }
+	#if ENABLED(NANODLP_Z_SYNC)
+		#if ENABLED(NANODLP_ALL_AXIS)
+		#define _MOVE_SYNC parser.seenval('X') || parser.seenval('Y') || parser.seenval('Z') // For any move wait and output sync message
+		#else
+		#define _MOVE_SYNC parser.seenval('Z')  // Only for Z move
+		#endif
+		if (_MOVE_SYNC) {
+		planner.synchronize();
+		SERIAL_ECHOLNPGM(MSG_Z_MOVE_COMP);
+		}
+	#endif
+	}
+  #else //else BCN3D_PRINT_SIMULATION
+	dwell(10);
+  #endif
 }
+
 
 /**
  * G2: Clockwise Arc
@@ -3774,10 +3785,6 @@ inline void gcode_G0_G1(
 
 #endif // ARC_SUPPORT
 
-void dwell(millis_t time) {
-  time += millis();
-  while (PENDING(millis(), time)) idle();
-}
 
 /**
  * G4: Dwell S<seconds> or P<milliseconds>
@@ -4431,6 +4438,11 @@ inline void gcode_G4() {
  */
 inline void gcode_G28(const bool always_home_all) {
 
+#ifdef BCN3D_PRINT_SIMULATION
+	dwell(4000); // 4 seconds delays
+	return;
+#endif
+	
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
       SERIAL_ECHOLNPGM(">>> G28");
@@ -7463,6 +7475,10 @@ inline void gcode_G239() { //Fall
 }
 
 inline void gcode_G240() {//BCN3D Calib pattern for Z axis
+	#ifdef BCN3D_PRINT_SIMULATION
+	dwell(4000); // 4 seconds delays
+	return;
+	#endif
 	uint8_t tool = 0; /*default*/
 	float x_offset = 32; /*default*/
 	float hSize = 0.4; /*default*/
@@ -7481,7 +7497,11 @@ inline void gcode_G240() {//BCN3D Calib pattern for Z axis
 }
 inline void gcode_G241() {//BCN3D Calib pattern for X axis
 	
-
+	#ifdef BCN3D_PRINT_SIMULATION
+	dwell(4000); // 4 seconds delays
+	return;
+	#endif
+	
 	//float x_offset = 32; /*default*/
 	
 	float hotend_size_setup[EXTRUDERS] = {0.4
@@ -7639,7 +7659,11 @@ inline void gcode_G241() {//BCN3D Calib pattern for X axis
 }
 inline void gcode_G242(){//BCN3D Calib pattern for Y axis
 
-
+	#ifdef BCN3D_PRINT_SIMULATION
+	dwell(4000); // 4 seconds delays
+	return;
+	#endif
+	
 	//float x_offset = 32; /*default*/
 	
 	float hotend_size_setup[EXTRUDERS] = {0.4
@@ -7791,6 +7815,10 @@ inline void gcode_G242(){//BCN3D Calib pattern for Y axis
 }
 inline void gcode_G290(){//BCN3D Bed leveling
 	
+	#ifdef BCN3D_PRINT_SIMULATION
+	dwell(4000); // 4 seconds delays
+	return;
+	#endif
 
 	//We have to save the active extruder.
 	
