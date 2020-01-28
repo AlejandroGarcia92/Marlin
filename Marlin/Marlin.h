@@ -515,7 +515,7 @@ void report_current_position();
 #if FAN_COUNT > 0
   extern int16_t fanSpeeds[FAN_COUNT];
   #if ENABLED(FANSPEED_CLASSIC)
-	extern int16_t fanSpeedsClassic = 0;
+	extern int16_t fanSpeedsClassic;
   #endif
   #if ENABLED(EXTRA_FAN_SPEED)
     extern int16_t old_fanSpeeds[FAN_COUNT],
