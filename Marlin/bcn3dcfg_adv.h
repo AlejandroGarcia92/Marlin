@@ -159,3 +159,4 @@
 #define Z_RAISE_BEF_PROBING 5      //How much the extruder will be raised before traveling to the first probing point.
 #define Z_RAISE_BET_PROBINGS 2.5  //How much the extruder will be raised when traveling from between next probing points
 
+#define FANSPEED_CLASSIC // Support classic fan speed usage

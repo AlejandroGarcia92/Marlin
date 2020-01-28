@@ -510,6 +510,9 @@ float soft_endstop_min[XYZ] = { X_MIN_BED, Y_MIN_BED, Z_MIN_POS },
 
 #if FAN_COUNT > 0
   int16_t fanSpeeds[FAN_COUNT] = { 0 };
+  #if ENABLED(FANSPEED_CLASSIC)
+  int16_t fanSpeedsClassic = 0;
+  #endif	  	  
   #if ENABLED(EXTRA_FAN_SPEED)
     int16_t old_fanSpeeds[FAN_COUNT],
             new_fanSpeeds[FAN_COUNT];
@@ -9721,8 +9724,17 @@ inline void gcode_M105() {
           return;
         }
       #endif // EXTRA_FAN_SPEED
-      const uint16_t s = parser.ushortval('S', 255);
-      fanSpeeds[p] = MIN(s, 255U);
+      const uint16_t s = parser.ushortval('S', 255);      
+	  #if ENABLED(FANSPEED_CLASSIC)
+		if(!parser.byteval('P')) { 
+			fanSpeedsClassic = MIN(s, 255U);
+		}
+		else {
+			fanSpeeds[p] = MIN(s, 255U);
+		}
+	  #else
+	    fanSpeeds[p] = MIN(s, 255U);
+	  #endif
     }
 	#ifdef BCN3D_MOD
 	SERIAL_ECHO_START();
@@ -9742,11 +9754,19 @@ inline void gcode_M105() {
 		for (int i = 0; i < FAN_COUNT; i++) {
 			fanSpeeds[i] = 0;
 		}
+		#if ENABLED(FANSPEED_CLASSIC)
+			fanSpeedsClassic = 0;
+		#endif
 	}  
     #ifdef BCN3D_MOD
     SERIAL_ECHO_START();
-    SERIAL_ECHOPAIR("Fan Speed 0: ", fanSpeeds[0]);
-    SERIAL_ECHOLNPAIR(" Fan Speed 1: ", motorMode == motordriver_mode::motordefault ? fanSpeeds[1] : fanSpeeds[0]);
+	#if ENABLED(FANSPEED_CLASSIC)
+    SERIAL_ECHOPAIR("Fan Speed 0: ", fanSpeeds[0] ? fanSpeeds[0] : (active_extruder==0?fanSpeedsClassic:0));
+    SERIAL_ECHOLNPAIR(" Fan Speed 1: ", motorMode == motordriver_mode::motordefault ? (fanSpeeds[1] ? fanSpeeds[1] : (active_extruder==1?fanSpeedsClassic:0)) : (fanSpeeds[0] ? fanSpeeds[0] : (active_extruder==0?fanSpeedsClassic:0)));
+	#else
+	SERIAL_ECHOPAIR("Fan Speed 0: ", fanSpeeds[0]);
+	SERIAL_ECHOLNPAIR(" Fan Speed 1: ", motorMode == motordriver_mode::motordefault ? fanSpeeds[1] : fanSpeeds[0]);
+	#endif
     #endif
   }
 
