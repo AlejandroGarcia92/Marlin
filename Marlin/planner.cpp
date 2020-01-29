@@ -1809,7 +1809,11 @@ bool Planner::_populate_block(block_t * const block, bool split_move,
   #endif
 
   #if FAN_COUNT > 0
+	#if ENABLED(FANSPEED_CLASSIC)
+	for (uint8_t i = 0; i < FAN_COUNT; i++) block->fan_speed[i] = fanSpeeds[i] ? fanSpeeds[i] : (extruder==i?fanSpeedsClassic:0); // Priority for specific fan Speed
+	#else
     for (uint8_t i = 0; i < FAN_COUNT; i++) block->fan_speed[i] = fanSpeeds[i];
+	#endif
   #endif
 
   #if ENABLED(BARICUDA)

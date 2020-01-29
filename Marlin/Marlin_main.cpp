@@ -9689,7 +9689,20 @@ inline void gcode_M105() {
 #endif // AUTO_REPORT_TEMPERATURES
 
 #if FAN_COUNT > 0
-
+	#ifdef BCN3D_MOD
+	void fanStastusReport() {	
+	    #ifdef BCN3D_MOD
+	    SERIAL_ECHO_START();
+	    #if ENABLED(FANSPEED_CLASSIC)
+	    SERIAL_ECHOPAIR("Fan Speed 0: ", fanSpeeds[0] ? fanSpeeds[0] : (active_extruder==0?fanSpeedsClassic:0));
+	    SERIAL_ECHOLNPAIR(" Fan Speed 1: ", motorMode == motordriver_mode::motordefault ? (fanSpeeds[1] ? fanSpeeds[1] : (active_extruder==1?fanSpeedsClassic:0)) : (fanSpeeds[0] ? fanSpeeds[0] : (active_extruder==0?fanSpeedsClassic:0)));
+	    #else
+	    SERIAL_ECHOPAIR("Fan Speed 0: ", fanSpeeds[0]);
+	    SERIAL_ECHOLNPAIR(" Fan Speed 1: ", motorMode == motordriver_mode::motordefault ? fanSpeeds[1] : fanSpeeds[0]);
+	    #endif
+	    #endif
+	}
+	#endif
   /**
    * M106: Set Fan Speed
    *
@@ -9737,9 +9750,7 @@ inline void gcode_M105() {
 	  #endif
     }
 	#ifdef BCN3D_MOD
-	SERIAL_ECHO_START();
-	SERIAL_ECHOPAIR("Fan Speed 0: ", fanSpeeds[0]);
-	SERIAL_ECHOLNPAIR(" Fan Speed 1: ", motorMode == motordriver_mode::motordefault ? fanSpeeds[1] : fanSpeeds[0]);
+	fanStastusReport();
 	#endif
   }
 
@@ -9759,14 +9770,7 @@ inline void gcode_M105() {
 		#endif
 	}  
     #ifdef BCN3D_MOD
-    SERIAL_ECHO_START();
-	#if ENABLED(FANSPEED_CLASSIC)
-    SERIAL_ECHOPAIR("Fan Speed 0: ", fanSpeeds[0] ? fanSpeeds[0] : (active_extruder==0?fanSpeedsClassic:0));
-    SERIAL_ECHOLNPAIR(" Fan Speed 1: ", motorMode == motordriver_mode::motordefault ? (fanSpeeds[1] ? fanSpeeds[1] : (active_extruder==1?fanSpeedsClassic:0)) : (fanSpeeds[0] ? fanSpeeds[0] : (active_extruder==0?fanSpeedsClassic:0)));
-	#else
-	SERIAL_ECHOPAIR("Fan Speed 0: ", fanSpeeds[0]);
-	SERIAL_ECHOLNPAIR(" Fan Speed 1: ", motorMode == motordriver_mode::motordefault ? fanSpeeds[1] : fanSpeeds[0]);
-	#endif
+    fanStastusReport();
     #endif
   }
 
@@ -14098,6 +14102,9 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s/*=0.0*/, bool n
     SERIAL_ECHOLNPAIR(MSG_ACTIVE_EXTRUDER, int(active_extruder));
 
   #endif // !MIXING_EXTRUDER || MIXING_VIRTUAL_TOOLS <= 1
+  #ifdef BCN3D_MOD
+  fanStastusReport();
+  #endif
 }
 
 /**
@@ -14129,7 +14136,7 @@ inline void gcode_T(const uint8_t tmp_extruder) {
       (tmp_extruder == active_extruder) || parser.boolval('S')
     );
 
-  #endif
+  #endif  
 
   #if ENABLED(DEBUG_LEVELING_FEATURE)
     if (DEBUGGING(LEVELING)) {
