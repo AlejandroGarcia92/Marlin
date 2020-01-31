@@ -350,6 +350,11 @@ void tool_change(const uint8_t tmp_extruder, const float fr_mm_s=0.0, bool no_mo
 void home_all_axes();
 
 #if defined(BCN3D_MOD)
+enum DiscardSerialReason : unsigned char {
+	NONE,
+	PAUSE,
+	CANCEL
+};
 void home_axis_from_code(bool x_c, bool y_c, bool z_c);
 void dual_mode_z_adjust_raft(void);
 void dual_mode_duplication_extruder_parked(bool skip);

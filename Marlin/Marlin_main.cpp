@@ -1064,7 +1064,7 @@ void gcode_line_error(const char* err, bool doFlush = true) {
  * left on the serial port.
  */
 #if defined(BCN3D_MOD)
-bool discard_serial = false;
+DiscardSerialReason discard_serial = DiscardSerialReason::NONE;
 #endif
 
 inline void get_serial_commands() {
@@ -1093,6 +1093,21 @@ inline void get_serial_commands() {
    * Loop while serial characters are incoming and the queue is not full
    */
   int c;
+  #if defined(BCN3D_MOD)
+  if(discard_serial != DiscardSerialReason::NONE && !MYSERIAL0.available()) {	   
+	   switch(discard_serial) {
+		   case DiscardSerialReason::PAUSE:
+		   SERIAL_PROTOCOLLNPGM("M669 executed");
+		   break;
+		   case DiscardSerialReason::CANCEL:
+		   SERIAL_PROTOCOLLNPGM("M541 executed");
+		   break;
+		   default:
+		   break;
+	   }
+	   discard_serial = DiscardSerialReason::NONE;
+  }
+  #endif
   while (commands_in_queue < BUFSIZE && (c = MYSERIAL0.read()) >= 0) {
 
     char serial_char = c;
@@ -1272,8 +1287,11 @@ inline void get_serial_commands() {
 	  }
 		#endif
       // Add the command to the queue
-	  if(!discard_serial)_enqueuecommand(serial_line_buffer, true);
-	  discard_serial = false;
+	  #if defined(BCN3D_MOD)
+	  if(discard_serial == DiscardSerialReason::NONE)_enqueuecommand(serial_line_buffer, true);
+	  #else
+	  _enqueuecommand(serial_line_buffer, true);
+	  #endif
     }
     else if (serial_count >= MAX_CMD_SIZE - 1) {
       // Keep fetching, but ignore normal characters beyond the max length
@@ -16641,9 +16659,9 @@ void dropSeriabuffer() {
 	
 	thermalManager.disable_all_heaters(); // disable heaters
 	
-	MYSERIAL0.clear_buffer(); // drop serial buffer
-	
 	clear_command_queue(); // clear marlin queue
+	
+	discard_serial = DiscardSerialReason::CANCEL;
 	
 	planner.quick_stop();
 		
@@ -16651,14 +16669,12 @@ void dropSeriabuffer() {
 
 void execPauseFromSerial() {
 	
-	MYSERIAL0.clear_buffer(); // drop serial buffer
+	//MYSERIAL0.clear_buffer(); // drop serial buffer
 			
 	clear_command_queue(); // clear marlin queue
-	discard_serial = true;
+	discard_serial = DiscardSerialReason::PAUSE; // Release the flag once Serial buffer is Empty
 	//enqueue_and_echo_command("M668");
-	gcode_LastN = tracking_lastgcode - 1;
-	
-	SERIAL_PROTOCOLLNPGM("M669 executed");
+	gcode_LastN = tracking_lastgcode - 1;	
 }
 
 /**
