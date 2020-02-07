@@ -35,7 +35,7 @@
   /**
    * Marlin release version identifier
    */
-  #define SHORT_BUILD_VERSION "v0.5.2RC1" 
+  #define SHORT_BUILD_VERSION "v0.5.2RC2" 
 		
   /**
    * Verbose version identifier which should contain a reference to the location

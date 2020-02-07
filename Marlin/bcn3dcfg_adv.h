@@ -8,7 +8,7 @@
 
 #define BCN3D_MOD
 
-#define BCN3D_PRINT_SIMULATION							//Dummy driver emulator, this define must be disabled
+//#define BCN3D_PRINT_SIMULATION							//Dummy driver emulator, this define must be disabled
 #ifdef BCN3D_PRINT_SIMULATION
 	#define SIMULATION_TEMP_AMB							22.5
 #endif
