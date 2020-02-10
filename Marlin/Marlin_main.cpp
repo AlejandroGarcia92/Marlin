@@ -7308,6 +7308,7 @@ inline void gcode_G73(){ //Save State and get back to DefaultMode
 	dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
 	active_extruder_resume = active_extruder;	
 	motorModeResume = motorMode;
+	motorMode = motordriver_mode::motordefault;
 	tool_change(0);
 	COPY(flow_percentage_save, planner.flow_percentage);
 	memset(planner.flow_percentage, 100,sizeof(planner.flow_percentage));
