@@ -7293,6 +7293,7 @@ static uint8_t active_extruder_resume = 0;
 static motordriver_mode motorModeResume = motordriver_mode::motordefault;
 static bool pause_flag = false;
 static int16_t flow_percentage_save[EXTRUDERS] = ARRAY_BY_EXTRUDERS1(100);
+static int16_t fanSpeedsClassic_resume = 0;
 
 inline void gcode_G73(){ //Save State and get back to DefaultMode
 	//if(gcode_LastN > 0){
@@ -7303,23 +7304,28 @@ inline void gcode_G73(){ //Save State and get back to DefaultMode
 		SERIAL_PROTOCOLLNPGM("Axes are not at home, pause save failed");
 		return;
 	}	
-	pause_flag = true;	
+	pause_flag = true;
+	//Save Values	
 	dual_x_carriage_mode_resume = dual_x_carriage_mode;
-	dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
-	active_extruder_resume = active_extruder;	
 	motorModeResume = motorMode;
-	motorMode = motordriver_mode::motordefault;
-	tool_change(0);
+	fanSpeedsClassic_resume = fanSpeedsClassic;
+	active_extruder_resume = active_extruder;	
 	COPY(flow_percentage_save, planner.flow_percentage);
+	//Set to default
+	dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
+	motorMode = motordriver_mode::motordefault;
+	fanSpeedsClassic = 0;
+	tool_change(0);	
 	memset(planner.flow_percentage, 100,sizeof(planner.flow_percentage));
 	SERIAL_PROTOCOLLNPGM("Paused");
 }
 inline void gcode_G74(){ //Recover State
 	if(pause_flag){
+		fanSpeedsClassic = fanSpeedsClassic_resume;
 		tool_change(active_extruder_resume);	//Just in case there is another tool active
 		active_extruder_parked = false;
 		dual_x_carriage_mode = dual_x_carriage_mode_resume;
-		motorMode = motorModeResume;
+		motorMode = motorModeResume;		
 		COPY(planner.flow_percentage, flow_percentage_save); 
 	}else{
 		SERIAL_PROTOCOLLNPGM("Not paused");
