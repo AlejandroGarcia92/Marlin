@@ -1805,7 +1805,7 @@ void MarlinSettings::reset() {
   #endif
 
   #if HOTENDS > 1
-    constexpr float tmp4[XYZ][HOTENDS] = {
+      float tmp4[XYZ][HOTENDS] = {
       HOTEND_OFFSET_X,
       HOTEND_OFFSET_Y
       #if HAS_HOTEND_OFFSET_Z
@@ -1814,10 +1814,10 @@ void MarlinSettings::reset() {
         , { 0 }
       #endif
     };
-    static_assert(
-      tmp4[X_AXIS][0] == 0 && tmp4[Y_AXIS][0] == 0 && tmp4[Z_AXIS][0] == 0,
-      "Offsets for the first hotend must be 0.0."
-    );
+    //static_assert(
+      //tmp4[X_AXIS][0] == 0 && tmp4[Y_AXIS][0] == 0 && tmp4[Z_AXIS][0] == 0,
+      //"Offsets for the first hotend must be 0.0."
+    //);
     LOOP_XYZ(i) HOTEND_LOOP() hotend_offset[i][e] = tmp4[i][e];
   #endif
 

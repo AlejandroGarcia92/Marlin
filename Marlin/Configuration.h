@@ -913,13 +913,19 @@
 // @section machine
 
 // The size of the print bed
+
+
 #if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_SIGMA
-	#define X_BED_SIZE 210
-	#define Y_BED_SIZE 297
+	static float xBedSize = 210;
+	static float yBedSize = 297;
+
 #else
-	#define X_BED_SIZE 420
-	#define Y_BED_SIZE 300
+	static float xBedSize = 420;
+	static float yBedSize = 300;
 #endif
+
+	#define X_BED_SIZE xBedSize
+	#define Y_BED_SIZE yBedSize
 
 
 // Travel limits (mm) after homing, corresponding to endstop positions.

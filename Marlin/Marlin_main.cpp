@@ -782,8 +782,8 @@ FORCE_INLINE float pgm_read_any(const float *p) { return pgm_read_float_near(p);
 FORCE_INLINE signed char pgm_read_any(const signed char *p) { return pgm_read_byte_near(p); }
 
 #define XYZ_CONSTS_FROM_CONFIG(type, array, CONFIG) \
-  static const PROGMEM type array##_P[XYZ] = { X_##CONFIG, Y_##CONFIG, Z_##CONFIG }; \
-  static inline type array(const AxisEnum axis) { return pgm_read_any(&array##_P[axis]); } \
+  static type array##_P[XYZ] = { X_##CONFIG, Y_##CONFIG, Z_##CONFIG }; \
+  static inline type array(const AxisEnum axis) { return array##_P[axis]; } \
   typedef void __void_##CONFIG##__
 
 XYZ_CONSTS_FROM_CONFIG(float, base_min_pos,   MIN_POS);
@@ -11514,6 +11514,90 @@ inline void gcode_M226() {
 
 #endif // BABYSTEPPING
 
+   /*
+	* M281: Set axis max travel. (X/Y/Z) S<0 maximum (default) or 1 maximum>                                                                    
+	*/
+   inline void gcode_M281() {
+	   bool setMinimumTravel = parser.boolval('S', false);
+	   if (parser.seen('X') || parser.seen('Y') || parser.seen('Z'))
+	   {
+		   if (parser.seen('X')){
+			   float distanceAxisX = parser.floatval('X');
+			   if (setMinimumTravel){
+				   base_min_pos_P[X_AXIS] = distanceAxisX;
+			   }
+			   else {
+				   base_max_pos_P[X_AXIS] = distanceAxisX;
+				}
+				update_software_endstops(X_AXIS);   
+		   }
+		   if (parser.seen('Y')){
+			   float distanceAxisY = parser.floatval('Y');
+			   if (setMinimumTravel){
+				   base_min_pos_P[Y_AXIS] = distanceAxisY;
+			   }
+			   else {
+				   base_max_pos_P[Y_AXIS] = distanceAxisY;
+			   }
+			   update_software_endstops(Y_AXIS);
+		   }
+		   if (parser.seen('Z')){
+			   float distanceAxisZ = parser.floatval('Z');
+			   if (setMinimumTravel){
+				   base_min_pos_P[Z_AXIS] = distanceAxisZ;
+			   }
+			   else {
+				   base_max_pos_P[Z_AXIS] = distanceAxisZ;
+				   }
+			   }
+			   update_software_endstops(Z_AXIS);
+		   }
+		   else{		
+			   SERIAL_ECHO_START();
+			   SERIAL_ECHO("Min Axis Travel X: ");
+			   SERIAL_ECHO(base_min_pos_P[X_AXIS]);
+			   SERIAL_ECHO("\n");
+			   SERIAL_ECHO("Max Axis Travel X: ");
+			   SERIAL_ECHO(base_max_pos_P[X_AXIS]);
+			   SERIAL_ECHO("\n");
+			   SERIAL_ECHO("Min Axis Travel Y: ");
+			   SERIAL_ECHO(base_min_pos_P[Y_AXIS]);
+			   SERIAL_ECHO("\n");
+			   SERIAL_ECHO("Max Axis Travel Y: ");
+			   SERIAL_ECHO(base_max_pos_P[Y_AXIS]);
+			   SERIAL_ECHO("\n");
+			   SERIAL_ECHO("Min Axis Travel Z: ");
+			   SERIAL_ECHO(base_min_pos_P[Z_AXIS]);
+			   SERIAL_ECHO("\n");
+			   SERIAL_ECHO("Max Axis Travel Z: ");
+			   SERIAL_ECHO(base_max_pos_P[Z_AXIS]);
+			   SERIAL_ECHO("\n");	   
+		   }
+   }
+   inline void gcode_282() {
+	   if(parser.seen('X')||parser.seen('Y')){
+		   
+		   if(parser.seen('X')){
+			   xBedSize = parser.floatval('X');
+			   update_software_endstops(X_AXIS);
+		   }
+		   if(parser.seen('Y')){
+			   yBedSize = parser.floatval('Y');
+			   update_software_endstops(Y_AXIS);
+		   }
+	   }
+	   else{
+		   SERIAL_ECHO_START();
+		   SERIAL_ECHO("Bed Size X: ");
+		   SERIAL_ECHO(X_BED_SIZE);
+		   SERIAL_ECHO("\n");
+		   SERIAL_ECHO("Bed Size Y: ");
+		   SERIAL_ECHO(Y_BED_SIZE);
+		   SERIAL_ECHO("\n");   
+	   }
+	   
+   }
+
 #if HAS_BUZZER
 
   /**
@@ -14556,7 +14640,9 @@ void process_parsed_command() {
       #if HAS_SERVOS
         case 280: gcode_M280(); break;                            // M280: Set Servo Position
       #endif
-
+	  
+		case 281: gcode_M281(); break;							  // M281: Set Axis Maximum Travel
+		
       #if ENABLED(BABYSTEPPING)
         case 290: gcode_M290(); break;                            // M290: Babystepping
       #endif
