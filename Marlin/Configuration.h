@@ -45,7 +45,7 @@
 #define BCN3D_PRINTER_IS_EPSILON	040
 
 //#define TEST_TRULLAS
-//#define PROTO_EPSILON
+#define PROTO_EPSILON
 
 #ifndef BCN3D_PRINTER_SETUP
 	#define BCN3D_PRINTER_SETUP BCN3D_PRINTER_IS_EPSILON
@@ -916,12 +916,12 @@
 
 
 #if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_SIGMA
-	static float xBedSize = 210;
-	static float yBedSize = 297;
+__attribute__((unused))	static float xBedSize = 210;
+__attribute__((unused))	static float yBedSize = 297;
 
 #else
-	static float xBedSize = 420;
-	static float yBedSize = 300;
+__attribute__((unused))	static float xBedSize = 420;
+__attribute__((unused))	static float yBedSize = 300;
 #endif
 
 	#define X_BED_SIZE xBedSize
@@ -1052,7 +1052,7 @@
  * Turn on with the command 'M111 S32'.
  * NOTE: Requires a lot of PROGMEM!
  */
-//#define DEBUG_LEVELING_FEATURE
+#define DEBUG_LEVELING_FEATURE
 
 #if ENABLED(MESH_BED_LEVELING) || ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(AUTO_BED_LEVELING_UBL)
   // Gradually reduce leveling correction until a set height is reached,

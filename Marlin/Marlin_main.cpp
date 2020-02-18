@@ -383,7 +383,7 @@
 
 bool Running = true;
 
-uint8_t marlin_debug_flags = DEBUG_NONE;
+uint8_t marlin_debug_flags = DEBUG_LEVELING;
 
 /**
  * Cartesian Tracking Position gcode Coords from print job
@@ -783,6 +783,7 @@ FORCE_INLINE signed char pgm_read_any(const signed char *p) { return pgm_read_by
 
 #define XYZ_CONSTS_FROM_CONFIG(type, array, CONFIG) \
   static type array##_P[XYZ] = { X_##CONFIG, Y_##CONFIG, Z_##CONFIG }; \
+  __attribute__((unused)) static void set_##array(const AxisEnum axis, type value) { array##_P[axis] = value; } \
   static inline type array(const AxisEnum axis) { return array##_P[axis]; } \
   typedef void __void_##CONFIG##__
 
@@ -11521,79 +11522,64 @@ inline void gcode_M226() {
 	   bool setMinimumTravel = parser.boolval('S', false);
 	   if (parser.seen('X') || parser.seen('Y') || parser.seen('Z'))
 	   {
-		   if (parser.seen('X')){
-			   float distanceAxisX = parser.floatval('X');
+		   if (parser.seen('X')) {
+			   const float distanceAxisX = parser.floatval('X');
 			   if (setMinimumTravel){
-				   base_min_pos_P[X_AXIS] = distanceAxisX;
+				   set_base_min_pos(X_AXIS, distanceAxisX);
 			   }
 			   else {
-				   base_max_pos_P[X_AXIS] = distanceAxisX;
-				}
-				update_software_endstops(X_AXIS);   
+				   set_base_max_pos(X_AXIS, distanceAxisX);
+			   }
+			   soft_endstop_min[X_AXIS] = base_min_pos(X_AXIS);
+			   soft_endstop_max[X_AXIS] = base_max_pos(X_AXIS);
 		   }
-		   if (parser.seen('Y')){
-			   float distanceAxisY = parser.floatval('Y');
+		   if (parser.seen('Y')) {
+			   const float distanceAxisY = parser.floatval('Y');
 			   if (setMinimumTravel){
-				   base_min_pos_P[Y_AXIS] = distanceAxisY;
+				   set_base_min_pos(Y_AXIS, distanceAxisY);
 			   }
 			   else {
-				   base_max_pos_P[Y_AXIS] = distanceAxisY;
+				   set_base_max_pos(Y_AXIS, distanceAxisY);
 			   }
-			   update_software_endstops(Y_AXIS);
+			   soft_endstop_min[Y_AXIS] = base_min_pos(Y_AXIS);
+			   soft_endstop_max[Y_AXIS] = base_max_pos(Y_AXIS);
 		   }
-		   if (parser.seen('Z')){
-			   float distanceAxisZ = parser.floatval('Z');
+		   if (parser.seen('Z')) {
+			   const float distanceAxisZ = parser.floatval('Z');
 			   if (setMinimumTravel){
-				   base_min_pos_P[Z_AXIS] = distanceAxisZ;
+				   set_base_min_pos(Z_AXIS, distanceAxisZ);
 			   }
 			   else {
-				   base_max_pos_P[Z_AXIS] = distanceAxisZ;
-				   }
+				   set_base_max_pos(Z_AXIS, distanceAxisZ);
 			   }
-			   update_software_endstops(Z_AXIS);
-		   }
-		   else{		
-			   SERIAL_ECHO_START();
-			   SERIAL_ECHO("Min Axis Travel X: ");
-			   SERIAL_ECHO(base_min_pos_P[X_AXIS]);
-			   SERIAL_ECHO("\n");
-			   SERIAL_ECHO("Max Axis Travel X: ");
-			   SERIAL_ECHO(base_max_pos_P[X_AXIS]);
-			   SERIAL_ECHO("\n");
-			   SERIAL_ECHO("Min Axis Travel Y: ");
-			   SERIAL_ECHO(base_min_pos_P[Y_AXIS]);
-			   SERIAL_ECHO("\n");
-			   SERIAL_ECHO("Max Axis Travel Y: ");
-			   SERIAL_ECHO(base_max_pos_P[Y_AXIS]);
-			   SERIAL_ECHO("\n");
-			   SERIAL_ECHO("Min Axis Travel Z: ");
-			   SERIAL_ECHO(base_min_pos_P[Z_AXIS]);
-			   SERIAL_ECHO("\n");
-			   SERIAL_ECHO("Max Axis Travel Z: ");
-			   SERIAL_ECHO(base_max_pos_P[Z_AXIS]);
-			   SERIAL_ECHO("\n");	   
-		   }
+			   soft_endstop_min[Z_AXIS] = base_min_pos(Z_AXIS);
+			   soft_endstop_max[Z_AXIS] = base_max_pos(Z_AXIS);
+		   }			   
+		}
+		else{
+			SERIAL_ECHO_START();
+			SERIAL_ECHOLNPAIR("Min Axis Travel X: ", base_min_pos(X_AXIS));
+			SERIAL_ECHOLNPAIR("Max Axis Travel X: ", base_max_pos(X_AXIS));
+			SERIAL_ECHOLNPAIR("Min Axis Travel Y: ", base_min_pos(Y_AXIS));
+			SERIAL_ECHOLNPAIR("Max Axis Travel Y: ", base_max_pos(Y_AXIS));
+			SERIAL_ECHOLNPAIR("Min Axis Travel Z: ", base_min_pos(Z_AXIS));
+			SERIAL_ECHOLNPAIR("Max Axis Travel Z: ", base_max_pos(Z_AXIS));
+		}
    }
    inline void gcode_282() {
 	   if(parser.seen('X')||parser.seen('Y')){
 		   
 		   if(parser.seen('X')){
 			   xBedSize = parser.floatval('X');
-			   update_software_endstops(X_AXIS);
 		   }
 		   if(parser.seen('Y')){
 			   yBedSize = parser.floatval('Y');
-			   update_software_endstops(Y_AXIS);
 		   }
 	   }
 	   else{
 		   SERIAL_ECHO_START();
-		   SERIAL_ECHO("Bed Size X: ");
-		   SERIAL_ECHO(X_BED_SIZE);
-		   SERIAL_ECHO("\n");
-		   SERIAL_ECHO("Bed Size Y: ");
-		   SERIAL_ECHO(Y_BED_SIZE);
-		   SERIAL_ECHO("\n");   
+		   SERIAL_ECHOLNPAIR("Bed Size X: ", X_BED_SIZE);
+		   SERIAL_ECHOLNPAIR("Bed Size Y: ", Y_BED_SIZE);
 	   }
 	   
    }
