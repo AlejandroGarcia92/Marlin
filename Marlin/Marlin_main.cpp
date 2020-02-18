@@ -7895,7 +7895,7 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	SERIAL_PROTOCOLLN(current_position[Z_AXIS]);
 
 	setup_for_endstop_or_probe_move();
-	float z_at_pt_1 = probe_pt(X_SIGMA_PROBE_1_LEFT_EXTR,Y_SIGMA_PROBE_1_LEFT_EXTR, PROBE_PT_RAISE, 3);
+	float z_at_pt_1 = probe_pt(x_probe_left_extr[0],y_probe_left_extr[0], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
 	
 	feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
@@ -7905,10 +7905,10 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], XY_PROBE_FEEDRATE_MM_S, 1);
 
 	setup_for_endstop_or_probe_move();
-	float z_at_pt_2 = probe_pt(X_SIGMA_PROBE_2_LEFT_EXTR,Y_SIGMA_PROBE_2_LEFT_EXTR, PROBE_PT_RAISE, 3);
+	float z_at_pt_2 = probe_pt(x_probe_left_extr[1],y_probe_left_extr[1], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
 	setup_for_endstop_or_probe_move();
-	float z_at_pt_3 = probe_pt(X_SIGMA_PROBE_3_LEFT_EXTR,Y_SIGMA_PROBE_3_LEFT_EXTR, PROBE_PT_RAISE, 3);
+	float z_at_pt_3 = probe_pt(x_probe_left_extr[2],y_probe_left_extr[2], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
 	
 	current_position[Z_AXIS] += Z_RAISE_BET_PROBINGS;
@@ -7930,13 +7930,13 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	//Probe at 3 arbitrary points
 	//probe left extruder
 	setup_for_endstop_or_probe_move();
-	float z2_at_pt_3 = probe_pt(X_SIGMA_PROBE_3_RIGHT_EXTR,Y_SIGMA_PROBE_3_RIGHT_EXTR, PROBE_PT_RAISE, 3);
+	float z2_at_pt_3 = probe_pt(x_probe_right_extr[2], y_probe_right_extr[2], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
 	
 	feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 		
 	setup_for_endstop_or_probe_move();
-	float z2_at_pt_2 = probe_pt(X_SIGMA_PROBE_2_RIGHT_EXTR,Y_SIGMA_PROBE_2_RIGHT_EXTR, PROBE_PT_RAISE, 3);
+	float z2_at_pt_2 = probe_pt(x_probe_right_extr[1], y_probe_right_extr[1], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
 	
 	// Move the probe to the starting X
@@ -7944,7 +7944,7 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(4000), 1);
 	
 	setup_for_endstop_or_probe_move();
-	float z2_at_pt_1 = probe_pt(X_SIGMA_PROBE_1_RIGHT_EXTR,Y_SIGMA_PROBE_1_RIGHT_EXTR, PROBE_PT_RAISE, 3);
+	float z2_at_pt_1 = probe_pt(x_probe_right_extr[0], y_probe_right_extr[0], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
 	
 	
@@ -7965,13 +7965,13 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	plan_bed_level_matrix.set_to_identity();
 	
 	
-	vector_3 pt1_0 = vector_3(X_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_1_LEFT_EXTR, z_at_pt_1);
-	vector_3 pt2_0 = vector_3(X_SIGMA_PROBE_2_LEFT_EXTR, Y_SIGMA_PROBE_2_LEFT_EXTR, z_at_pt_2);
-	vector_3 pt3_0 = vector_3(X_SIGMA_PROBE_3_LEFT_EXTR, Y_SIGMA_PROBE_3_LEFT_EXTR, z_at_pt_3);
+	vector_3 pt1_0 = vector_3(x_probe_left_extr[1], y_probe_left_extr[1], z_at_pt_1);
+	vector_3 pt2_0 = vector_3(x_probe_left_extr[2], y_probe_left_extr[2], z_at_pt_2);
+	vector_3 pt3_0 = vector_3(x_probe_left_extr[3], y_probe_left_extr[3], z_at_pt_3);
 	
-	vector_3 pt1_1 = vector_3(X_SIGMA_PROBE_1_RIGHT_EXTR, Y_SIGMA_PROBE_1_RIGHT_EXTR, z2_at_pt_1);
-	vector_3 pt2_1 = vector_3(X_SIGMA_PROBE_2_RIGHT_EXTR, Y_SIGMA_PROBE_2_RIGHT_EXTR, z2_at_pt_2);
-	vector_3 pt3_1 = vector_3(X_SIGMA_PROBE_3_RIGHT_EXTR, Y_SIGMA_PROBE_3_RIGHT_EXTR, z2_at_pt_3);
+	vector_3 pt1_1 = vector_3(x_probe_right_extr[1], y_probe_right_extr[1], z2_at_pt_1);
+	vector_3 pt2_1 = vector_3(x_probe_right_extr[2], y_probe_right_extr[2], z2_at_pt_2);
+	vector_3 pt3_1 = vector_3(x_probe_right_extr[3], y_probe_right_extr[3], z2_at_pt_3);
 	
 	vector_3 from_2_to_1_0 = (pt1_0 - pt2_0);
 	vector_3 from_2_to_3_0 = (pt3_0 - pt2_0);
@@ -7983,16 +7983,16 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	vector_3 planeNormal_1 = vector_3::cross(from_3_to_1_1, from_3_to_2_1); // Point 3 is 2 on the left
 	planeNormal_1 = vector_3(planeNormal_1.x, planeNormal_1.y, planeNormal_1.z);
 	
-	float Zscroll_0=(-planeNormal_0.x*(CARGOL_1_X-X_SIGMA_PROBE_1_LEFT_EXTR-CARGOL_1_X)-planeNormal_0.y*(CARGOL_1_Y-Y_SIGMA_PROBE_3_LEFT_EXTR-CARGOL_1_Y/2.0))/planeNormal_0.z;
-	float Zscroll_1=(-planeNormal_1.x*(CARGOL_1_X-X_SIGMA_PROBE_1_LEFT_EXTR-CARGOL_1_X)-planeNormal_1.y*(CARGOL_1_Y-Y_SIGMA_PROBE_3_LEFT_EXTR-CARGOL_1_Y/2))/planeNormal_1.z;
+	float Zscroll_0=(-planeNormal_0.x*(CARGOL_1_X-x_probe_left_extr[0]-CARGOL_1_X)-planeNormal_0.y*(CARGOL_1_Y-y_probe_left_extr[2]-CARGOL_1_Y/2.0))/planeNormal_0.z;
+	float Zscroll_1=(-planeNormal_1.x*(CARGOL_1_X-x_probe_left_extr[0]-CARGOL_1_X)-planeNormal_1.y*(CARGOL_1_Y-y_probe_left_extr[2]-CARGOL_1_Y/2))/planeNormal_1.z;
 	
 	//float z1_0=(-planeNormal_0.x*0.0-planeNormal_0.y*(Y_SIGMA_PROBE_1_LEFT_EXTR-Y_SIGMA_PROBE_3_LEFT_EXTR))/planeNormal_0.z;
-	float z2_0=(-planeNormal_0.x*(CARGOL_2_X-X_SIGMA_PROBE_1_LEFT_EXTR-CARGOL_1_X)-planeNormal_0.y*(CARGOL_2_Y-Y_SIGMA_PROBE_3_LEFT_EXTR-CARGOL_1_Y/2))/planeNormal_0.z;
-	float z3_0=(-planeNormal_0.x*(CARGOL_3_X-X_SIGMA_PROBE_1_LEFT_EXTR-CARGOL_1_X)-planeNormal_0.y*(CARGOL_3_Y-Y_SIGMA_PROBE_3_LEFT_EXTR-CARGOL_1_Y/2))/planeNormal_0.z;
+	float z2_0=(-planeNormal_0.x*(CARGOL_2_X-x_probe_left_extr[0]-CARGOL_1_X)-planeNormal_0.y*(CARGOL_2_Y-y_probe_left_extr[2]-CARGOL_1_Y/2))/planeNormal_0.z;
+	float z3_0=(-planeNormal_0.x*(CARGOL_3_X-x_probe_left_extr[0]-CARGOL_1_X)-planeNormal_0.y*(CARGOL_3_Y-y_probe_left_extr[2]-CARGOL_1_Y/2))/planeNormal_0.z;
 	
 	//float z1_1=(-planeNormal_1.x*(X_SIGMA_PROBE_1_RIGHT_EXTR-X_SIGMA_PROBE_1_LEFT_EXTR)-planeNormal_1.y*(Y_SIGMA_PROBE_1_RIGHT_EXTR-Y_SIGMA_PROBE_3_RIGHT_EXTR))/planeNormal_1.z;
-	float z2_1=(-planeNormal_1.x*(CARGOL_2_X-X_SIGMA_PROBE_1_LEFT_EXTR-CARGOL_1_X)-planeNormal_1.y*(CARGOL_2_Y-Y_SIGMA_PROBE_3_LEFT_EXTR-CARGOL_1_Y/2))/planeNormal_1.z;
-	float z3_1=(-planeNormal_1.x*(CARGOL_3_X-X_SIGMA_PROBE_1_LEFT_EXTR-CARGOL_1_X)-planeNormal_1.y*(CARGOL_3_Y-Y_SIGMA_PROBE_3_LEFT_EXTR-CARGOL_1_Y/2))/planeNormal_1.z;
+	float z2_1=(-planeNormal_1.x*(CARGOL_2_X-x_probe_left_extr[0]-CARGOL_1_X)-planeNormal_1.y*(CARGOL_2_Y-x_probe_left_extr[2]-CARGOL_1_Y/2))/planeNormal_1.z;
+	float z3_1=(-planeNormal_1.x*(CARGOL_3_X-x_probe_left_extr[0]-CARGOL_1_X)-planeNormal_1.y*(CARGOL_3_Y-x_probe_left_extr[2]-CARGOL_1_Y/2))/planeNormal_1.z;
 	
 	//SERIAL_PROTOCOLPGM("planeNormal_0.x: ");
 	//SERIAL_PROTOCOLLN(planeNormal_0.x);
@@ -11566,7 +11566,10 @@ inline void gcode_M226() {
 			SERIAL_ECHOLNPAIR("Max Axis Travel Z: ", base_max_pos(Z_AXIS));
 		}
    }
-   inline void gcode_282() {
+   /*
+	* M282: Set bed size. X and Y                                                                  
+	*/
+   inline void gcode_M282() {
 	   if(parser.seen('X')||parser.seen('Y')){
 		   
 		   if(parser.seen('X')){
@@ -11580,10 +11583,121 @@ inline void gcode_M226() {
 		   SERIAL_ECHO_START();
 		   SERIAL_ECHOLNPAIR("Bed Size X: ", X_BED_SIZE);
 		   SERIAL_ECHOLNPAIR("Bed Size Y: ", Y_BED_SIZE);
-	   }
-	   
+	   }	   
    }
-
+   /*
+	* M283: Set home safe point. X and Y coords                                                               
+	*/
+   inline void gcode_M283() {
+	   if(parser.seen('X')||parser.seen('Y')){
+		   
+		   if(parser.seen('X')){
+			   z_safe_homing_x_point = parser.floatval('X');
+		   }
+		   if(parser.seen('Y')){
+			   z_safe_homing_y_point = parser.floatval('Y');
+		   }
+	   }
+	   else{
+		   SERIAL_ECHO_START();
+		   SERIAL_ECHOLNPAIR("Home safe point X: ", Z_SAFE_HOMING_X_POINT);
+		   SERIAL_ECHOLNPAIR("Home safe point Y: ", Z_SAFE_HOMING_Y_POINT);
+	   }	   
+   }
+   /*
+	* M284: Set knob position. X and Y coords                                                               
+	*/
+   inline void gcode_M284() {
+	   
+	   const float x_coords = parser.floatval('X');
+	   const float y_coords = parser.floatval('Y');
+	   
+	   if(parser.seen('K') && parser.seen('X') && parser.seen('Y')) {
+		   switch(parser.byteval('K')) {
+			   case 1:
+				   x_screw_bed_calib_1 = x_coords;
+				   y_screw_bed_calib_1 = y_coords;
+			   break;
+			   case 2:
+				   x_screw_bed_calib_2 = x_coords;
+				   y_screw_bed_calib_2 = y_coords;			   
+			   break;
+			   case 3:
+				   x_screw_bed_calib_3 = x_coords;
+				   y_screw_bed_calib_3 = y_coords;		   
+			   break;
+			   default:
+			   break;
+		   }
+	   }
+	   else{
+		   SERIAL_ECHO_START();
+		   SERIAL_ECHOLNPAIR("Knob 1 x position: ", CARGOL_1_X);
+		   SERIAL_ECHOLNPAIR("Knob 1 y position: ", CARGOL_1_Y);
+		   SERIAL_ECHOLNPAIR("Knob 2 x position: ", CARGOL_2_X);
+		   SERIAL_ECHOLNPAIR("Knob 2 y position: ", CARGOL_2_Y);
+		   SERIAL_ECHOLNPAIR("Knob 3 x position: ", CARGOL_3_X);
+		   SERIAL_ECHOLNPAIR("Knob 3 y position: ", CARGOL_3_Y);
+	   }	   
+   }
+   /*
+	* M285: Set probe position. X and Y coords                                                               
+	*/
+   inline void gcode_M285() {
+	   
+	   const float x_coords = parser.floatval('X');
+	   const float y_coords = parser.floatval('Y');
+	   
+	   if(parser.seen('P') && parser.seen('X') && parser.seen('Y') && parser.seen('E')) {
+		   if(parser.byteval('E') == 0) {
+			    switch(parser.byteval('P')) {
+				    case 1:
+				    x_probe_left_extr[0] = x_coords;
+				    y_probe_left_extr[0] = y_coords;
+				    break;
+				    case 2:
+				    x_probe_left_extr[1] = x_coords;
+				    y_probe_left_extr[1] = y_coords;
+				    break;
+				    case 3:
+				    x_probe_left_extr[2] = x_coords;
+				    y_probe_left_extr[2] = y_coords;
+				    break;
+				    default:
+				    break;
+			    }			   
+		   } 
+		   else if(parser.byteval('E') == 1) {
+			    switch(parser.byteval('P')) {
+				    case 1:
+				    x_probe_right_extr[0] = x_coords;
+				    y_probe_right_extr[0] = y_coords;
+				    break;
+				    case 2:
+				    x_probe_right_extr[1] = x_coords;
+				    y_probe_right_extr[1] = y_coords;
+				    break;
+				    case 3:
+				    x_probe_right_extr[2] = x_coords;
+				    y_probe_right_extr[2] = y_coords;
+				    break;
+				    default:
+				    break;
+			    }
+		   }		  
+	   }
+	   else{
+		   SERIAL_ECHO_START();
+		   SERIAL_ECHOLNPGM("Left Probe:");
+		   SERIAL_ECHOPAIR("Probe 1 x: ", x_probe_left_extr[0]); SERIAL_ECHOLNPAIR(" y: ", y_probe_left_extr[0]);
+		   SERIAL_ECHOPAIR("Probe 2 x: ", x_probe_left_extr[0]); SERIAL_ECHOLNPAIR(" y: ", y_probe_left_extr[1]);
+		   SERIAL_ECHOPAIR("Probe 3 x: ", x_probe_left_extr[0]); SERIAL_ECHOLNPAIR(" y: ", y_probe_left_extr[2]);
+		   SERIAL_ECHOLNPGM("Right Probe:");
+		   SERIAL_ECHOPAIR("Probe 1 x: ", x_probe_right_extr[0]); SERIAL_ECHOLNPAIR(" y: ", y_probe_right_extr[0]);
+		   SERIAL_ECHOPAIR("Probe 2 x: ", x_probe_right_extr[1]); SERIAL_ECHOLNPAIR(" y: ", y_probe_right_extr[1]);
+		   SERIAL_ECHOPAIR("Probe 3 x: ", x_probe_right_extr[2]); SERIAL_ECHOLNPAIR(" y: ", y_probe_right_extr[2]);
+	   }	   
+   }
 #if HAS_BUZZER
 
   /**
@@ -14628,6 +14742,10 @@ void process_parsed_command() {
       #endif
 	  
 		case 281: gcode_M281(); break;							  // M281: Set Axis Maximum Travel
+		case 282: gcode_M282(); break;							  // M282: Set bed size
+		case 283: gcode_M283(); break;							  // M283: Set home safe point
+		case 284: gcode_M284(); break;							  // M284: Set knob position
+		case 285: gcode_M285(); break;							  // M285: Set probe position
 		
       #if ENABLED(BABYSTEPPING)
         case 290: gcode_M290(); break;                            // M290: Babystepping
