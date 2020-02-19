@@ -383,7 +383,7 @@
 
 bool Running = true;
 
-uint8_t marlin_debug_flags = DEBUG_LEVELING;
+uint8_t marlin_debug_flags = DEBUG_NONE;
 
 /**
  * Cartesian Tracking Position gcode Coords from print job
@@ -591,6 +591,33 @@ int16_t fanSpeeds_raft[FAN_COUNT] = { 0 };
 static DualXMode dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
 
 bool waiting_resend_confirmation = false;
+
+#endif
+
+#if defined(BCN3D_MOD)
+//Configuration Overlay
+
+#if ENABLED(Z_SAFE_HOMING)
+
+#endif
+
+//Bed size
+_UNUSED	static float xBedSize = 420;
+_UNUSED	static float yBedSize = 300;
+
+//Know positions
+_UNUSED static float x_screw_bed_calib_1 = (X1_MIN_POS + 262.9);
+_UNUSED static float y_screw_bed_calib_1 = (Y_MAX_POS + 30.3);
+_UNUSED static float x_screw_bed_calib_2 = (X1_MIN_POS + 54.4);
+_UNUSED static float y_screw_bed_calib_2 = (Y_MAX_POS - 297.2);
+_UNUSED static float x_screw_bed_calib_3 = (X1_MIN_POS + 471.4);
+_UNUSED static float y_screw_bed_calib_3 = (Y_MAX_POS - 297.2);
+
+//Probe positions
+_UNUSED static float x_probe_left_extr[3] = {X_SIGMA_PROBE_1_LEFT_EXTR, X_SIGMA_PROBE_2_LEFT_EXTR, X_SIGMA_PROBE_3_LEFT_EXTR};
+_UNUSED static float y_probe_left_extr[3] = {Y_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_2_LEFT_EXTR, Y_SIGMA_PROBE_3_LEFT_EXTR};
+_UNUSED static float x_probe_right_extr[3] = {X_SIGMA_PROBE_1_RIGHT_EXTR, X_SIGMA_PROBE_2_RIGHT_EXTR, X_SIGMA_PROBE_3_RIGHT_EXTR};
+_UNUSED static float y_probe_right_extr[3] = {Y_SIGMA_PROBE_1_RIGHT_EXTR, Y_SIGMA_PROBE_2_RIGHT_EXTR, Y_SIGMA_PROBE_3_RIGHT_EXTR};
 
 #endif
 
@@ -11644,6 +11671,8 @@ inline void gcode_M226() {
 	* M285: Set probe position. X and Y coords                                                               
 	*/
    inline void gcode_M285() {
+	   
+	   // M285 E0 P1 X2 Y200; M285 E0 P2 X2 Y10; M285 E0 P3 X300 Y10 |||| M285 E1 P1 X300 Y200; M285 E1 P2 X300 Y10; M285 E1 P3 X2 Y10
 	   
 	   const float x_coords = parser.floatval('X');
 	   const float y_coords = parser.floatval('Y');

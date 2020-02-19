@@ -78,20 +78,8 @@
 #define X_SIGMA_PROBE_3_RIGHT_EXTR	 X_SIGMA_PROBE_2_LEFT_EXTR
 #define Y_SIGMA_PROBE_3_RIGHT_EXTR	 Y_SIGMA_PROBE_2_LEFT_EXTR
 
-__attribute__((unused)) static float x_probe_left_extr[3] = {X_SIGMA_PROBE_1_LEFT_EXTR, X_SIGMA_PROBE_2_LEFT_EXTR, X_SIGMA_PROBE_3_LEFT_EXTR};
-__attribute__((unused)) static float y_probe_left_extr[3] = {Y_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_2_LEFT_EXTR, Y_SIGMA_PROBE_3_LEFT_EXTR};
-__attribute__((unused)) static float x_probe_right_extr[3] = {X_SIGMA_PROBE_1_RIGHT_EXTR, X_SIGMA_PROBE_2_RIGHT_EXTR, X_SIGMA_PROBE_3_RIGHT_EXTR};
-__attribute__((unused)) static float y_probe_right_extr[3] = {Y_SIGMA_PROBE_1_RIGHT_EXTR, Y_SIGMA_PROBE_2_RIGHT_EXTR, Y_SIGMA_PROBE_3_RIGHT_EXTR};
-
 #define X_GAP_AVOID_COLLISION_LEFT	(13.2)
 #define X_GAP_AVOID_COLLISION_RIGHT	(12.7)
-
-__attribute__((unused)) static float x_screw_bed_calib_1 = (X1_MIN_POS + 262.9);
-__attribute__((unused)) static float y_screw_bed_calib_1 = (Y_MAX_POS + 30.3);
-__attribute__((unused)) static float x_screw_bed_calib_2 = (X1_MIN_POS + 54.4);
-__attribute__((unused)) static float y_screw_bed_calib_2 = (Y_MAX_POS - 297.2);
-__attribute__((unused)) static float x_screw_bed_calib_3 = (X1_MIN_POS + 471.4);
-__attribute__((unused)) static float y_screw_bed_calib_3 = (Y_MAX_POS - 297.2);
 
 #define CARGOL_1_X  x_screw_bed_calib_1
 #define CARGOL_1_Y  y_screw_bed_calib_1

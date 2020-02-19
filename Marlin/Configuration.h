@@ -914,11 +914,13 @@
 
 // The size of the print bed
 
-__attribute__((unused))	static float xBedSize = 420;
-__attribute__((unused))	static float yBedSize = 300;
-
-#define X_BED_SIZE xBedSize
-#define Y_BED_SIZE yBedSize
+#if BCN3D_MOD
+	#define X_BED_SIZE xBedSize
+	#define Y_BED_SIZE yBedSize
+#else
+	#define X_BED_SIZE 420
+	#define Y_BED_SIZE 300
+#endif
 
 
 // Travel limits (mm) after homing, corresponding to endstop positions.
@@ -1030,7 +1032,7 @@ __attribute__((unused))	static float yBedSize = 300;
  * Turn on with the command 'M111 S32'.
  * NOTE: Requires a lot of PROGMEM!
  */
-#define DEBUG_LEVELING_FEATURE
+//#define DEBUG_LEVELING_FEATURE
 
 #if ENABLED(MESH_BED_LEVELING) || ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(AUTO_BED_LEVELING_UBL)
   // Gradually reduce leveling correction until a set height is reached,
@@ -1184,10 +1186,8 @@ __attribute__((unused))	static float yBedSize = 300;
 #define Z_SAFE_HOMING
 
 #if ENABLED(Z_SAFE_HOMING)
-  //#define Z_SAFE_HOMING_X_POINT ((X_BED_SIZE) / 2)    // X point for Z homing when homing all axes (G28).
-  //#define Z_SAFE_HOMING_Y_POINT ((Y_BED_SIZE) / 2)    // Y point for Z homing when homing all axes (G28).
-__attribute__((unused))  static float z_safe_homing_x_point = -2.5;
-__attribute__((unused))  static float z_safe_homing_y_point = 150;
+_UNUSED static float z_safe_homing_x_point = -2.5;
+_UNUSED static float z_safe_homing_y_point = 150;
   #define Z_SAFE_HOMING_X_POINT z_safe_homing_x_point   // X point for Z homing when homing all axes (G28).
   #define Z_SAFE_HOMING_Y_POINT z_safe_homing_y_point    // Y point for Z homing when homing all axes (G28).
 #endif
