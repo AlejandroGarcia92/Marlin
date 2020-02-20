@@ -618,6 +618,10 @@ _UNUSED static float x_probe_left_extr[3] = {X_SIGMA_PROBE_1_LEFT_EXTR, X_SIGMA_
 _UNUSED static float y_probe_left_extr[3] = {Y_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_2_LEFT_EXTR, Y_SIGMA_PROBE_3_LEFT_EXTR};
 _UNUSED static float x_probe_right_extr[3] = {X_SIGMA_PROBE_1_RIGHT_EXTR, X_SIGMA_PROBE_2_RIGHT_EXTR, X_SIGMA_PROBE_3_RIGHT_EXTR};
 _UNUSED static float y_probe_right_extr[3] = {Y_SIGMA_PROBE_1_RIGHT_EXTR, Y_SIGMA_PROBE_2_RIGHT_EXTR, Y_SIGMA_PROBE_3_RIGHT_EXTR};
+	
+_UNUSED static float x_gap_avoid_collision_l = X_GAP_AVOID_COLLISION_LEFT;
+_UNUSED static float x_gap_avoid_collision_r = X_GAP_AVOID_COLLISION_RIGHT;
+
 
 #endif
 
@@ -7894,7 +7898,7 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	
 	
 	//MOVING THE EXTRUDERS TO AVOID HITTING THE CASE WHEN PROBING-------------------------
-	current_position[X_AXIS] += X_GAP_AVOID_COLLISION_LEFT;
+	current_position[X_AXIS] += x_gap_avoid_collision_l;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
 	///////planner.synchronize();
 	//current_position[X_AXIS] = x_home_pos(RIGHT_EXTRUDER);
@@ -7903,14 +7907,14 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	set_axis_is_at_home(X_AXIS); //Redoes the Max Min calculus for the Right extruder
 	SERIAL_PROTOCOLLN(current_position[X_AXIS]);
 	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]);
-	current_position[X_AXIS]-=X_GAP_AVOID_COLLISION_RIGHT;
+	current_position[X_AXIS]-=x_gap_avoid_collision_r;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 1);
 	
 	//*********************************************************************
 	//Now we can proceed to probe the first 3 points with the left extruder
 	active_extruder=0;
 	set_axis_is_at_home(X_AXIS);
-	current_position[X_AXIS]+=X_GAP_AVOID_COLLISION_LEFT;
+	current_position[X_AXIS]+=x_gap_avoid_collision_l;
 	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]); // We are now at position
 	planner.synchronize();
 	
@@ -7941,7 +7945,7 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	current_position[Z_AXIS] += Z_RAISE_BET_PROBINGS;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(600), 0);
 	
-	current_position[X_AXIS]=x_home_pos(active_extruder)+X_GAP_AVOID_COLLISION_LEFT;
+	current_position[X_AXIS]=x_home_pos(active_extruder)+x_gap_avoid_collision_l;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
 		
 	planner.synchronize();
@@ -7950,7 +7954,7 @@ inline void gcode_G290(){//BCN3D Bed leveling
 		
 	active_extruder=1;
 	set_axis_is_at_home(X_AXIS); //Redoes the Max Min calculus for the right extruder
-	current_position[X_AXIS]-=X_GAP_AVOID_COLLISION_RIGHT;
+	current_position[X_AXIS]-=x_gap_avoid_collision_r;
 	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]);
 	
 		
@@ -8088,8 +8092,9 @@ inline void gcode_M141() { // Set chamber temperature
 
 inline void gcode_M668() {
 	planner.synchronize();
+
 	gcode_LastN = tracking_lastgcode - 1;
-	
+
 	SERIAL_PROTOCOLPGM("Stored Position");
 	SERIAL_PROTOCOLPGM(" X:");
 	MYSERIAL0.print(tracking_position[X_AXIS],3);
@@ -11727,6 +11732,26 @@ inline void gcode_M226() {
 		   SERIAL_ECHOPAIR("Probe 3 x: ", x_probe_right_extr[2]); SERIAL_ECHOLNPAIR(" y: ", y_probe_right_extr[2]);
 	   }	   
    }
+   /*
+	* M286: Set collision avoidance Machine on bed leveling                                                             
+	*/
+   inline void gcode_M286() {
+	   
+	   const float xl_coords = parser.floatval('L');
+	   const float xr_coords = parser.floatval('R');
+	   
+	   if(parser.seen('L') && parser.seen('R')) {
+			x_gap_avoid_collision_l = xl_coords;
+			x_gap_avoid_collision_r = xr_coords;
+	   }
+	   else{
+		   SERIAL_ECHO_START();
+		   SERIAL_ECHOLNPAIR("Collision Avoidance L: ", x_gap_avoid_collision_l);
+		   SERIAL_ECHOLNPAIR("Collision Avoidance R: ", x_gap_avoid_collision_r);
+	   }
+   }
+   
+   
 #if HAS_BUZZER
 
   /**
@@ -14775,6 +14800,7 @@ void process_parsed_command() {
 		case 283: gcode_M283(); break;							  // M283: Set home safe point
 		case 284: gcode_M284(); break;							  // M284: Set knob position
 		case 285: gcode_M285(); break;							  // M285: Set probe position
+		case 286: gcode_M286(); break;							  // M286: Collision avoidance bed leveling
 		
       #if ENABLED(BABYSTEPPING)
         case 290: gcode_M290(); break;                            // M290: Babystepping
@@ -16914,6 +16940,7 @@ void execPauseFromSerial() {
 			
 	clear_command_queue(); // clear marlin queue
 	discard_serial = DiscardSerialReason::PAUSE; // Release the flag once Serial buffer is Empty
+
 }
 
 /**
