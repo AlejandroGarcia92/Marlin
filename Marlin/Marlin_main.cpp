@@ -618,10 +618,15 @@ _UNUSED static float x_probe_left_extr[3] = {X_SIGMA_PROBE_1_LEFT_EXTR, X_SIGMA_
 _UNUSED static float y_probe_left_extr[3] = {Y_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_2_LEFT_EXTR, Y_SIGMA_PROBE_3_LEFT_EXTR};
 _UNUSED static float x_probe_right_extr[3] = {X_SIGMA_PROBE_1_RIGHT_EXTR, X_SIGMA_PROBE_2_RIGHT_EXTR, X_SIGMA_PROBE_3_RIGHT_EXTR};
 _UNUSED static float y_probe_right_extr[3] = {Y_SIGMA_PROBE_1_RIGHT_EXTR, Y_SIGMA_PROBE_2_RIGHT_EXTR, Y_SIGMA_PROBE_3_RIGHT_EXTR};
-	
+
+//Gap bed leveling	
 _UNUSED static float x_gap_avoid_collision_l = X_GAP_AVOID_COLLISION_LEFT;
 _UNUSED static float x_gap_avoid_collision_r = X_GAP_AVOID_COLLISION_RIGHT;
 
+//Print settings
+_UNUSED static float retract_printer_factor = 8;
+_UNUSED static float retract_print_test_factor = 8;
+_UNUSED static float purge_printer_factor = 20;
 
 #endif
 
@@ -11750,6 +11755,23 @@ inline void gcode_M226() {
 		   SERIAL_ECHOLNPAIR("Collision Avoidance R: ", x_gap_avoid_collision_r);
 	   }
    }
+   /*
+	* M287: Set printing settings                                                            
+	*/
+   inline void gcode_M287() {
+	   if(parser.seen('R') && parser.seen('F') && parser.seen('P')) {
+			retract_printer_factor = parser.floatval('R');
+			retract_print_test_factor = parser.floatval('F');
+			purge_printer_factor = parser.floatval('P');	
+	   }
+	   else{
+		   SERIAL_ECHO_START();
+		   SERIAL_ECHOLNPAIR("RETRACT_PRINTER_FACTOR: ", retract_printer_factor);
+		   SERIAL_ECHOLNPAIR("RETRACT_PRINT_TEST_FACTOR: ", retract_print_test_factor);
+		   SERIAL_ECHOLNPAIR("PURGE_PRINTER_FACTOR: ", purge_printer_factor);
+	   }
+   }
+   
    
    
 #if HAS_BUZZER
@@ -14801,6 +14823,7 @@ void process_parsed_command() {
 		case 284: gcode_M284(); break;							  // M284: Set knob position
 		case 285: gcode_M285(); break;							  // M285: Set probe position
 		case 286: gcode_M286(); break;							  // M286: Collision avoidance bed leveling
+		case 287: gcode_M287(); break;							  // M287: Set printing settings
 		
       #if ENABLED(BABYSTEPPING)
         case 290: gcode_M290(); break;                            // M290: Babystepping

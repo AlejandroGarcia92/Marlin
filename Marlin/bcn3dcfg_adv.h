@@ -8,7 +8,7 @@
 
 #define BCN3D_MOD
 
-#define BCN3D_PRINT_SIMULATION							//Dummy driver emulator, this define must be disabled
+//#define BCN3D_PRINT_SIMULATION							//Dummy driver emulator, this define must be disabled
 #ifdef BCN3D_PRINT_SIMULATION
 	#define SIMULATION_TEMP_AMB							22.5
 #endif
@@ -18,21 +18,11 @@
 #define RAFT_Z_THRESHOLD 0.05
 //	END DUAL MODE SETTINGS
 
-//////	PAUSE PRINT
-#if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_EPSILON
-#define RETRACT_PRINTER_FACTOR			 8				//(mm)
-#define RETRACT_PRINT_TEST_FACTOR		 8				//(mm)
-#define PAUSE_G69_XYMOVE				 5				//(mm)
-#define PAUSE_G70_ZMOVE					 2				//(mm)
-#define PURGE_PRINTER_FACTOR			 20				//(mm)
-#endif
-#if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_SIGMA
-#define RETRACT_PRINTER_FACTOR			 6				//(mm)
-#define RETRACT_PRINT_TEST_FACTOR		 6				//(mm)
-#define PAUSE_G69_XYMOVE				 5				//(mm)
-#define PAUSE_G70_ZMOVE					 2				//(mm)
-#define PURGE_PRINTER_FACTOR			 20				//(mm)
-#endif
+
+#define RETRACT_PRINTER_FACTOR			 retract_printer_factor				//(mm)
+#define RETRACT_PRINT_TEST_FACTOR		 retract_print_test_factor			//(mm)
+#define PURGE_PRINTER_FACTOR			 purge_printer_factor				//(mm)
+
 
 //RETRACT SETTINGS
 
