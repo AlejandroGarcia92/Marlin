@@ -914,13 +914,10 @@
 
 // The size of the print bed
 
-#if BCN3D_MOD
-	#define X_BED_SIZE xBedSize
-	#define Y_BED_SIZE yBedSize
-#else
-	#define X_BED_SIZE 420
-	#define Y_BED_SIZE 300
-#endif
+
+#define X_BED_SIZE 420
+#define Y_BED_SIZE 300
+
 
 
 // Travel limits (mm) after homing, corresponding to endstop positions.
