@@ -11617,13 +11617,15 @@ inline void gcode_M226() {
 	*/
    inline void gcode_M282() {
 	   if(parser.seen('X') && parser.seen('Y')){		   
-			xBedSize = parser.floatval('X');
+			xBedSize = parser.floatval('X');			
 			yBedSize = parser.floatval('Y');
+			duplicate_extruder_x_offset = xBedSize/2.0;
 	   }
 	   else{
 		   SERIAL_ECHO_START();
 		   SERIAL_ECHOLNPAIR("Bed Size X: ", xBedSize);
 		   SERIAL_ECHOLNPAIR("Bed Size Y: ", yBedSize);
+		   SERIAL_ECHOLNPAIR("Duplication Offset: ", duplicate_extruder_x_offset);
 	   }	   
    }
    /*
