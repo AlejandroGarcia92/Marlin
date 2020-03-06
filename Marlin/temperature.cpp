@@ -57,10 +57,10 @@
 #if HOTEND_USES_THERMISTOR
   #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
     static void* heater_ttbl_map[2] = { (void*)HEATER_0_TEMPTABLE, (void*)HEATER_1_TEMPTABLE };
-    static constexpr uint8_t heater_ttbllen_map[2] = { HEATER_0_TEMPTABLE_LEN, HEATER_1_TEMPTABLE_LEN };
+    static uint8_t heater_ttbllen_map[2] = { HEATER_0_TEMPTABLE_LEN, HEATER_1_TEMPTABLE_LEN };
   #else
     static void* heater_ttbl_map[HOTENDS] = ARRAY_BY_HOTENDS((void*)HEATER_0_TEMPTABLE, (void*)HEATER_1_TEMPTABLE, (void*)HEATER_2_TEMPTABLE, (void*)HEATER_3_TEMPTABLE, (void*)HEATER_4_TEMPTABLE);
-    static constexpr uint8_t heater_ttbllen_map[HOTENDS] = ARRAY_BY_HOTENDS(HEATER_0_TEMPTABLE_LEN, HEATER_1_TEMPTABLE_LEN, HEATER_2_TEMPTABLE_LEN, HEATER_3_TEMPTABLE_LEN, HEATER_4_TEMPTABLE_LEN);
+    static uint8_t heater_ttbllen_map[HOTENDS] = ARRAY_BY_HOTENDS(HEATER_0_TEMPTABLE_LEN, HEATER_1_TEMPTABLE_LEN, HEATER_2_TEMPTABLE_LEN, HEATER_3_TEMPTABLE_LEN, HEATER_4_TEMPTABLE_LEN);
   #endif
 #endif
 
@@ -162,6 +162,202 @@ int16_t Temperature::current_temperature_raw[HOTENDS] = { 0 },
   millis_t Temperature::watch_heater_next_ms[HOTENDS] = { 0 };
 #endif
 
+#ifdef BCN3D_MOD
+	void Temperature::update_heater_ttbl_map(uint8_t index, uint16_t sensorId){
+		switch(sensorId)
+		{
+			case 1:
+				heater_ttbl_map[index]=temptable_1;
+			break;
+			case 10:
+				heater_ttbl_map[index]=temptable_10;
+			break;
+			case 1010:
+				heater_ttbl_map[index]=temptable_1010;
+			break;
+			case 1047:
+				heater_ttbl_map[index]=temptable_1047;
+			break;
+			case 11:
+			heater_ttbl_map[index]=temptable_11;
+			break;
+			case 110:
+			heater_ttbl_map[index]=temptable_110;
+			break;
+			case 12:
+			heater_ttbl_map[index]=temptable_12;
+			break;
+			case 13:
+			heater_ttbl_map[index]=temptable_13;
+			break;
+			case 147:
+			heater_ttbl_map[index]=temptable_147;
+			break;
+			case 15:
+			heater_ttbl_map[index]=temptable_15;
+			break;
+			case 2:
+			heater_ttbl_map[index]=temptable_2;
+			break;
+			case 20:
+			heater_ttbl_map[index]=temptable_20;
+			break;
+			case 3:
+			heater_ttbl_map[index]=temptable_3;
+			break;
+			case 4:
+			heater_ttbl_map[index]=temptable_4;
+			break;
+			case 5:
+			heater_ttbl_map[index]=temptable_5;
+			break;
+			case 501:
+			heater_ttbl_map[index]=temptable_501;
+			break;
+			case 51:
+			heater_ttbl_map[index]=temptable_51;
+			break;
+			case 52:
+			heater_ttbl_map[index]=temptable_52;
+			break;
+			case 55:
+			heater_ttbl_map[index]=temptable_55;
+			break;
+			case 6:
+			heater_ttbl_map[index]=temptable_6;
+			break;
+			case 60:
+			heater_ttbl_map[index]=temptable_60;
+			break;
+			case 66:
+			heater_ttbl_map[index]=temptable_66;
+			break;
+			case 7:
+			heater_ttbl_map[index]=temptable_7;
+			break;
+			case 70:
+			heater_ttbl_map[index]=temptable_70;
+			break;
+			case 71:
+			heater_ttbl_map[index]=temptable_71;
+			break;
+			case 75:
+			heater_ttbl_map[index]=temptable_75;
+			break;
+			case 8:
+			heater_ttbl_map[index]=temptable_8;
+			break;
+			case 9:
+			heater_ttbl_map[index]=temptable_9;
+			break;
+			case 998:
+			heater_ttbl_map[index]=temptable_998;
+			break;
+			case 999:
+			heater_ttbl_map[index]=temptable_999;
+			break;		
+		}
+		heater_ttbllen_map[index]=COUNT(&heater_ttbl_map[index]);
+	}
+	void Temperature::update_bed_ttbl(uint16_t sensorId){
+		switch(sensorId)
+		{
+			case 1:
+			bedTempTable=temptable_1;
+			
+			break;
+			case 10:
+			bedTempTable=temptable_10;
+			break;
+			case 1010:
+			bedTempTable=temptable_1010;
+			break;
+			case 1047:
+			bedTempTable=temptable_1047;
+			break;
+			case 11:
+			bedTempTable=temptable_11;
+			break;
+			case 110:
+			bedTempTable=temptable_110;
+			break;
+			case 12:
+			bedTempTable=temptable_12;
+			break;
+			case 13:
+			bedTempTable=temptable_13;
+			break;
+			case 147:
+			bedTempTable=temptable_147;
+			break;
+			case 15:
+			bedTempTable=temptable_15;
+			break;
+			case 2:
+			bedTempTable=temptable_2;
+			break;
+			case 20:
+			bedTempTable=temptable_20;
+			break;
+			case 3:
+			bedTempTable=temptable_3;
+			break;
+			case 4:
+			bedTempTable=temptable_4;
+			break;
+			case 5:
+			bedTempTable=temptable_5;
+			break;
+			case 501:
+			bedTempTable=temptable_501;
+			break;
+			case 51:
+			bedTempTable=temptable_51;
+			break;
+			case 52:
+			bedTempTable=temptable_52;
+			break;
+			case 55:
+			bedTempTable=temptable_55;
+			break;
+			case 6:
+			bedTempTable=temptable_6;
+			break;
+			case 60:
+			bedTempTable=temptable_60;
+			break;
+			case 66:
+			bedTempTable=temptable_66;
+			break;
+			case 7:
+			bedTempTable=temptable_7;
+			break;
+			case 70:
+			bedTempTable=temptable_70;
+			break;
+			case 71:
+			bedTempTable=temptable_71;
+			break;
+			case 75:
+			bedTempTable=temptable_75;
+			break;
+			case 8:
+			bedTempTable=temptable_8;
+			break;
+			case 9:
+			bedTempTable=temptable_9;
+			break;
+			case 998:
+			bedTempTable=temptable_998;
+			break;
+			case 999:
+			bedTempTable=temptable_999;
+			break;
+		}
+		bedTempTableLen = COUNT(&bedTempTable);
+	}
+	
+#endif
 #if ENABLED(PREVENT_COLD_EXTRUSION)
   bool Temperature::allow_cold_extrude = false;
   int16_t Temperature::extrude_min_temp = EXTRUDE_MINTEMP;
@@ -1003,7 +1199,8 @@ float Temperature::analog2temp(const int raw, const uint8_t e) {
   // For bed temperature measurement.
   float Temperature::analog2tempBed(const int raw) {
     #if ENABLED(HEATER_BED_USES_THERMISTOR)
-      SCAN_THERMISTOR_TABLE(BEDTEMPTABLE, BEDTEMPTABLE_LEN);
+	const short(*tt)[][2] = (short(*)[][2])(bedTempTable);
+      SCAN_THERMISTOR_TABLE((*tt), bedTempTableLen);
     #elif ENABLED(HEATER_BED_USES_AD595)
       return TEMP_AD595(raw);
     #elif ENABLED(HEATER_BED_USES_AD8495)

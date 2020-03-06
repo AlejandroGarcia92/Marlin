@@ -9853,6 +9853,7 @@ inline void gcode_M105() {
 
 #endif // FAN_COUNT > 0
 
+
 #if DISABLED(EMERGENCY_PARSER)
 
   /**
@@ -11777,7 +11778,23 @@ inline void gcode_M226() {
 		   SERIAL_ECHOLNPAIR("PURGE_PRINTER_FACTOR: ", purge_printer_factor);
 	   }
    }
-   
+   /*
+	* M305: P#heater or B bed X#IDsensor
+   */
+   inline void gcode_M305() {
+	   if (parser.seen('P') && parser.seen('X')) {
+			uint8_t index = parser.intval('P');
+			uint16_t sensorId = parser.intval('X');
+			if (index < HOTENDS ){
+				thermalManager.update_heater_ttbl_map(index, sensorId);
+			}
+	   }
+	   else if (parser.seen('B') && parser.seen('X')){
+			uint16_t sensorId = parser.intval('X');
+			thermalManager.update_bed_ttbl(sensorId);
+	   }
+   }
+   inline void gcode_M306() {}
    
    
 #if HAS_BUZZER
@@ -14852,7 +14869,8 @@ void process_parsed_command() {
       #if ENABLED(PIDTEMPBED)
         case 304: gcode_M304(); break;                            // M304: Set Bed PID parameters
       #endif
-
+		case 305: gcode_M305(); break;							  // M305: BCN3D_MOD to override temp sensor
+		case 306: gcode_M306(); break;
       #if HAS_MICROSTEPS
         case 350: gcode_M350(); break;                            // M350: Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
         case 351: gcode_M351(); break;                            // M351: Toggle MS1 MS2 pins directly, S# determines MS1 or MS2, X# sets the pin high/low.
