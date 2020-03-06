@@ -159,8 +159,8 @@
 #ifdef THERMISTORBED
   #define BEDTEMPTABLE TT_NAME(THERMISTORBED)
   #define BEDTEMPTABLE_LEN COUNT(BEDTEMPTABLE)
-  static void* bedTempTable = temptable_1;
-  static uint8_t bedTempTableLen = COUNT(&bedTempTable);
+  static void* bedTempTable[1] = {(void*)BEDTEMPTABLE};
+  static uint8_t bedTempTableLen[1] = {COUNT(BEDTEMPTABLE)};
   
 #elif defined(HEATER_BED_USES_THERMISTOR)
   #error "No bed thermistor table specified"
