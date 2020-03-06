@@ -196,7 +196,7 @@ class Temperature {
     FORCE_INLINE static bool targetHotEnoughToExtrude(const uint8_t e) { return !targetTooColdToExtrude(e); }
 		
 	#ifdef BCN3D_MOD
-	static void update_heater_ttbl_map(uint8_t index, uint16_t sensorId);
+	static void update_heater_ttbl_map(int8_t index, uint16_t sensorId);
 	static void update_bed_ttbl(uint16_t sensorId);
 	#endif
   private:

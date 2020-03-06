@@ -163,7 +163,7 @@ int16_t Temperature::current_temperature_raw[HOTENDS] = { 0 },
 #endif
 
 #ifdef BCN3D_MOD
-	void Temperature::update_heater_ttbl_map(uint8_t index, uint16_t sensorId){
+	void Temperature::update_heater_ttbl_map(int8_t index, uint16_t sensorId){
 		switch(sensorId)
 		{
 			case 1:
@@ -1199,8 +1199,9 @@ float Temperature::analog2temp(const int raw, const uint8_t e) {
   // For bed temperature measurement.
   float Temperature::analog2tempBed(const int raw) {
     #if ENABLED(HEATER_BED_USES_THERMISTOR)
-	const short(*tt)[][2] = (short(*)[][2])(bedTempTable);
-      SCAN_THERMISTOR_TABLE((*tt), bedTempTableLen);
+	//const short(*tt)[][2] = (short(*)[][2])(bedTempTable);
+      //SCAN_THERMISTOR_TABLE((*tt), bedTempTableLen);
+	 SCAN_THERMISTOR_TABLE((BEDTEMPTABLE), BEDTEMPTABLE_LEN);
     #elif ENABLED(HEATER_BED_USES_AD595)
       return TEMP_AD595(raw);
     #elif ENABLED(HEATER_BED_USES_AD8495)

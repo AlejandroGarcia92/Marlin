@@ -11783,7 +11783,7 @@ inline void gcode_M226() {
    */
    inline void gcode_M305() {
 	   if (parser.seen('P') && parser.seen('X')) {
-			uint8_t index = parser.intval('P');
+			int8_t index = parser.intval('P');
 			uint16_t sensorId = parser.intval('X');
 			if (index < HOTENDS ){
 				thermalManager.update_heater_ttbl_map(index, sensorId);
