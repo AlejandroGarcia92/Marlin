@@ -11821,6 +11821,33 @@ inline void gcode_M226() {
 				max_temp_array[5]=parser.floatval('X');
 			}
 	   }
+	   else {
+		   SERIAL_ECHO_START();
+		   #if THERMISTORHEATER_0
+		   SERIAL_ECHOLNPAIR("Min temp heater 0: ", min_temp_array[0]);
+		   SERIAL_ECHOLNPAIR("Max temp heater 0: ", max_temp_array[0]);
+		   #endif
+		   #if THERMISTORHEATER_1
+		   SERIAL_ECHOLNPAIR("Min temp heater 1: ", min_temp_array[1]);
+		   SERIAL_ECHOLNPAIR("Max temp heater 1: ", max_temp_array[1]);
+		   #endif
+		   #if THERMISTORHEATER_2
+		   SERIAL_ECHOLNPAIR("Min temp heater 2: ", min_temp_array[2]);
+		   SERIAL_ECHOLNPAIR("Max temp heater 2: ", max_temp_array[2]);
+		   #endif
+		   #if THERMISTORHEATER_3
+		   SERIAL_ECHOLNPAIR("Min temp heater 3: ", min_temp_array[3]);
+		   SERIAL_ECHOLNPAIR("Max temp heater 3: ", max_temp_array[3]);
+		   #endif
+		   #if THERMISTORHEATER_4
+		   SERIAL_ECHOLNPAIR("Min temp heater 4: ", min_temp_array[4]);
+		   SERIAL_ECHOLNPAIR("Max temp heater 4: ", max_temp_array[4]);
+		   #endif
+		   #ifdef THERMISTORBED 
+		   SERIAL_ECHOLNPAIR("Min temp bed: ", min_temp_array[5]);
+		   SERIAL_ECHOLNPAIR("Max temp bed: ", max_temp_array[5]);
+		   #endif
+	   }
    }
    
    
