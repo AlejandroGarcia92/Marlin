@@ -478,9 +478,25 @@ int16_t Temperature::current_temperature_raw[HOTENDS] = { 0 },
 	}
 	
 	void Temperature::report_sensors_names(){
-				//SERIAL_ECHO_START();
-				//SERIAL_ECHOLNPAIR("Heater 0 sensor:",  )
-				//SERIAL_ECHOLNPAIR("Bed sensor: ", sensor_name_bed);
+				SERIAL_ECHO_START();
+				#if THERMISTORHEATER_0
+				SERIAL_ECHOLNPAIR("Heater 0 sensor:",  heater_sensor_names[0]);
+				#endif
+				#if THERMISTORHEATER_1
+				SERIAL_ECHOLNPAIR("Heater 1 sensor:",  heater_sensor_names[1]);
+				#endif
+				#if THERMISTORHEATER_2
+				SERIAL_ECHOLNPAIR("Heater 2 sensor:",  heater_sensor_names[2]);
+				#endif
+				#if THERMISTORHEATER_3
+				SERIAL_ECHOLNPAIR("Heater 3 sensor:",  heater_sensor_names[3]);
+				#endif
+				#if THERMISTORHEATER_4
+				SERIAL_ECHOLNPAIR("Heater 4 sensor:",  heater_sensor_names[4]);
+				#endif
+				#ifdef THERMISTORBED 
+				SERIAL_ECHOLNPAIR("Bed sensor: ", sensor_name_bed);
+				#endif
 	}
 #endif
 #if ENABLED(PREVENT_COLD_EXTRUSION)

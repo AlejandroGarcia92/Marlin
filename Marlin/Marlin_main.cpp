@@ -11796,25 +11796,6 @@ inline void gcode_M226() {
 	   }
 	   else{
 		   thermalManager.report_sensors_names();
-		   SERIAL_ECHO_START();
-		#if  THERMISTORHEATER_0
-			SERIAL_ECHOLNPAIR("Heater 0 sensor: ", sensor_name_heater0);
-		#endif
-		#if  THERMISTORHEATER_1
-			SERIAL_ECHOLNPAIR("Heater 1 sensor: ", sensor_name_heater1);
-		#endif
-		#if  THERMISTORHEATER_2
-			SERIAL_ECHOLNPAIR("Heater 2 sensor: ", sensor_name_heater2);
-		#endif
-		#if  THERMISTORHEATER_3
-			SERIAL_ECHOLNPAIR("Heater 3 sensor: ", sensor_name_heater3);
-		#endif
-		#if  THERMISTORHEATER_4
-			SERIAL_ECHOLNPAIR("Heater 4 sensor: ", sensor_name_heater4);
-		#endif
-		#if  THERMISTORBED
-			SERIAL_ECHOLNPAIR("Bed sensor: ", sensor_name_bed);
-		#endif
 	   }
    }
    /*
