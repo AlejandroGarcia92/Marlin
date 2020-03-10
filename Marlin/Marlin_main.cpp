@@ -628,6 +628,7 @@ _UNUSED static float retract_printer_factor = 8;
 _UNUSED static float retract_print_test_factor = 8;
 _UNUSED static float purge_printer_factor = 20;
 
+
 #endif
 
 #if HAS_BED_PROBE
@@ -11793,8 +11794,53 @@ inline void gcode_M226() {
 			uint16_t sensorId = parser.intval('X');
 			thermalManager.update_bed_ttbl(sensorId);
 	   }
+	   else{
+		   thermalManager.report_sensors_names();
+		   SERIAL_ECHO_START();
+		#if  THERMISTORHEATER_0
+			SERIAL_ECHOLNPAIR("Heater 0 sensor: ", sensor_name_heater0);
+		#endif
+		#if  THERMISTORHEATER_1
+			SERIAL_ECHOLNPAIR("Heater 1 sensor: ", sensor_name_heater1);
+		#endif
+		#if  THERMISTORHEATER_2
+			SERIAL_ECHOLNPAIR("Heater 2 sensor: ", sensor_name_heater2);
+		#endif
+		#if  THERMISTORHEATER_3
+			SERIAL_ECHOLNPAIR("Heater 3 sensor: ", sensor_name_heater3);
+		#endif
+		#if  THERMISTORHEATER_4
+			SERIAL_ECHOLNPAIR("Heater 4 sensor: ", sensor_name_heater4);
+		#endif
+		#if  THERMISTORBED
+			SERIAL_ECHOLNPAIR("Bed sensor: ", sensor_name_bed);
+		#endif
+	   }
    }
-   inline void gcode_M306() {}
+   /*
+	* M306: P#heater or B bed X#temperature S# Max or Min 
+    */
+   
+   inline void gcode_M306() {
+	   if (parser.seen('P') && parser.seen('X') && parser.seen('S')){
+			if (parser.intval('P')<HOTENDS){
+				if (!parser.boolval('S')){
+					min_temp_array[parser.intval('P')]=parser.floatval('X');
+				}
+				else {
+					max_temp_array[parser.intval('P')]=parser.floatval('X');
+				}
+			}
+	   }
+	   else if (parser.seen('B') && parser.seen('X') && parser.seen('S')){
+			if (!parser.boolval('S')){
+				min_temp_array[5]=parser.floatval('X');
+			}
+			else {
+				max_temp_array[5]=parser.floatval('X');
+			}
+	   }
+   }
    
    
 #if HAS_BUZZER

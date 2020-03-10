@@ -25,7 +25,7 @@
 
 #include "Marlin.h"
 #include "macros.h"
-
+#include "thermistornames.h"
 #define OVERSAMPLENR 16
 #define OV(N) int16_t((N)*(OVERSAMPLENR))
 
@@ -105,10 +105,14 @@
 
 #define _TT_NAME(_N) temptable_ ## _N
 #define TT_NAME(_N) _TT_NAME(_N)
+#define _INIT_NAME(_N) THERMISTOR_NAME_ ## _N
+#define INIT_NAME(_N) _INIT_NAME(_N)
 
 #if THERMISTORHEATER_0
   #define HEATER_0_TEMPTABLE TT_NAME(THERMISTORHEATER_0)
   #define HEATER_0_TEMPTABLE_LEN COUNT(HEATER_0_TEMPTABLE)
+  //Current sensor name
+  static char *sensor_name_heater0 = INIT_NAME(THERMISTORHEATER_0);
 #elif defined(HEATER_0_USES_THERMISTOR)
   #error "No heater 0 thermistor table specified"
 #else
@@ -119,6 +123,7 @@
 #if THERMISTORHEATER_1
   #define HEATER_1_TEMPTABLE TT_NAME(THERMISTORHEATER_1)
   #define HEATER_1_TEMPTABLE_LEN COUNT(HEATER_1_TEMPTABLE)
+  static char *sensor_name_heater1 = INIT_NAME(THERMISTORHEATER_1);
 #elif defined(HEATER_1_USES_THERMISTOR)
   #error "No heater 1 thermistor table specified"
 #else
@@ -129,6 +134,7 @@
 #if THERMISTORHEATER_2
   #define HEATER_2_TEMPTABLE TT_NAME(THERMISTORHEATER_2)
   #define HEATER_2_TEMPTABLE_LEN COUNT(HEATER_2_TEMPTABLE)
+  static char *sensor_name_heater2 = INIT_NAME(THERMISTORHEATER_2);
 #elif defined(HEATER_2_USES_THERMISTOR)
   #error "No heater 2 thermistor table specified"
 #else
@@ -139,6 +145,7 @@
 #if THERMISTORHEATER_3
   #define HEATER_3_TEMPTABLE TT_NAME(THERMISTORHEATER_3)
   #define HEATER_3_TEMPTABLE_LEN COUNT(HEATER_3_TEMPTABLE)
+  static char *sensor_name_heater3 = INIT_NAME(THERMISTORHEATER_3);
 #elif defined(HEATER_3_USES_THERMISTOR)
   #error "No heater 3 thermistor table specified"
 #else
@@ -149,6 +156,7 @@
 #if THERMISTORHEATER_4
   #define HEATER_4_TEMPTABLE TT_NAME(THERMISTORHEATER_4)
   #define HEATER_4_TEMPTABLE_LEN COUNT(HEATER_4_TEMPTABLE)
+  static char *sensor_name_heater4 = INIT_NAME(THERMISTORHEATER_4);
 #elif defined(HEATER_4_USES_THERMISTOR)
   #error "No heater 4 thermistor table specified"
 #else
@@ -161,6 +169,7 @@
   #define BEDTEMPTABLE_LEN COUNT(BEDTEMPTABLE)
   static void* bedTempTable[1] = {(void*)BEDTEMPTABLE};
   static uint8_t bedTempTableLen[1] = {COUNT(BEDTEMPTABLE)};
+  static char *sensor_name_bed = INIT_NAME(THERMISTORBED);
   
 #elif defined(HEATER_BED_USES_THERMISTOR)
   #error "No bed thermistor table specified"

@@ -356,25 +356,34 @@
 #define TEMP_BED_HYSTERESIS 3       // (degC) range of +/- temperatures considered "close" to the target one
 #define TEMP_BED_WINDOW     1       // (degC) Window around target to start the residency timer x degC early.
 
+
+//Min temperatures
+_UNUSED static float min_temp_array[6] = {5,5,5,5,5,5};
+
+//Max temperatures
+_UNUSED static float max_temp_array[6] = {300,300,300,300,300,300};
+
+
+
 // The minimal temperature defines the temperature below which the heater will not be enabled It is used
 // to check that the wiring to the thermistor is not broken.
 // Otherwise this would lead to the heater being powered on all the time.
-#define HEATER_0_MINTEMP 5
-#define HEATER_1_MINTEMP 5
-#define HEATER_2_MINTEMP 5
-#define HEATER_3_MINTEMP 5
-#define HEATER_4_MINTEMP 5
-#define BED_MINTEMP 5
+#define HEATER_0_MINTEMP min_temp_array[0]
+#define HEATER_1_MINTEMP min_temp_array[1]
+#define HEATER_2_MINTEMP min_temp_array[2]
+#define HEATER_3_MINTEMP min_temp_array[3]
+#define HEATER_4_MINTEMP min_temp_array[4]
+#define BED_MINTEMP min_temp_array[5]
 
 // When temperature exceeds max temp, your heater will be switched off.
 // This feature exists to protect your hotend from overheating accidentally, but *NOT* from thermistor short/failure!
 // You should use MINTEMP for thermistor short/failure protection.
-#define HEATER_0_MAXTEMP 300
-#define HEATER_1_MAXTEMP 300
-#define HEATER_2_MAXTEMP 300
-#define HEATER_3_MAXTEMP 300
-#define HEATER_4_MAXTEMP 300
-#define BED_MAXTEMP 125
+#define HEATER_0_MAXTEMP max_temp_array[0]
+#define HEATER_1_MAXTEMP max_temp_array[1]
+#define HEATER_2_MAXTEMP max_temp_array[2]
+#define HEATER_3_MAXTEMP max_temp_array[3]
+#define HEATER_4_MAXTEMP max_temp_array[4]
+#define BED_MAXTEMP max_temp_array[5]
 
 //===========================================================================
 //============================= PID Settings ================================
