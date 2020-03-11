@@ -1518,7 +1518,9 @@ float Temperature::analog2temp(const int raw, const uint8_t e) {
   // For chamber temperature measurement.
   float Temperature::analog2tempChamber(const int raw) {
     #if ENABLED(HEATER_CHAMBER_USES_THERMISTOR)
-      SCAN_THERMISTOR_TABLE(CHAMBERTEMPTABLE, CHAMBERTEMPTABLE_LEN);
+	const short(*tt)[][2] = (short(*)[][2])(chamberTempTable[0]);
+	SCAN_THERMISTOR_TABLE((*tt), chamberTempTableLen[0]);
+      //SCAN_THERMISTOR_TABLE(CHAMBERTEMPTABLE, CHAMBERTEMPTABLE_LEN);
     #elif ENABLED(HEATER_CHAMBER_USES_AD595)
       return TEMP_AD595(raw);
     #elif ENABLED(HEATER_CHAMBER_USES_AD8495)
