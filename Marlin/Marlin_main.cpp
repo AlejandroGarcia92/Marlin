@@ -8048,7 +8048,8 @@ inline void gcode_M141() { // Set chamber temperature
 
 inline void gcode_M668() {
 	planner.synchronize();
-
+	gcode_LastN = tracking_lastgcode - 1;
+	
 	SERIAL_PROTOCOLPGM("Stored Position");
 	SERIAL_PROTOCOLPGM(" X:");
 	MYSERIAL0.print(tracking_position[X_AXIS],3);
@@ -16680,8 +16681,6 @@ void execPauseFromSerial() {
 			
 	clear_command_queue(); // clear marlin queue
 	discard_serial = DiscardSerialReason::PAUSE; // Release the flag once Serial buffer is Empty
-	//enqueue_and_echo_command("M668");
-	gcode_LastN = tracking_lastgcode - 1;	
 }
 
 /**
