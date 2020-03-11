@@ -198,6 +198,7 @@ class Temperature {
 	#ifdef BCN3D_MOD
 	static void update_heater_ttbl_map(int8_t index, uint16_t sensorId);
 	static void update_bed_ttbl(uint16_t sensorId);
+	static void update_chamber_ttbl(uint16_t sensorId);
 	static void report_sensors_names();
 	#endif
   private:

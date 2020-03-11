@@ -11794,6 +11794,10 @@ inline void gcode_M226() {
 			uint16_t sensorId = parser.intval('X');
 			thermalManager.update_bed_ttbl(sensorId);
 	   }
+	   else if (parser.seen('C') && parser.seen('X')){
+		   uint16_t sensorId = parser.intval('X');
+		   thermalManager.update_chamber_ttbl(sensorId);
+	   }
 	   else{
 		   thermalManager.report_sensors_names();
 	   }

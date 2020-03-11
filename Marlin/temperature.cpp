@@ -477,6 +477,163 @@ int16_t Temperature::current_temperature_raw[HOTENDS] = { 0 },
 
 	}
 	
+	void Temperature::update_chamber_ttbl(uint16_t sensorId){
+		switch(sensorId)
+		{
+			case 1:
+			chamberTempTable[0]=temptable_1;
+			chamberTempTableLen[0]=COUNT(temptable_1);
+			sensor_name_chamber=THERMISTOR_NAME_1;
+			break;
+			case 10:
+			chamberTempTable[0]=temptable_10;
+			chamberTempTableLen[0]=COUNT(temptable_10);
+			sensor_name_chamber=THERMISTOR_NAME_10;
+			break;
+			case 1010:
+			chamberTempTable[0]=temptable_1010;
+			chamberTempTableLen[0]=COUNT(temptable_1010);
+			sensor_name_chamber=THERMISTOR_NAME_1010;
+			break;
+			case 1047:
+			chamberTempTable[0]=temptable_1047;
+			chamberTempTableLen[0]=COUNT(temptable_1047);
+			sensor_name_chamber=THERMISTOR_NAME_1047;
+			break;
+			case 11:
+			chamberTempTable[0]=temptable_11;
+			chamberTempTableLen[0]=COUNT(temptable_11);
+			sensor_name_chamber=THERMISTOR_NAME_11;
+			break;
+			case 110:
+			chamberTempTable[0]=temptable_110;
+			chamberTempTableLen[0]=COUNT(temptable_110);
+			sensor_name_chamber=THERMISTOR_NAME_110;
+			break;
+			case 12:
+			chamberTempTable[0]=temptable_12;
+			chamberTempTableLen[0]=COUNT(temptable_12);
+			sensor_name_chamber=THERMISTOR_NAME_12;
+			break;
+			case 13:
+			chamberTempTable[0]=temptable_13;
+			chamberTempTableLen[0]=COUNT(temptable_13);
+			sensor_name_chamber=THERMISTOR_NAME_13;
+			break;
+			case 147:
+			chamberTempTable[0]=temptable_147;
+			chamberTempTableLen[0]=COUNT(temptable_147);
+			sensor_name_chamber=THERMISTOR_NAME_147;
+			break;
+			case 15:
+			chamberTempTable[0]=temptable_15;
+			chamberTempTableLen[0]=COUNT(temptable_15);
+			sensor_name_chamber=THERMISTOR_NAME_15;
+			break;
+			case 2:
+			chamberTempTable[0]=temptable_2;
+			chamberTempTableLen[0]=COUNT(temptable_2);
+			sensor_name_chamber=THERMISTOR_NAME_2;
+			break;
+			case 20:
+			chamberTempTable[0]=temptable_20;
+			chamberTempTableLen[0]=COUNT(temptable_20);
+			sensor_name_chamber=THERMISTOR_NAME_20;
+			break;
+			case 3:
+			chamberTempTable[0]=temptable_3;
+			chamberTempTableLen[0]=COUNT(temptable_3);
+			sensor_name_chamber=THERMISTOR_NAME_3;
+			break;
+			case 4:
+			chamberTempTable[0]=temptable_4;
+			chamberTempTableLen[0]=COUNT(temptable_4);
+			sensor_name_chamber=THERMISTOR_NAME_4;
+			break;
+			case 5:
+			chamberTempTable[0]=temptable_5;
+			chamberTempTableLen[0]=COUNT(temptable_5);
+			sensor_name_chamber=THERMISTOR_NAME_5;
+			break;
+			case 501:
+			chamberTempTable[0]=temptable_501;
+			chamberTempTableLen[0]=COUNT(temptable_501);
+			sensor_name_chamber=THERMISTOR_NAME_501;
+			break;
+			case 51:
+			chamberTempTable[0]=temptable_51;
+			chamberTempTableLen[0]=COUNT(temptable_51);
+			sensor_name_chamber=THERMISTOR_NAME_51;
+			break;
+			case 52:
+			chamberTempTable[0]=temptable_52;
+			chamberTempTableLen[0]=COUNT(temptable_52);
+			sensor_name_chamber=THERMISTOR_NAME_52;
+			break;
+			case 55:
+			chamberTempTable[0]=temptable_55;
+			chamberTempTableLen[0]=COUNT(temptable_55);
+			sensor_name_chamber=THERMISTOR_NAME_55;
+			break;
+			case 6:
+			chamberTempTable[0]=temptable_6;
+			chamberTempTableLen[0]=COUNT(temptable_6);
+			sensor_name_chamber=THERMISTOR_NAME_6;
+			break;
+			case 60:
+			chamberTempTable[0]=temptable_60;
+			chamberTempTableLen[0]=COUNT(temptable_60);
+			sensor_name_chamber=THERMISTOR_NAME_60;
+			break;
+			case 66:
+			chamberTempTable[0]=temptable_66;
+			chamberTempTableLen[0]=COUNT(temptable_66);
+			sensor_name_chamber=THERMISTOR_NAME_66;
+			break;
+			case 7:
+			chamberTempTable[0]=temptable_7;
+			chamberTempTableLen[0]=COUNT(temptable_7);
+			sensor_name_chamber=THERMISTOR_NAME_7;
+			break;
+			case 70:
+			chamberTempTable[0]=temptable_70;
+			chamberTempTableLen[0]=COUNT(temptable_70);
+			sensor_name_chamber=THERMISTOR_NAME_70;
+			break;
+			case 71:
+			chamberTempTable[0]=temptable_71;
+			chamberTempTableLen[0]=COUNT(temptable_71);
+			sensor_name_chamber=THERMISTOR_NAME_71;
+			break;
+			case 75:
+			chamberTempTable[0]=temptable_75;
+			chamberTempTableLen[0]=COUNT(temptable_75);
+			sensor_name_chamber=THERMISTOR_NAME_75;
+			break;
+			case 8:
+			chamberTempTable[0]=temptable_8;
+			chamberTempTableLen[0]=COUNT(temptable_8);
+			sensor_name_chamber=THERMISTOR_NAME_8;
+			break;
+			case 9:
+			chamberTempTable[0]=temptable_9;
+			chamberTempTableLen[0]=COUNT(temptable_9);
+			sensor_name_chamber=THERMISTOR_NAME_9;
+			break;
+			case 998:
+			chamberTempTable[0]=temptable_998;
+			chamberTempTableLen[0]=COUNT(temptable_998);
+			sensor_name_chamber=THERMISTOR_NAME_998;
+			break;
+			case 999:
+			bedTempTable[0]=temptable_999;
+			bedTempTableLen[0]=COUNT(temptable_999);
+			sensor_name_bed=THERMISTOR_NAME_999;
+			break;
+		}
+
+	}
+	
 	void Temperature::report_sensors_names(){
 				SERIAL_ECHO_START();
 				#if THERMISTORHEATER_0
@@ -496,6 +653,9 @@ int16_t Temperature::current_temperature_raw[HOTENDS] = { 0 },
 				#endif
 				#ifdef THERMISTORBED 
 				SERIAL_ECHOLNPAIR("Bed sensor: ", sensor_name_bed);
+				#endif
+				#ifdef THERMISTORCHAMBER
+				SERIAL_ECHOLNPAIR("Chamber sensor: ", sensor_name_chamber);
 				#endif
 	}
 #endif

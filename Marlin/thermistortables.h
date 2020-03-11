@@ -180,6 +180,9 @@
 #ifdef THERMISTORCHAMBER
   #define CHAMBERTEMPTABLE TT_NAME(THERMISTORCHAMBER)
   #define CHAMBERTEMPTABLE_LEN COUNT(CHAMBERTEMPTABLE)
+    static void* chamberTempTable[1] = {(void*)CHAMBERTEMPTABLE};
+    static uint8_t chamberTempTableLen[1] = {COUNT(CHAMBERTEMPTABLE)};
+    static char *sensor_name_chamber = INIT_NAME(THERMISTORCHAMBER);
 #elif defined(HEATER_CHAMBER_USES_THERMISTOR)
   #error "No chamber thermistor table specified"
 #else
