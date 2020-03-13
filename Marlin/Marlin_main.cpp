@@ -590,6 +590,8 @@ int16_t fanSpeeds_raft[FAN_COUNT] = { 0 };
 
 static DualXMode dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
 
+bool waiting_resend_confirmation = false;
+
 #endif
 
 #if HAS_BED_PROBE
@@ -947,8 +949,8 @@ inline bool _enqueuecommand(const char* cmd, bool say_ok=false) {
 /**
  * Enqueue with Serial Echo
  */
-bool enqueue_and_echo_command(const char* cmd) {
-  if (_enqueuecommand(cmd)) {
+bool enqueue_and_echo_command(const char* cmd, bool say_ok=false) {
+  if (_enqueuecommand(cmd, say_ok)) {
     SERIAL_ECHO_START();
     SERIAL_ECHOPAIR(MSG_ENQUEUEING, cmd);
     SERIAL_CHAR('"');
@@ -1065,6 +1067,7 @@ void gcode_line_error(const char* err, bool doFlush = true) {
  */
 #if defined(BCN3D_MOD)
 DiscardSerialReason discard_serial = DiscardSerialReason::NONE;
+#define NOTIFY_SERIAL_COMMAND_QUEUE_EMPTY
 #endif
 
 inline void get_serial_commands() {
@@ -1073,6 +1076,9 @@ inline void get_serial_commands() {
   static int raft_indicator_is_Gcode = 0;
   static float current_z_raft_seen = 0.0;
   static uint32_t fileraftstart = 0;
+  #if defined(NOTIFY_SERIAL_COMMAND_QUEUE_EMPTY)
+  static bool notified_empty_queue = true;
+  #endif
   #endif
   
   static char serial_line_buffer[MAX_CMD_SIZE];
@@ -1141,6 +1147,14 @@ inline void get_serial_commands() {
 
         gcode_N = strtol(npos + 1, NULL, 10);
 
+        #if defined(BCN3D_MOD)
+        if (waiting_resend_confirmation && gcode_N != gcode_LastN + 1) {
+          continue; // Ignore commands when waiting for resend confirmation
+        } else if (waiting_resend_confirmation) {
+          waiting_resend_confirmation = false; // When the correct line is sent, consider it the resend confirmation
+        }
+        #endif
+
         if (gcode_N != gcode_LastN + 1 && !M110)
           return gcode_line_error(PSTR(MSG_ERR_LINE_NO));
 
@@ -1161,50 +1175,40 @@ inline void get_serial_commands() {
           return gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM));
       #endif
 	  
-#if defined(BCN3D_MOD)
+      #if defined(BCN3D_MOD)
 		
-		switch(dual_x_carriage_mode){
-			case DXC_DUPLICATION_MODE_R:
-			case DXC_MIRROR_MODE_R:
-			{
-				if(raft_indicator){
-					char *strchr_pointer; // just a pointer to find chars in the command string like X, Y, Z, E, etc
-					strchr_pointer = strchr(serial_line_buffer, 'Z');
-					if(strchr_pointer != NULL){
-						current_z_raft_seen = strtod(&serial_line_buffer[strchr_pointer - serial_line_buffer + 1], NULL);
-						if(raft_line == 1){
-							raft_z_init = current_z_raft_seen;
-							
-							}else{
-							
-							if(raft_z_init==current_z_raft_seen){
-								}else{
-								if(Flag_serial_new_layer){
-									//Z layer
-									Flag_serial_new_layer = false;
-									raft_line_counter_g++;
-									serial_count = MAX_CMD_SIZE;
-									SERIAL_PROTOCOLPAIR("Last line subs: ", serial_line_buffer);
-									memset( serial_line_buffer, '\0', sizeof(serial_line_buffer));
-									gcode_LastN = fileraftstart - 1;
-									sprintf(serial_line_buffer, "G92 E0 Z0 R%d%c", raft_line_counter_g, 0);
-									MYSERIAL0.clear_buffer();									
-								}
-							}
-						}
-					}
-					
-					raft_indicator = 0;
-				}
-				raft_indicator_is_Gcode = 0;
-			}
-			break;
-			
-			default:
-			break;
-		}
+      switch(dual_x_carriage_mode){
+        case DXC_DUPLICATION_MODE_R:
+        case DXC_MIRROR_MODE_R:
+        {
+          if(raft_indicator){
+            char *strchr_pointer; // just a pointer to find chars in the command string like X, Y, Z, E, etc
+            strchr_pointer = strchr(serial_line_buffer, 'Z');
+            if(strchr_pointer != NULL){
+              current_z_raft_seen = strtod(&serial_line_buffer[strchr_pointer - serial_line_buffer + 1], NULL);
+              if (raft_line == 1) {
+                raft_z_init = current_z_raft_seen;
+              } else if (raft_z_init != current_z_raft_seen && Flag_serial_new_layer) {
+                //Z layer
+                Flag_serial_new_layer = false;
+                raft_line_counter_g++;
+                SERIAL_PROTOCOLPAIR("Last line subs: ", serial_line_buffer);
+                SERIAL_EOL();
+                memset(serial_line_buffer, '\0', sizeof(serial_line_buffer));
+                gcode_LastN = fileraftstart - 1;
+                sprintf(serial_line_buffer, "G92 E0 Z0 R%d%c", raft_line_counter_g, 0);
+              }
+            }
+            raft_indicator = 0;
+          }
+          raft_indicator_is_Gcode = 0;
+        }
+        break;
+        default:
+        break;
+      }
 
-#endif
+      #endif
 
       // Movement commands alert when stopped
       if (IsStopped()) {
@@ -1214,84 +1218,83 @@ inline void get_serial_commands() {
             case 0:
             case 1:
             #if ENABLED(ARC_SUPPORT)
-              case 2:
-              case 3:
+            case 2:
+            case 3:
             #endif
             #if ENABLED(BEZIER_CURVE_SUPPORT)
-              case 5:
+            case 5:
             #endif
-              SERIAL_ERRORLNPGM(MSG_ERR_STOPPED);
-              LCD_MESSAGEPGM(MSG_STOPPED);
-              break;
-			#if defined(BCN3D_MOD)
-			case 715:
-			{
-				switch(dual_x_carriage_mode){
-					case DXC_DUPLICATION_MODE_R:
-					case DXC_MIRROR_MODE_R:
-					{
-						if(raft_line >= 1){
-							Flag_serial_new_layer = true;
-						}
-					}
-					break;
-					
-					default:
-					break;
-				}
-			}
-			break;
-			#endif
+            SERIAL_ERRORLNPGM(MSG_ERR_STOPPED);
+            LCD_MESSAGEPGM(MSG_STOPPED);
+            break;
+            #if defined(BCN3D_MOD)
+            case 715:
+            {
+              switch(dual_x_carriage_mode){
+                case DXC_DUPLICATION_MODE_R:
+                case DXC_MIRROR_MODE_R:
+                {
+                  if(raft_line >= 1){
+                    Flag_serial_new_layer = true;
+                  }
+                }
+                break;
+                default:
+                break;
+              }
+            }
+            break;
+            #endif
           }
         }
       }
 
       #if DISABLED(EMERGENCY_PARSER)
-        // Process critical commands early
-        if (strcmp(command, "M108") == 0) {
-          wait_for_heatup = false;
-          #if ENABLED(NEWPANEL)
-            wait_for_user = false;
-          #endif
-        }
-        if (strcmp(command, "M112") == 0) kill(PSTR(MSG_KILLED));
-        if (strcmp(command, "M410") == 0) quickstop_stepper();
+      // Process critical commands early
+      if (strcmp(command, "M108") == 0) {
+        wait_for_heatup = false;
+        #if ENABLED(NEWPANEL)
+          wait_for_user = false;
+        #endif
+      }
+      if (strcmp(command, "M112") == 0) kill(PSTR(MSG_KILLED));
+      if (strcmp(command, "M410") == 0) quickstop_stepper();
       #endif
 
       #if defined(NO_TIMEOUTS) && NO_TIMEOUTS > 0
-        last_command_time = ms;
+      last_command_time = ms;
       #endif
-	  #if defined(BCN3D_MOD)
-	  char* gposi = strchr(command, 'G');
-	  if (gposi) {
-		  switch (strtol(gposi + 1, NULL, 10)) {		  
-			  case 715:
-			  {
-				  switch(dual_x_carriage_mode){
-					  case DXC_DUPLICATION_MODE_R:
-					  case DXC_MIRROR_MODE_R:
-					  {
-						  if(raft_line >= 1){
-							  Flag_serial_new_layer = true;
-						  }
-					  }
-					  break;
-					  
-					  default:
-					  break;
-				  }
-			  }
-			  break;
-			  
-		  }
-	  }
-		#endif
+
+      #if defined(BCN3D_MOD)
+      char* gposi = strchr(command, 'G');
+      if (gposi) {
+        switch (strtol(gposi + 1, NULL, 10)) {
+          case 715:
+          {
+            switch(dual_x_carriage_mode){
+              case DXC_DUPLICATION_MODE_R:
+              case DXC_MIRROR_MODE_R:
+              {
+                if(raft_line >= 1){
+                  Flag_serial_new_layer = true;
+                }
+              }
+              break;
+              default:
+              break;
+            }
+          }
+          break;
+        }
+      }
+      #endif
+
       // Add the command to the queue
-	  #if defined(BCN3D_MOD)
-	  if(discard_serial == DiscardSerialReason::NONE)_enqueuecommand(serial_line_buffer, true);
-	  #else
-	  _enqueuecommand(serial_line_buffer, true);
-	  #endif
+      #if defined(BCN3D_MOD)
+      if(discard_serial == DiscardSerialReason::NONE)_enqueuecommand(serial_line_buffer, true);
+      #else
+      _enqueuecommand(serial_line_buffer, true);
+      #endif
     }
     else if (serial_count >= MAX_CMD_SIZE - 1) {
       // Keep fetching, but ignore normal characters beyond the max length
@@ -1332,6 +1335,15 @@ inline void get_serial_commands() {
     }
 
   } // queue has space, serial has data
+
+  #if defined(BCN3D_MOD) && defined(NOTIFY_SERIAL_COMMAND_QUEUE_EMPTY)
+  if (!commands_in_queue && !MYSERIAL0.available() && !notified_empty_queue) {
+    SERIAL_PROTOCOLLNPGM("Queue empty");
+    notified_empty_queue = true;
+  } else if (commands_in_queue > 0) {
+    notified_empty_queue = false;
+  }
+  #endif
 }
 
 #if ENABLED(SDSUPPORT)
@@ -14398,6 +14410,8 @@ void process_parsed_command() {
         case 100: gcode_M100(); break;                            // M100: Free Memory Report
       #endif
 
+      case 101: break;                                            // M101: Dummy GCODE
+
       case 104: gcode_M104(); break;                              // M104: Set Hotend Temperature
       case 110: gcode_M110(); break;                              // M110: Set Current Line Number
       case 111: gcode_M111(); break;                              // M111: Set Debug Flags
@@ -14759,11 +14773,11 @@ void process_next_command() {
  * indicate that a command needs to be re-sent.
  */
 void flush_and_request_resend() {
-  //char command_queue[cmd_queue_index_r][100]="Resend:";
-  #if defined (BCN3D_MOD)
-  //SERIAL_CLEARBUFFER();
-  #endif
+  #if defined(BCN3D_MOD)
+  waiting_resend_confirmation = true;
+  #else
   SERIAL_FLUSH();
+  #endif
   SERIAL_PROTOCOLPGM(MSG_RESEND);
   SERIAL_PROTOCOLLN(gcode_LastN + 1);
   ok_to_send();
