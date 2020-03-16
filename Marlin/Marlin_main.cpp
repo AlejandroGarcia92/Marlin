@@ -949,7 +949,7 @@ inline bool _enqueuecommand(const char* cmd, bool say_ok=false) {
 /**
  * Enqueue with Serial Echo
  */
-bool enqueue_and_echo_command(const char* cmd, bool say_ok=false) {
+bool enqueue_and_echo_command(const char* cmd, bool say_ok) {
   if (_enqueuecommand(cmd, say_ok)) {
     SERIAL_ECHO_START();
     SERIAL_ECHOPAIR(MSG_ENQUEUEING, cmd);
@@ -1067,7 +1067,7 @@ void gcode_line_error(const char* err, bool doFlush = true) {
  */
 #if defined(BCN3D_MOD)
 DiscardSerialReason discard_serial = DiscardSerialReason::NONE;
-#define NOTIFY_SERIAL_COMMAND_QUEUE_EMPTY
+//#define NOTIFY_SERIAL_COMMAND_QUEUE_EMPTY
 #endif
 
 inline void get_serial_commands() {
