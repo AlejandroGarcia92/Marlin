@@ -7466,7 +7466,7 @@ void z_test_print_code(uint8_t tool, float x_offset, float hSize=0.4/*default va
 	current_position[Z_AXIS] = 2; 
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // move Z
 
-	current_position[E_AXIS]-=4;
+	current_position[E_AXIS]-= RETRACT_PRINTER_FACTOR;
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder); // Retract
 	
 	
@@ -7482,7 +7482,7 @@ void z_test_print_code(uint8_t tool, float x_offset, float hSize=0.4/*default va
 	planner.synchronize();
 	//POS A done
 	
-	current_position[E_AXIS]+=4.1;
+	current_position[E_AXIS]+=(RETRACT_PRINTER_FACTOR+0.1);
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST), active_extruder);//Purge
 	
 	
@@ -7520,7 +7520,7 @@ void z_test_print_code(uint8_t tool, float x_offset, float hSize=0.4/*default va
 	}
 	
 	
-	current_position[E_AXIS]-=4; 
+	current_position[E_AXIS]-=RETRACT_PRINTER_FACTOR; 
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder);// Retract
 	
 	//RETIRE HOTEND
