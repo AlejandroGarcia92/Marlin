@@ -7361,6 +7361,19 @@ inline void gcode_G73(){ //Save State and get back to DefaultMode
 	fanSpeedsClassic_resume = fanSpeedsClassic;
 	active_extruder_resume = active_extruder;	
 	COPY(flow_percentage_save, planner.flow_percentage);
+  // Send Pause Info
+  SERIAL_ECHO_START();
+  SERIAL_ECHOPGM("Pause state: ");
+  SERIAL_ECHOPAIR("D:", static_cast<int>(dual_x_carriage_mode_resume));
+  SERIAL_ECHOPAIR(" M:", static_cast<int>(motorModeResume));
+  SERIAL_ECHOPAIR(" F:", static_cast<int>(fanSpeedsClassic_resume));
+  for(size_t i = 0; i < EXTRUDERS; i++){
+      SERIAL_ECHOPAIR(" FL", i);
+      SERIAL_ECHOPAIR(":",flow_percentage_save[i]);
+  }
+  SERIAL_ECHOLNPAIR(" T:", static_cast<int>(active_extruder_resume));
+
+
 	//Set to default
 	dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
 	motorMode = motordriver_mode::motordefault;
@@ -7380,6 +7393,17 @@ inline void gcode_G74(){ //Recover State
 	}else{
 		SERIAL_PROTOCOLLNPGM("Not paused");
 	}	
+}
+
+inline void gcode_G75(){
+
+  if(parser.seen('D')) { dual_x_carriage_mode = static_cast<DualXMode>(parser.intval('D')); }
+  if(parser.seen('M')) { motorMode = static_cast<motordriver_mode>(parser.intval('M')); }
+  if(parser.seen('F')) { fanSpeedsClassic = parser.intval('D'); }
+  if(parser.seen('T')) { active_extruder = parser.byteval('T'); }
+  if(parser.seen('L')) { planner.flow_percentage[0] = parser.byteval('L'); }
+  if(parser.seen('R')) { planner.flow_percentage[1] = parser.byteval('R'); }
+  pause_flag = true;
 }
 // Calib
 float extrusion_multiplier(float distance, float layerh, float hSize=0.4/*default value*/)
@@ -14657,8 +14681,9 @@ void process_parsed_command() {
 	  #if defined(BCN3D_MOD)
 	  case 71: gcode_G71(); break;                                // G71: BCN3D Go Park
 	  case 72: gcode_G72(); break;                                // G72: BCN3D Go unPark
-	  case 73: gcode_G73(); break;                                // G71: BCN3D Exec Pause
-	  case 74: gcode_G74(); break;                                // G72: BCN3D Exec UnPause  
+	  case 73: gcode_G73(); break;                                // G73: BCN3D Exec Pause
+	  case 74: gcode_G74(); break;                                // G74: BCN3D Exec UnPause
+    case 75: gcode_G75(); break;                                // G75: BCN3D REcovey Pause 
 	  #endif
 	  
       case 90: relative_mode = false; break;                      // G90: Absolute coordinates
