@@ -46,6 +46,8 @@ void ChamberFanPWM::setup(uint16_t timer_period){
 	
 	digitalWrite(CHAMBER_AUTO_FAN_PIN,LOW);
 	
+	
+	
 	//Setup Timer4 to fire every 1ms
 	TCCR4A = 0;// set entire TCCR1A register to 0
 	TCCR4B = 0;// same for TCCR1B
@@ -61,11 +63,12 @@ void ChamberFanPWM::setup(uint16_t timer_period){
 	
 	dutycycle = DEFAULT_DUTYCYCLE_CHAMBER; // 20 %
 	timeelapsed_fan = millis();
+	
 }
 
 
 ISR(TIMER4_COMPA_vect) {
-#ifdef ENABLE_PWM_CHAMBER
+	#ifdef ENABLE_PWM_CHAMBER
 	if(millis() > timeelapsed_fan + 500)
 	{
 		if(counter_timer < dutycycle){
@@ -77,10 +80,8 @@ ISR(TIMER4_COMPA_vect) {
 		if(counter_timer > PWM_MAX_PERIOD - 1) counter_timer = 0;
 		}else{
 		digitalWrite(CHAMBER_AUTO_FAN_PIN,HIGH);
-	}
-#else
-	digitalWrite(CHAMBER_AUTO_FAN_PIN,HIGH);
-#endif
+	}	
+	#endif	
 }
 void ChamberFanPWM::setDuty(uint8_t duty) {
 	

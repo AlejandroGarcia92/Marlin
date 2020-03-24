@@ -11780,6 +11780,19 @@ inline void gcode_M226() {
 	   }
    }
    /*
+	* M288: Set chamber fan On/Off                                                         
+	*/
+   inline void gcode_M288() {
+	   const uint8_t fan_pin = constrain(parser.byteval('S'), 0, 1);
+	   if(fan_pin == 0) {
+	       digitalWrite(CHAMBER_AUTO_FAN_PIN,LOW); // OFF
+	   } else {
+	       digitalWrite(CHAMBER_AUTO_FAN_PIN,HIGH); // ON				
+	   }
+	   SERIAL_ECHO_START();
+	   SERIAL_ECHOLNPAIR("Chamber fan: ", fan_pin);
+   }
+   /*
 	* M305: P#heater or B bed X#IDsensor
    */
    inline void gcode_M305() {
@@ -14905,6 +14918,7 @@ void process_parsed_command() {
 		case 285: gcode_M285(); break;							  // M285: Set probe position
 		case 286: gcode_M286(); break;							  // M286: Collision avoidance bed leveling
 		case 287: gcode_M287(); break;							  // M287: Set printing settings
+		case 288: gcode_M288(); break;							  // M288: Set Chamber fan On/Off
 		
       #if ENABLED(BABYSTEPPING)
         case 290: gcode_M290(); break;                            // M290: Babystepping
