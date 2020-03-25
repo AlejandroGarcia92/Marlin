@@ -577,6 +577,7 @@ uint8_t target_extruder;
 #if defined(BCN3D_MOD)
 /////// Dual Printing	/////////
 
+bool onFirstLayerExec = false;
 int raft_line = 0;
 int raft_line_counter = 0;
 int raft_line_counter_g = 0;
@@ -1235,6 +1236,7 @@ inline void get_serial_commands() {
                 memset(serial_line_buffer, '\0', sizeof(serial_line_buffer));
                 gcode_LastN = fileraftstart - 1;
                 sprintf(serial_line_buffer, "G92 E0 Z0 R%d%c", raft_line_counter_g, 0);
+                onFirstLayerExec = true;
               }
             }
             raft_indicator = 0;
@@ -1277,7 +1279,7 @@ inline void get_serial_commands() {
                   }
                 }
                 break;
-                default:
+                default:                
                 break;
               }
             }
@@ -7371,7 +7373,9 @@ inline void gcode_G73(){ //Save State and get back to DefaultMode
       SERIAL_ECHOPAIR(" FL", i);
       SERIAL_ECHOPAIR(":",flow_percentage_save[i]);
   }
+  SERIAL_ECHOPAIR(" Y:", onFirstLayerExec?1:0);
   SERIAL_ECHOLNPAIR(" T:", static_cast<int>(active_extruder_resume));
+  
 
 
 	//Set to default
@@ -7397,12 +7401,13 @@ inline void gcode_G74(){ //Recover State
 
 inline void gcode_G75(){
 
-  if(parser.seen('D')) { dual_x_carriage_mode = static_cast<DualXMode>(parser.intval('D')); }
-  if(parser.seen('M')) { motorMode = static_cast<motordriver_mode>(parser.intval('M')); }
-  if(parser.seen('F')) { fanSpeedsClassic = parser.intval('D'); }
-  if(parser.seen('T')) { active_extruder = parser.byteval('T'); }
-  if(parser.seen('L')) { planner.flow_percentage[0] = parser.byteval('L'); }
-  if(parser.seen('R')) { planner.flow_percentage[1] = parser.byteval('R'); }
+  if(parser.seen('D')) { dual_x_carriage_mode_resume = static_cast<DualXMode>(parser.intval('D')); }
+  if(parser.seen('M')) { motorModeResume = static_cast<motordriver_mode>(parser.intval('M')); }
+  if(parser.seen('F')) { fanSpeedsClassic_resume = parser.intval('F'); }
+  if(parser.seen('T')) { active_extruder_resume = parser.byteval('T'); }
+  if(parser.seen('L')) { flow_percentage_save[0] = parser.byteval('L'); }
+  if(parser.seen('R')) { flow_percentage_save[1] = parser.byteval('R'); }
+  //if(parser.seen('Y')) { onFirstLayerExec = parser.byteval('Y')?true:false; }
   pause_flag = true;
 }
 // Calib
@@ -8144,6 +8149,10 @@ inline void gcode_M668() {
 
 inline void gcode_G715() {
 	SERIAL_PROTOCOLLNPGM("New layer");
+  if(onFirstLayerExec) { 
+    SERIAL_PROTOCOLLNPGM("El Comisario Oliver");
+    onFirstLayerExec = false;
+  }
 }
 
 inline void gcode_M535() {
