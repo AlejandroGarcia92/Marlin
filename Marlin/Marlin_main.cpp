@@ -8113,9 +8113,95 @@ inline void gcode_M668() {
 	MYSERIAL0.print(tracking_position[E_CART],5);
 	SERIAL_PROTOCOLLNPAIR(" F:", tracking_feedrate);
 	
-	SERIAL_PROTOCOLLNPAIR("Last gcode line:", tracking_lastgcode);
-		
+	SERIAL_PROTOCOLLNPAIR("Last gcode line:", tracking_lastgcode);	
 	
+}
+
+inline void gcode_G291() { //BCN3D G36 pattern
+
+  if(!parser.seen('X') || parser.seen('Y') || parser.seen('O') || parser.seen('H')) {
+      SERIAL_ECHO_START();
+      SERIAL_ECHOLNPGM(" Parameter is missing");
+      return;
+  }
+  const float patternInitCoord_x = parser.floatval('X');
+  const float patternInitCoord_y = parser.floatval('Y');
+  const float patternOffset_z = parser.floatval('O');
+  const float layerDif = G36_LAYER_DIF;
+  const float layer_height = LINES_LAYER_HEIGHT_XY;
+  const float hSize = parser.floatval('H');
+
+  current_position[E_AXIS]+=15;  
+	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(50),active_extruder); // slow purge
+
+	current_position[Z_AXIS] = 2; 
+	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // move Z
+
+	current_position[E_AXIS]-= RETRACT_PRINTER_FACTOR;
+	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder); // Retract
+	
+	
+	//POS A start
+	current_position[Y_AXIS] = 187.5;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(6000), active_extruder); // move Y
+	
+	current_position[X_AXIS] = base_min_pos(X_AXIS) + patternInitCoord_x; // Center coord
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(7200), active_extruder); // move X (faster)
+	
+	current_position[Z_AXIS] = layer_height + patternOffset_z;	
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(480), active_extruder);   // move Z
+	planner.synchronize();
+	//POS A done
+	
+	current_position[E_AXIS]+=(RETRACT_PRINTER_FACTOR+0.1);
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST), active_extruder);//Purge
+	
+	
+	draw_print_line_scrirt(Y_AXIS,-60.0, hSize, layer_height);//POS B
+	
+	draw_print_line_scrirt(X_AXIS, 24.0, hSize, layer_height);//POS C
+		
+	draw_print_line_scrirt(Y_AXIS, 60.0, hSize, layer_height);//POS D
+	//POS A
+	
+	current_position[Z_AXIS] = layer_height+2*G36_LAYER_DIF; 
+	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(480), active_extruder); //Optimal line is 3
+	planner.synchronize();
+	
+	draw_print_line_scrirt(X_AXIS, -24.0, hSize, layer_height);
+		
+	draw_print_line_scrirt(Y_AXIS, -hSize, hSize, layer_height);
+	
+	draw_print_line_scrirt(X_AXIS, 21.0-hSize, hSize, layer_height);
+		
+	draw_print_line_scrirt(Y_AXIS, -4.0+hSize, hSize, layer_height);
+
+	for(int i = 1; i<=5;i++){ //first line 5 to 1 ending
+
+		draw_print_line(Z_AXIS, -52, layer_height, hSize); //draw a line
+		
+		if(i != 5){
+			
+			current_position[Z_AXIS]-= G36_LAYER_DIF;
+			planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], 25,active_extruder); // set next Z height
+			
+			draw_print_line_scrirt(X_AXIS, -4+hSize, hSize, layer_height); //Move to next line position
+			
+		}
+	}
+	
+	
+	current_position[E_AXIS]-=RETRACT_PRINTER_FACTOR; 
+	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder);// Retract
+	
+	//RETIRE HOTEND
+	current_position[Z_AXIS]+= 5;
+	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // rise Z
+
+	current_position[X_AXIS] = x_home_pos(active_extruder);
+	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder); // Go Park
+	planner.synchronize();
+
 }
 
 inline void gcode_G715() {
@@ -14676,6 +14762,7 @@ void process_parsed_command() {
 	    case 241: gcode_G241(); break;                            // G241: BCN3D Calib X
 		case 242: gcode_G242(); break;                            // G242: BCN3D Calib Y
 		case 290: gcode_G290(); break;                            // G290: BCN3D Bed leveling
+    case 291: gcode_G291(); break;                            // G290: BCN3D G36 implementation
 		case 715: gcode_G715(); break;                            // G715: Start New layer
       #endif
 
