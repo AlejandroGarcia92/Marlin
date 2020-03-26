@@ -93,3 +93,5 @@
 #define Z_RAISE_BET_PROBINGS 2.5  //How much the extruder will be raised when traveling from between next probing points
 
 #define FANSPEED_CLASSIC // Support classic fan speed usage
+
+#define G36_LAYER_DIF 0.1
