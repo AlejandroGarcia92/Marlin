@@ -11939,6 +11939,98 @@ inline void gcode_M226() {
 		   #endif
 	   }
    }
+  
+  inline void gcode_M310() {
+    /* Thermal settings */
+    // Heaters
+    #if THERMISTORHEATER_0
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=0]:tempSensorID=>", thermalManager.get_heater_sensor_id(0));
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=0]:minTemp=>", min_temp_array[0]);
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=0]:maxTemp=>", max_temp_array[0]);
+    #endif
+    #if THERMISTORHEATER_1
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=1]:tempSensorID=>", thermalManager.get_heater_sensor_id(1));
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=1]:minTemp=>", min_temp_array[1]);
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=1]:maxTemp=>", max_temp_array[1]);
+    #endif
+    #if THERMISTORHEATER_2
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=2]:tempSensorID=>", thermalManager.get_heater_sensor_id(2));
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=2]:minTemp=>", min_temp_array[2]);
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=2]:maxTemp=>", max_temp_array[2]);
+    #endif
+    #if THERMISTORHEATER_3
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=3]:tempSensorID=>", thermalManager.get_heater_sensor_id(3));
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=3]:minTemp=>", min_temp_array[3]);
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=3]:maxTemp=>", max_temp_array[3]);
+    #endif
+    #if THERMISTORHEATER_4
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=4]:tempSensorID=>", thermalManager.get_heater_sensor_id(4));
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=4]:minTemp=>", min_temp_array[4]);
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:heaters[index=4]:maxTemp=>", max_temp_array[4]);
+    #endif
+    // Bed
+    #ifdef THERMISTORBED
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:bed:tempSensorID=>", thermalManager.get_bed_sensor_id());
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:bed:minTemp=>", min_temp_array[5]);
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:bed:maxTemp=>", max_temp_array[5]);
+    #endif
+    // Chamber
+    #ifdef THERMISTORCHAMBER
+    SERIAL_PROTOCOLLNPAIR("conf:thermalSettings:chamber:tempSensorID=>", thermalManager.get_chamber_sensor_id());
+    #endif
+
+    /* Bed parameters */
+    // Dimensions
+    SERIAL_PROTOCOLLNPAIR("conf:bed:dimensions:X=>", xBedSize);
+    SERIAL_PROTOCOLLNPAIR("conf:bed:dimensions:Y=>", yBedSize);
+    // Z safe homing points
+    SERIAL_PROTOCOLLNPAIR("conf:bed:ZSafeHomingPoints:X=>", Z_SAFE_HOMING_X_POINT);
+    SERIAL_PROTOCOLLNPAIR("conf:bed:ZSafeHomingPoints:Y=>", Z_SAFE_HOMING_Y_POINT);
+    // Leveling colision avoidance
+    SERIAL_PROTOCOLLNPAIR("conf:bed:levelingColisionAvoidance:left=>", x_gap_avoid_collision_l);
+    SERIAL_PROTOCOLLNPAIR("conf:bed:levelingColisionAvoidance:right=>", x_gap_avoid_collision_r);
+
+    /* Positions */
+    // Axes limits
+    SERIAL_PROTOCOLLNPAIR("conf:positions:axesLimits:min:X=>", base_min_pos(X_AXIS));
+    SERIAL_PROTOCOLLNPAIR("conf:positions:axesLimits:max:X=>", base_max_pos(X_AXIS));
+    SERIAL_PROTOCOLLNPAIR("conf:positions:axesLimits:min:Y=>", base_min_pos(Y_AXIS));
+    SERIAL_PROTOCOLLNPAIR("conf:positions:axesLimits:max:Y=>", base_max_pos(Y_AXIS));
+    SERIAL_PROTOCOLLNPAIR("conf:positions:axesLimits:min:Z=>", base_min_pos(Z_AXIS));
+    SERIAL_PROTOCOLLNPAIR("conf:positions:axesLimits:max:Z=>", base_max_pos(Z_AXIS));
+    // Bed leveling knobs
+    SERIAL_PROTOCOLLNPAIR("conf:positions:bedLevelingKnobs[knobIndex=1]:X=>", CARGOL_1_X);
+    SERIAL_PROTOCOLLNPAIR("conf:positions:bedLevelingKnobs[knobIndex=1]:Y=>", CARGOL_1_Y);
+    SERIAL_PROTOCOLLNPAIR("conf:positions:bedLevelingKnobs[knobIndex=2]:X=>", CARGOL_2_X);
+    SERIAL_PROTOCOLLNPAIR("conf:positions:bedLevelingKnobs[knobIndex=2]:Y=>", CARGOL_2_Y);
+    SERIAL_PROTOCOLLNPAIR("conf:positions:bedLevelingKnobs[knobIndex=3]:X=>", CARGOL_3_X);
+    SERIAL_PROTOCOLLNPAIR("conf:positions:bedLevelingKnobs[knobIndex=3]:Y=>", CARGOL_3_Y);
+    // Probes
+    for (int i = 0; i < 3; i++) {
+      SERIAL_PROTOCOLPGM("conf:positions:probes[extruderIndex=0,probeIndex=");
+      SERIAL_PROTOCOL(i+1);
+      SERIAL_PROTOCOLLNPAIR("]:X=>", x_probe_left_extr[i]);
+      SERIAL_PROTOCOLPGM("conf:positions:probes[extruderIndex=0,probeIndex=");
+      SERIAL_PROTOCOL(i+1);
+      SERIAL_PROTOCOLLNPAIR("]:Y=>", y_probe_left_extr[i]);
+    }
+    for (int i = 0; i < 3; i++) {
+      SERIAL_PROTOCOLPGM("conf:positions:probes[extruderIndex=1,probeIndex=");
+      SERIAL_PROTOCOL(i+1);
+      SERIAL_PROTOCOLLNPAIR("]:X=>", x_probe_right_extr[i]);
+      SERIAL_PROTOCOLPGM("conf:positions:probes[extruderIndex=1,probeIndex=");
+      SERIAL_PROTOCOL(i+1);
+      SERIAL_PROTOCOLLNPAIR("]:Y=>", y_probe_right_extr[i]);
+    }
+
+    /* Print parameters */
+    SERIAL_PROTOCOLLNPAIR("conf:printParameters:retractPrinterFactor=>", retract_printer_factor);
+    SERIAL_PROTOCOLLNPAIR("conf:printParameters:retractPrintTestFactor=>", retract_print_test_factor);
+    SERIAL_PROTOCOLLNPAIR("conf:printParameters:purgePrinterFactor=>", purge_printer_factor);
+
+    /* End of config */
+    SERIAL_PROTOCOLLNPGM("Config end");
+  }
    
    
 #if HAS_BUZZER
@@ -14985,14 +15077,16 @@ void process_parsed_command() {
         case 280: gcode_M280(); break;                            // M280: Set Servo Position
       #endif
 	  
-		case 281: gcode_M281(); break;							  // M281: Set Axis Maximum Travel
-		case 282: gcode_M282(); break;							  // M282: Set bed size
-		case 283: gcode_M283(); break;							  // M283: Set home safe point
-		case 284: gcode_M284(); break;							  // M284: Set knob position
-		case 285: gcode_M285(); break;							  // M285: Set probe position
-		case 286: gcode_M286(); break;							  // M286: Collision avoidance bed leveling
-		case 287: gcode_M287(); break;							  // M287: Set printing settings
-		
+      #ifdef BCN3D_MOD
+        case 281: gcode_M281(); break;                            // M281: Set Axis Maximum Travel
+        case 282: gcode_M282(); break;                            // M282: Set bed size
+        case 283: gcode_M283(); break;                            // M283: Set home safe point
+        case 284: gcode_M284(); break;                            // M284: Set knob position
+        case 285: gcode_M285(); break;                            // M285: Set probe position
+        case 286: gcode_M286(); break;                            // M286: Collision avoidance bed leveling
+        case 287: gcode_M287(); break;                            // M287: Set printing settings
+      #endif
+
       #if ENABLED(BABYSTEPPING)
         case 290: gcode_M290(); break;                            // M290: Babystepping
       #endif
@@ -15014,8 +15108,16 @@ void process_parsed_command() {
       #if ENABLED(PIDTEMPBED)
         case 304: gcode_M304(); break;                            // M304: Set Bed PID parameters
       #endif
-		case 305: gcode_M305(); break;							  // M305: BCN3D_MOD to override temp sensor
-		case 306: gcode_M306(); break;
+
+      #ifdef BCN3D_MOD
+        case 305: gcode_M305(); break;                            // M305: Overrides the temperature sensor ID
+        case 306: gcode_M306(); break;                            // M306: Sets the temperature max and min
+      #endif
+      
+      #ifdef BCN3D_MOD
+        case 310: gcode_M310(); break;                            // M310: Prints the loaded configuration
+      #endif
+
       #if HAS_MICROSTEPS
         case 350: gcode_M350(); break;                            // M350: Set microstepping mode. Warning: Steps per unit remains unchanged. S code sets stepping mode for all drivers.
         case 351: gcode_M351(); break;                            // M351: Toggle MS1 MS2 pins directly, S# determines MS1 or MS2, X# sets the pin high/low.

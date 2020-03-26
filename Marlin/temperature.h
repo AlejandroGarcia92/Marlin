@@ -196,10 +196,13 @@ class Temperature {
     FORCE_INLINE static bool targetHotEnoughToExtrude(const uint8_t e) { return !targetTooColdToExtrude(e); }
 		
 	#ifdef BCN3D_MOD
-	static void update_heater_ttbl_map(int8_t index, uint16_t sensorId);
-	static void update_bed_ttbl(uint16_t sensorId);
-	static void update_chamber_ttbl(uint16_t sensorId);
-	static void report_sensors_names();
+  static void update_heater_ttbl_map(int8_t index, uint16_t sensorId);
+  static void update_bed_ttbl(uint16_t sensorId);
+  static void update_chamber_ttbl(uint16_t sensorId);
+  static void report_sensors_names();
+  static uint16_t get_heater_sensor_id(int8_t index);
+  static uint16_t get_bed_sensor_id();
+  static uint16_t get_chamber_sensor_id();
 	#endif
   private:
 
@@ -271,7 +274,7 @@ class Temperature {
     #if HAS_TEMP_CHAMBER
       static uint16_t raw_temp_chamber_value;
       static float current_temperature_chamber;
-	  static int16_t target_temperature_chamber;
+	    static int16_t target_temperature_chamber;
       static int16_t current_temperature_chamber_raw;
     #endif
 
