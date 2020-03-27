@@ -8119,7 +8119,7 @@ inline void gcode_M668() {
 
 inline void gcode_G291() { //BCN3D G36 pattern
 
-  if(!parser.seen('X') || parser.seen('Y') || parser.seen('O') || parser.seen('H')) {
+  if(!parser.seen('X') || !parser.seen('Y') || !parser.seen('O') || !parser.seen('H')) {
       SERIAL_ECHO_START();
       SERIAL_ECHOLNPGM(" Parameter is missing");
       return;
@@ -8142,10 +8142,10 @@ inline void gcode_G291() { //BCN3D G36 pattern
 	
 	
 	//POS A start
-	current_position[Y_AXIS] = 187.5;
+	current_position[Y_AXIS] = patternInitCoord_y;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(6000), active_extruder); // move Y
 	
-	current_position[X_AXIS] = base_min_pos(X_AXIS) + patternInitCoord_x; // Center coord
+	current_position[X_AXIS] = patternInitCoord_x; // Center coord
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(7200), active_extruder); // move X (faster)
 	
 	current_position[Z_AXIS] = layer_height + patternOffset_z;	
@@ -8164,7 +8164,7 @@ inline void gcode_G291() { //BCN3D G36 pattern
 	draw_print_line_scrirt(Y_AXIS, 60.0, hSize, layer_height);//POS D
 	//POS A
 	
-	current_position[Z_AXIS] = layer_height+2*G36_LAYER_DIF; 
+	current_position[Z_AXIS] = layer_height + 2*G36_LAYER_DIF + patternOffset_z; 
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(480), active_extruder); //Optimal line is 3
 	planner.synchronize();
 	
@@ -8182,7 +8182,7 @@ inline void gcode_G291() { //BCN3D G36 pattern
 		
 		if(i != 5){
 			
-			current_position[Z_AXIS]-= G36_LAYER_DIF;
+			current_position[Z_AXIS]-= layerDif;
 			planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], 25,active_extruder); // set next Z height
 			
 			draw_print_line_scrirt(X_AXIS, -4+hSize, hSize, layer_height); //Move to next line position
