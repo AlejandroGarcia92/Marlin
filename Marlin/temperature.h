@@ -201,7 +201,15 @@ class Temperature {
   static void update_chamber_ttbl(uint16_t sensorId);
   static void report_sensors_names();
   static uint16_t get_heater_sensor_id(int8_t index);
+  static void set_heater_min_temp(int8_t index, float value);
+  static float get_heater_min_temp(int8_t index);
+  static void set_heater_max_temp(int8_t index, float value);
+  static float get_heater_max_temp(int8_t index);
   static uint16_t get_bed_sensor_id();
+  static void set_bed_min_temp(float value);
+  static float get_bed_min_temp();
+  static void set_bed_max_temp(float value);
+  static float get_bed_max_temp();
   static uint16_t get_chamber_sensor_id();
 	#endif
   private:
@@ -411,24 +419,7 @@ class Temperature {
       static void start_watching_heater(const uint8_t e = 0);
     #endif
 
-    static void setTargetHotend(const int16_t celsius, const uint8_t e) {
-      #if HOTENDS == 1
-        UNUSED(e);
-      #endif
-      #ifdef MILLISECONDS_PREHEAT_TIME
-        if (celsius == 0)
-          reset_preheat_time(HOTEND_INDEX);
-        else if (target_temperature[HOTEND_INDEX] == 0)
-          start_preheat_time(HOTEND_INDEX);
-      #endif
-      #if ENABLED(AUTO_POWER_CONTROL)
-        powerManager.power_on();
-      #endif
-      target_temperature[HOTEND_INDEX] =  MIN(celsius, max_temp_array[HOTEND_INDEX]);
-      #if WATCH_HOTENDS
-        start_watching_heater(HOTEND_INDEX);
-      #endif
-    }
+    static void setTargetHotend(const int16_t celsius, const uint8_t e);
 
     FORCE_INLINE static bool isHeatingHotend(const uint8_t e) {
       #if HOTENDS == 1
