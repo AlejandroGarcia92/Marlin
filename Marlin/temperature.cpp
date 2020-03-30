@@ -56,7 +56,7 @@
 
 #if HOTEND_USES_THERMISTOR
   #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
-    static void* heater_ttbl_map[2] = { (void*)HEATER_0_TEMPTABLE, (void*)HEATER_1_TEMPTABLE };
+    static const void* heater_ttbl_map[2] = { HEATER_0_TEMPTABLE, HEATER_1_TEMPTABLE };
     static uint8_t heater_ttbllen_map[2] = { HEATER_0_TEMPTABLE_LEN, HEATER_1_TEMPTABLE_LEN };
   #else
     static const void* heater_ttbl_map[HOTENDS] = ARRAY_BY_HOTENDS(HEATER_0_TEMPTABLE, HEATER_1_TEMPTABLE, HEATER_2_TEMPTABLE, HEATER_3_TEMPTABLE, HEATER_4_TEMPTABLE);
@@ -78,6 +78,73 @@
   static uint8_t chamberTempTableLen = CHAMBERTEMPTABLE_LEN;
   static uint16_t sensor_id_chamber = THERMISTORCHAMBER;
   static const char* sensor_name_chamber = CHAMBER_SENSOR_NAME;
+#endif
+
+//Min temperatures
+static float heater_min_temp_array[HOTENDS] = ARRAY_BY_HOTENDS(HEATER_0_MINTEMP,HEATER_1_MINTEMP,HEATER_2_MINTEMP,HEATER_3_MINTEMP,HEATER_4_MINTEMP);
+static float bed_min_temp = BED_MINTEMP;
+
+//Max temperatures
+static float heater_max_temp_array[HOTENDS] = ARRAY_BY_HOTENDS(HEATER_0_MAXTEMP,HEATER_1_MAXTEMP,HEATER_2_MAXTEMP,HEATER_3_MAXTEMP,HEATER_4_MAXTEMP);
+static float bed_max_temp = BED_MAXTEMP;
+
+#ifdef HEATER_0_MINTEMP
+  #undef HEATER_0_MINTEMP
+  #define HEATER_0_MINTEMP heater_min_temp_array[0]
+#endif
+#ifdef HEATER_0_MAXTEMP
+  #undef HEATER_0_MAXTEMP
+  #define HEATER_0_MAXTEMP heater_max_temp_array[0]
+#endif
+#if HOTENDS > 1
+  #ifdef HEATER_1_MINTEMP
+    #undef HEATER_1_MINTEMP
+    #define HEATER_1_MINTEMP heater_min_temp_array[1]
+  #endif
+  #ifdef HEATER_1_MAXTEMP
+    #undef HEATER_1_MAXTEMP
+    #define HEATER_1_MAXTEMP heater_max_temp_array[1]
+  #endif
+  #if HOTENDS > 2
+    #ifdef HEATER_2_MINTEMP
+      #undef HEATER_2_MINTEMP
+      #define HEATER_2_MINTEMP heater_min_temp_array[2]
+    #endif
+    #ifdef HEATER_2_MAXTEMP
+      #undef HEATER_2_MAXTEMP
+      #define HEATER_2_MAXTEMP heater_max_temp_array[2]
+    #endif
+    #if HOTENDS > 3
+      #ifdef HEATER_3_MINTEMP
+        #undef HEATER_3_MINTEMP
+        #define HEATER_3_MINTEMP heater_min_temp_array[3]
+      #endif
+      #ifdef HEATER_3_MAXTEMP
+        #undef HEATER_3_MAXTEMP
+        #define HEATER_3_MAXTEMP heater_max_temp_array[3]
+      #endif
+      #if HOTENDS > 4
+        #ifdef HEATER_4_MINTEMP
+          #undef HEATER_4_MINTEMP
+          #define HEATER_4_MINTEMP heater_min_temp_array[4]
+        #endif
+        #ifdef HEATER_4_MAXTEMP
+          #undef HEATER_4_MAXTEMP
+          #define HEATER_4_MAXTEMP heater_max_temp_array[4]
+        #endif
+      #endif // HOTENDS > 4
+    #endif // HOTENDS > 3
+  #endif // HOTENDS > 2
+#endif // HOTENDS > 1
+
+#ifdef BED_MINTEMP
+  #undef BED_MINTEMP
+  #define BED_MINTEMP bed_min_temp
+#endif
+
+#ifdef BED_MAXTEMP
+  #undef BED_MAXTEMP
+  #define BED_MAXTEMP bed_max_temp
 #endif
 
 Temperature thermalManager;
@@ -652,7 +719,6 @@ int16_t Temperature::current_temperature_raw[HOTENDS] = { 0 },
 	}
 	
 	void Temperature::report_sensors_names(){
-		SERIAL_ECHO_START();
 		#if THERMISTORHEATER_0
 		SERIAL_ECHOLNPAIR("Heater 0 sensor:",  heater_sensor_names[0]);
 		#endif
@@ -680,8 +746,138 @@ int16_t Temperature::current_temperature_raw[HOTENDS] = { 0 },
     return heater_sensor_ids[index];
   }
 
+  void Temperature::set_heater_min_temp(int8_t index, float value) {
+    switch (index)
+    {
+    case 0:
+      HEATER_0_MINTEMP = value;
+      break;
+    #if HOTENDS > 1
+      case 1:
+        HEATER_1_MINTEMP = value;
+        break;
+      #if HOTENDS > 2
+        case 2:
+          HEATER_2_MINTEMP = value;
+          break;
+        #if HOTENDS > 3
+          case 3:
+            HEATER_3_MINTEMP = value;
+            break;
+          #if HOTENDS > 4
+            case 4:
+              HEATER_4_MINTEMP = value;
+              break;
+          #endif // HOTENDS > 4
+        #endif // HOTENDS > 3
+      #endif // HOTENDS > 2
+    #endif // HOTENDS > 1
+    default:
+      break;
+    }
+  }
+
+  float Temperature::get_heater_min_temp(int8_t index) {
+    switch (index)
+    {
+    case 0:
+      return HEATER_0_MINTEMP;
+    #if HOTENDS > 1
+      case 1:
+        return HEATER_1_MINTEMP;
+      #if HOTENDS > 2
+        case 2:
+          return HEATER_2_MINTEMP;
+        #if HOTENDS > 3
+          case 3:
+            return HEATER_3_MINTEMP;
+          #if HOTENDS > 4
+            case 4:
+              return HEATER_4_MINTEMP;
+          #endif // HOTENDS > 4
+        #endif // HOTENDS > 3
+      #endif // HOTENDS > 2
+    #endif // HOTENDS > 1
+    default:
+      return 0.0;
+    }
+  }
+
+  void Temperature::set_heater_max_temp(int8_t index, float value) {
+    switch (index)
+    {
+    case 0:
+      HEATER_0_MAXTEMP = value;
+      break;
+    #if HOTENDS > 1
+      case 1:
+        HEATER_1_MAXTEMP = value;
+        break;
+      #if HOTENDS > 2
+        case 2:
+          HEATER_2_MAXTEMP = value;
+          break;
+        #if HOTENDS > 3
+          case 3:
+            HEATER_3_MAXTEMP = value;
+            break;
+          #if HOTENDS > 4
+            case 4:
+              HEATER_4_MAXTEMP = value;
+              break;
+          #endif // HOTENDS > 4
+        #endif // HOTENDS > 3
+      #endif // HOTENDS > 2
+    #endif // HOTENDS > 1
+    default:
+      break;
+    }
+  }
+
+  float Temperature::get_heater_max_temp(int8_t index) {
+    switch (index)
+    {
+    case 0:
+      return HEATER_0_MAXTEMP;
+    #if HOTENDS > 1
+      case 1:
+        return HEATER_1_MAXTEMP;
+      #if HOTENDS > 2
+        case 2:
+          return HEATER_2_MAXTEMP;
+        #if HOTENDS > 3
+          case 3:
+            return HEATER_3_MAXTEMP;
+          #if HOTENDS > 4
+            case 4:
+              return HEATER_4_MAXTEMP;
+          #endif // HOTENDS > 4
+        #endif // HOTENDS > 3
+      #endif // HOTENDS > 2
+    #endif // HOTENDS > 1
+    default:
+      return 0.0;
+    }
+  }
+
   uint16_t Temperature::get_bed_sensor_id() {
     return sensor_id_bed;
+  }
+
+  void Temperature::set_bed_min_temp(float value) {
+    BED_MINTEMP = value;
+  }
+
+  float Temperature::get_bed_min_temp() {
+    return BED_MINTEMP;
+  }
+
+  void Temperature::set_bed_max_temp(float value) {
+    BED_MAXTEMP = value;
+  }
+
+  float Temperature::get_bed_max_temp() {
+    return BED_MAXTEMP;
   }
 
   uint16_t Temperature::get_chamber_sensor_id() {
@@ -1987,6 +2183,25 @@ void Temperature::init() {
       watch_bed_next_ms = 0;
   }
 #endif
+
+void Temperature::setTargetHotend(const int16_t celsius, const uint8_t e) {
+  #if HOTENDS == 1
+    UNUSED(e);
+  #endif
+  #ifdef MILLISECONDS_PREHEAT_TIME
+    if (celsius == 0)
+      reset_preheat_time(HOTEND_INDEX);
+    else if (target_temperature[HOTEND_INDEX] == 0)
+      start_preheat_time(HOTEND_INDEX);
+  #endif
+  #if ENABLED(AUTO_POWER_CONTROL)
+    powerManager.power_on();
+  #endif
+  target_temperature[HOTEND_INDEX] =  MIN(celsius, heater_max_temp_array[HOTEND_INDEX]);
+  #if WATCH_HOTENDS
+    start_watching_heater(HOTEND_INDEX);
+  #endif
+}
 
 #if ENABLED(THERMAL_PROTECTION_HOTENDS) || HAS_THERMALLY_PROTECTED_BED
 
