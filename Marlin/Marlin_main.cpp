@@ -377,7 +377,7 @@
 #include "FRS_Monitoring.h"
 #include "Door_Monitoring.h"
 #include "Leds_handler.h"
-#include "chamberFanPWM.h"
+//#include "chamberFanPWM.h"
 #include "printerStats.h"
 #endif
 
@@ -8092,10 +8092,10 @@ inline void gcode_G290(){//BCN3D Bed leveling
 
 	
 }
-inline void gcode_M141() { // Set chamber temperature
-	if (parser.seenval('S')) thermalManager.setTargetChamber(parser.value_celsius());
-	if (parser.seenval('P')) chamberFanPWM.setup(parser.value_ushort());
-}
+//inline void gcode_M141() { // Set chamber temperature
+//	if (parser.seenval('S')) thermalManager.setTargetChamber(parser.value_celsius());
+//	if (parser.seenval('P')) chamberFanPWM.setup(parser.value_ushort());
+//}
 
 inline void gcode_M668() {
 	planner.synchronize();
@@ -14795,9 +14795,9 @@ void process_parsed_command() {
         case 190: gcode_M190(); break;                            // M190: Set Bed Temperature. Wait for target.
       #endif
 	  
-	  #if defined(BCN3D_MOD)
-		case 141: gcode_M141(); break;
-	  #endif
+	  //#if defined(BCN3D_MOD)
+		//case 141: gcode_M141(); break;
+	  //#endif
 
       #if FAN_COUNT > 0
         case 106: gcode_M106(); break;                            // M106: Set Fan Speed
@@ -17422,8 +17422,12 @@ void setup() {
 	frs_monitor.setup();
 	door_monitor.setup();
 	leds_handler.setup();
-	chamberFanPWM.setup();
+	//chamberFanPWM.setup();
 	printerStats.reset();
+	// Chamber fan control
+	pinMode(CHAMBER_AUTO_FAN_PIN,OUTPUT);
+	digitalWrite(CHAMBER_AUTO_FAN_PIN,LOW);
+	// Manual Z error probe trigger
 	pinMode(SDA_PIN, OUTPUT);
 	digitalWrite(SDA_PIN, HIGH);
   #endif
