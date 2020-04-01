@@ -8026,15 +8026,15 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	planeNormal_1 = vector_3(planeNormal_1.x, planeNormal_1.y, planeNormal_1.z);
 	
 	float Zscroll_0=(-planeNormal_0.x*(x_screw_bed_calib_1-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_0.y*(y_screw_bed_calib_1-y_probe_left_extr[2]-y_screw_bed_calib_1/2.0))/planeNormal_0.z;
-	float Zscroll_1=(-planeNormal_1.x*(x_screw_bed_calib_1-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_1.y*(y_screw_bed_calib_1-y_probe_left_extr[2]-y_screw_bed_calib_1/2))/planeNormal_1.z;
+	float Zscroll_1=(-planeNormal_1.x*(x_screw_bed_calib_1-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_1.y*(y_screw_bed_calib_1-y_probe_left_extr[2]-y_screw_bed_calib_1/2.0))/planeNormal_1.z;
 	
 	//float z1_0=(-planeNormal_0.x*0.0-planeNormal_0.y*(Y_SIGMA_PROBE_1_LEFT_EXTR-Y_SIGMA_PROBE_3_LEFT_EXTR))/planeNormal_0.z;
-	float z2_0=(-planeNormal_0.x*(x_screw_bed_calib_2-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_0.y*(y_screw_bed_calib_2-y_probe_left_extr[2]-y_screw_bed_calib_1/2))/planeNormal_0.z;
-	float z3_0=(-planeNormal_0.x*(x_screw_bed_calib_3-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_0.y*(y_screw_bed_calib_3-y_probe_left_extr[2]-y_screw_bed_calib_1/2))/planeNormal_0.z;
+	float z2_0=(-planeNormal_0.x*(x_screw_bed_calib_2-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_0.y*(y_screw_bed_calib_2-y_probe_left_extr[2]-y_screw_bed_calib_1/2.0))/planeNormal_0.z;
+	float z3_0=(-planeNormal_0.x*(x_screw_bed_calib_3-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_0.y*(y_screw_bed_calib_3-y_probe_left_extr[2]-y_screw_bed_calib_1/2.0))/planeNormal_0.z;
 	
 	//float z1_1=(-planeNormal_1.x*(X_SIGMA_PROBE_1_RIGHT_EXTR-X_SIGMA_PROBE_1_LEFT_EXTR)-planeNormal_1.y*(Y_SIGMA_PROBE_1_RIGHT_EXTR-Y_SIGMA_PROBE_3_RIGHT_EXTR))/planeNormal_1.z;
-	float z2_1=(-planeNormal_1.x*(x_screw_bed_calib_2-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_1.y*(y_screw_bed_calib_2-x_probe_left_extr[2]-y_screw_bed_calib_1/2))/planeNormal_1.z;
-	float z3_1=(-planeNormal_1.x*(x_screw_bed_calib_3-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_1.y*(y_screw_bed_calib_3-x_probe_left_extr[2]-y_screw_bed_calib_1/2))/planeNormal_1.z;
+	float z2_1=(-planeNormal_1.x*(x_screw_bed_calib_2-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_1.y*(y_screw_bed_calib_2-y_probe_left_extr[2]-y_screw_bed_calib_1/2.0))/planeNormal_1.z;
+	float z3_1=(-planeNormal_1.x*(x_screw_bed_calib_3-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_1.y*(y_screw_bed_calib_3-y_probe_left_extr[2]-y_screw_bed_calib_1/2.0))/planeNormal_1.z;
 	
 	
 	SERIAL_PROTOCOLPGM("planeNormal_0.x: ");
