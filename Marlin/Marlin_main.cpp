@@ -377,7 +377,7 @@
 #include "FRS_Monitoring.h"
 #include "Door_Monitoring.h"
 #include "Leds_handler.h"
-#include "chamberFanPWM.h"
+//#include "chamberFanPWM.h"
 #include "printerStats.h"
 #endif
 
@@ -8097,10 +8097,10 @@ inline void gcode_G290(){//BCN3D Bed leveling
 
 	
 }
-inline void gcode_M141() { // Set chamber temperature
-	if (parser.seenval('S')) thermalManager.setTargetChamber(parser.value_celsius());
-	if (parser.seenval('P')) chamberFanPWM.setup(parser.value_ushort());
-}
+//inline void gcode_M141() { // Set chamber temperature
+//	if (parser.seenval('S')) thermalManager.setTargetChamber(parser.value_celsius());
+//	if (parser.seenval('P')) chamberFanPWM.setup(parser.value_ushort());
+//}
 
 inline void gcode_M668() {
 	planner.synchronize();
@@ -11781,6 +11781,19 @@ inline void gcode_M226() {
 	   }
    }
    /*
+	* M288: Set chamber fan On/Off                                                         
+	*/
+   inline void gcode_M288() {
+	   const uint8_t fan_pin = constrain(parser.byteval('S'), 0, 1);
+	   if(fan_pin == 0) {
+	       digitalWrite(CHAMBER_AUTO_FAN_PIN,LOW); // OFF
+	   } else {
+	       digitalWrite(CHAMBER_AUTO_FAN_PIN,HIGH); // ON				
+	   }
+	   SERIAL_ECHO_START();
+	   SERIAL_ECHOLNPAIR("Chamber fan: ", fan_pin);
+   }
+   /*
 	* M305: P#heater or B bed X#IDsensor
    */
    inline void gcode_M305() {
@@ -14870,9 +14883,9 @@ void process_parsed_command() {
         case 190: gcode_M190(); break;                            // M190: Set Bed Temperature. Wait for target.
       #endif
 	  
-	  #if defined(BCN3D_MOD)
-		case 141: gcode_M141(); break;
-	  #endif
+	  //#if defined(BCN3D_MOD)
+		//case 141: gcode_M141(); break;
+	  //#endif
 
       #if FAN_COUNT > 0
         case 106: gcode_M106(); break;                            // M106: Set Fan Speed
@@ -14994,6 +15007,7 @@ void process_parsed_command() {
         case 285: gcode_M285(); break;                            // M285: Set probe position
         case 286: gcode_M286(); break;                            // M286: Collision avoidance bed leveling
         case 287: gcode_M287(); break;                            // M287: Set printing settings
+        case 288: gcode_M288(); break;							              // M288: Set Chamber fan On/Off
       #endif
 
       #if ENABLED(BABYSTEPPING)
@@ -17506,8 +17520,12 @@ void setup() {
 	frs_monitor.setup();
 	door_monitor.setup();
 	leds_handler.setup();
-	chamberFanPWM.setup();
+	//chamberFanPWM.setup();
 	printerStats.reset();
+	// Chamber fan control
+	pinMode(CHAMBER_AUTO_FAN_PIN,OUTPUT);
+	digitalWrite(CHAMBER_AUTO_FAN_PIN,LOW);
+	// Manual Z error probe trigger
 	pinMode(SDA_PIN, OUTPUT);
 	digitalWrite(SDA_PIN, HIGH);
   #endif
