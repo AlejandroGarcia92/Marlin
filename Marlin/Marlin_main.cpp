@@ -7930,6 +7930,19 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	planner.synchronize();
 	
 	
+// Left probing
+//
+//  +--------------------------+
+//  |  1                       |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |  2                    3  |
+//  +--------------------------+
+
+
 	// Probe at 3 arbitrary points
 	// probe left extruder
 	
@@ -7968,9 +7981,21 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	current_position[X_AXIS]-=x_gap_avoid_collision_r;
 	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]);
 	
-		
+
+// Right probing
+//
+//  +--------------------------+
+//  |                       1  |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |  3                    2  |
+//  +--------------------------+
+
 	//Probe at 3 arbitrary points
-	//probe left extruder
+	//probe right extruder
 	setup_for_endstop_or_probe_move();
 	float z2_at_pt_3 = probe_pt(x_probe_right_extr[2], y_probe_right_extr[2], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
@@ -8015,27 +8040,41 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	vector_3 pt2_1 = vector_3(x_probe_right_extr[1], y_probe_right_extr[1], z2_at_pt_2);
 	vector_3 pt3_1 = vector_3(x_probe_right_extr[2], y_probe_right_extr[2], z2_at_pt_3);
 	
+  //The main idea is to use directos vectors form the same coords if later we want to merge both planes
+
 	vector_3 from_2_to_1_0 = (pt1_0 - pt2_0);
 	vector_3 from_2_to_3_0 = (pt3_0 - pt2_0);
 	vector_3 planeNormal_0 = vector_3::cross(from_2_to_1_0, from_2_to_3_0);
-	planeNormal_0 = vector_3(planeNormal_0.x, planeNormal_0.y, planeNormal_0.z);
+	planeNormal_0 = vector_3(planeNormal_0.x, planeNormal_0.y, planeNormal_0.z); // Common point is left probe point-2
 	
 	vector_3 from_3_to_1_1 = (pt1_1 - pt3_1);
 	vector_3 from_3_to_2_1 = (pt2_1 - pt3_1);
-	vector_3 planeNormal_1 = vector_3::cross(from_3_to_1_1, from_3_to_2_1); // Point 3 is 2 on the left
+	vector_3 planeNormal_1 = vector_3::cross(from_3_to_1_1, from_3_to_2_1); // Watch out! Right point-3 is 2 on the left
 	planeNormal_1 = vector_3(planeNormal_1.x, planeNormal_1.y, planeNormal_1.z);
+
+//  +--------------------------+
+//  |          Zscroll         |
+//  |                          |
+//  |                          |
+//  |           0/0            |
+//  |                          |
+//  |                          |
+//  |  Z2                  Z3  |
+//  +--------------------------+
+
+
+  //Below, we calculate the fixed screw knob. INDEX 1	
+	float Zscroll_0=(-planeNormal_0.x*(x_screw_bed_calib_1)-planeNormal_0.y*(y_screw_bed_calib_1))/planeNormal_0.z;
+	float Zscroll_1=(-planeNormal_1.x*(x_screw_bed_calib_1)-planeNormal_1.y*(y_screw_bed_calib_1))/planeNormal_1.z;
 	
-	float Zscroll_0=(-planeNormal_0.x*(x_screw_bed_calib_1-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_0.y*(y_screw_bed_calib_1-y_probe_left_extr[2]-y_screw_bed_calib_1/2.0))/planeNormal_0.z;
-	float Zscroll_1=(-planeNormal_1.x*(x_screw_bed_calib_1-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_1.y*(y_screw_bed_calib_1-y_probe_left_extr[2]-y_screw_bed_calib_1/2.0))/planeNormal_1.z;
-	
-	//float z1_0=(-planeNormal_0.x*0.0-planeNormal_0.y*(Y_SIGMA_PROBE_1_LEFT_EXTR-Y_SIGMA_PROBE_3_LEFT_EXTR))/planeNormal_0.z;
-	float z2_0=(-planeNormal_0.x*(x_screw_bed_calib_2-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_0.y*(y_screw_bed_calib_2-y_probe_left_extr[2]-y_screw_bed_calib_1/2.0))/planeNormal_0.z;
-	float z3_0=(-planeNormal_0.x*(x_screw_bed_calib_3-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_0.y*(y_screw_bed_calib_3-y_probe_left_extr[2]-y_screw_bed_calib_1/2.0))/planeNormal_0.z;
-	
-	//float z1_1=(-planeNormal_1.x*(X_SIGMA_PROBE_1_RIGHT_EXTR-X_SIGMA_PROBE_1_LEFT_EXTR)-planeNormal_1.y*(Y_SIGMA_PROBE_1_RIGHT_EXTR-Y_SIGMA_PROBE_3_RIGHT_EXTR))/planeNormal_1.z;
-	float z2_1=(-planeNormal_1.x*(x_screw_bed_calib_2-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_1.y*(y_screw_bed_calib_2-y_probe_left_extr[2]-y_screw_bed_calib_1/2.0))/planeNormal_1.z;
-	float z3_1=(-planeNormal_1.x*(x_screw_bed_calib_3-x_probe_left_extr[0]-x_screw_bed_calib_1)-planeNormal_1.y*(y_screw_bed_calib_3-y_probe_left_extr[2]-y_screw_bed_calib_1/2.0))/planeNormal_1.z;
-	
+	//Below, we calculate the left knob. INDEX 2
+	float z2_0=(-planeNormal_0.x*(x_screw_bed_calib_2)-planeNormal_0.y*(y_screw_bed_calib_2))/planeNormal_0.z;
+	float z2_1=(-planeNormal_1.x*(x_screw_bed_calib_2)-planeNormal_1.y*(y_screw_bed_calib_2))/planeNormal_1.z;
+
+  //Below, we calculate the right knob. INDEX 3
+  float z3_0=(-planeNormal_0.x*(x_screw_bed_calib_3)-planeNormal_0.y*(y_screw_bed_calib_3))/planeNormal_0.z;
+	float z3_1=(-planeNormal_1.x*(x_screw_bed_calib_3)-planeNormal_1.y*(y_screw_bed_calib_3))/planeNormal_1.z;
+
 	
 	SERIAL_PROTOCOLPGM("planeNormal_0.x: ");
 	SERIAL_PROTOCOLLN(planeNormal_0.x);
