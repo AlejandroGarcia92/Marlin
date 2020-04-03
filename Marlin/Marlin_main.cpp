@@ -8032,50 +8032,46 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	plan_bed_level_matrix.set_to_identity();
 	
 	
+	// Store 3 points from the first plane (obtained with the left extruder)
 	vector_3 pt1_0 = vector_3(x_probe_left_extr[0], y_probe_left_extr[0], z_at_pt_1);
 	vector_3 pt2_0 = vector_3(x_probe_left_extr[1], y_probe_left_extr[1], z_at_pt_2);
 	vector_3 pt3_0 = vector_3(x_probe_left_extr[2], y_probe_left_extr[2], z_at_pt_3);
 	
-	vector_3 pt1_1 = vector_3(x_probe_right_extr[0], y_probe_right_extr[0], z2_at_pt_1);
-	vector_3 pt2_1 = vector_3(x_probe_right_extr[1], y_probe_right_extr[1], z2_at_pt_2);
-	vector_3 pt3_1 = vector_3(x_probe_right_extr[2], y_probe_right_extr[2], z2_at_pt_3);
-	
-  //The main idea is to use directos vectors form the same coords if later we want to merge both planes
-
+	// Calculate 2 vectors of the first plane
 	vector_3 from_2_to_1_0 = (pt1_0 - pt2_0);
 	vector_3 from_2_to_3_0 = (pt3_0 - pt2_0);
 	vector_3 planeNormal_0 = vector_3::cross(from_2_to_1_0, from_2_to_3_0);
-	planeNormal_0 = vector_3(planeNormal_0.x, planeNormal_0.y, planeNormal_0.z); // Common point is left probe point-2
+
+	// Calculate normal vector of the first plane
+	planeNormal_0 = vector_3(planeNormal_0.x, planeNormal_0.y, planeNormal_0.z);
 	
+	// Store 3 points from the second plane (obtained with the right extruder)
+	// Take into account the possible offset of the endstops. Consider that points 2 and 3 from the first and second tool respectively are the same
+	float z_variation_endstops = z2_at_pt_3 - z_at_pt_2;
+	vector_3 pt1_1 = vector_3(x_probe_right_extr[0], y_probe_right_extr[0], z2_at_pt_1 - z_variation_endstops);
+	vector_3 pt2_1 = vector_3(x_probe_right_extr[1], y_probe_right_extr[1], z2_at_pt_2 - z_variation_endstops);
+	vector_3 pt3_1 = vector_3(x_probe_right_extr[2], y_probe_right_extr[2], z2_at_pt_3 - z_variation_endstops);
+	
+	// Calculate 2 vectors of the second plane
 	vector_3 from_3_to_1_1 = (pt1_1 - pt3_1);
 	vector_3 from_3_to_2_1 = (pt2_1 - pt3_1);
-	vector_3 planeNormal_1 = vector_3::cross(from_3_to_1_1, from_3_to_2_1); // Watch out! Right point-3 is 2 on the left
+	vector_3 planeNormal_1 = vector_3::cross(from_3_to_1_1, from_3_to_2_1); // Point 3 is 2 on the left
+	// Calculate normal vector of the second plane
 	planeNormal_1 = vector_3(planeNormal_1.x, planeNormal_1.y, planeNormal_1.z);
 
-//  +--------------------------+
-//  |          Zscroll         |
-//  |                          |
-//  |                          |
-//  |           0/0            |
-//  |                          |
-//  |                          |
-//  |  Z2                  Z3  |
-//  +--------------------------+
+	// Obtain the mean vector
+	// TODO In case the variance is too much, we should consider send a message indicating the surface is not flat enough
+	vector_3 planeMean = vector_3((planeNormal_0.x + planeNormal_1.x )/ 2.0, (planeNormal_0.y + planeNormal_1.y) / 2.0, (planeNormal_0.z + planeNormal_1.z) / 2.0);
 
+	// Calculate base point (Z=0) of this plane by considering that the Z axis starts at the exact point where the fixed knob is located
+	float planeMean_base_point = -(planeMean.x * x_screw_bed_calib_1 + planeMean.y * y_screw_bed_calib_1);
 
-  //Below, we calculate the fixed screw knob. INDEX 1	
-	float Zscroll_0=(-planeNormal_0.x*(x_screw_bed_calib_1)-planeNormal_0.y*(y_screw_bed_calib_1))/planeNormal_0.z;
-	float Zscroll_1=(-planeNormal_1.x*(x_screw_bed_calib_1)-planeNormal_1.y*(y_screw_bed_calib_1))/planeNormal_1.z;
-	
-	//Below, we calculate the left knob. INDEX 2
-	float z2_0=(-planeNormal_0.x*(x_screw_bed_calib_2)-planeNormal_0.y*(y_screw_bed_calib_2))/planeNormal_0.z;
-	float z2_1=(-planeNormal_1.x*(x_screw_bed_calib_2)-planeNormal_1.y*(y_screw_bed_calib_2))/planeNormal_1.z;
+	// We get the height in the fixed knob and the left and right knobs
+	float Z_knob_back = -(planeMean.x * x_screw_bed_calib_1 + planeMean.y * y_screw_bed_calib_1 - planeMean_base_point) / planeMean.z; // we already know it's Z = 0 because is the base point
+	//assert (Z_knob_back == 0);
+	float Z_knob_left = -(planeMean.x * x_screw_bed_calib_2 + planeMean.y * y_screw_bed_calib_2 - planeMean_base_point) / planeMean.z;
+	float Z_knob_right = -(planeMean.x * x_screw_bed_calib_3 + planeMean.y * y_screw_bed_calib_3 - planeMean_base_point) / planeMean.z;
 
-  //Below, we calculate the right knob. INDEX 3
-  float z3_0=(-planeNormal_0.x*(x_screw_bed_calib_3)-planeNormal_0.y*(y_screw_bed_calib_3))/planeNormal_0.z;
-	float z3_1=(-planeNormal_1.x*(x_screw_bed_calib_3)-planeNormal_1.y*(y_screw_bed_calib_3))/planeNormal_1.z;
-
-	
 	SERIAL_PROTOCOLPGM("planeNormal_0.x: ");
 	SERIAL_PROTOCOLLN(planeNormal_0.x);
 	SERIAL_PROTOCOLPGM("planeNormal_0.y: ");
@@ -8090,56 +8086,28 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	SERIAL_PROTOCOLPGM("planeNormal_1.z: ");
 	SERIAL_PROTOCOLLN(planeNormal_1.z);
 	
-	SERIAL_PROTOCOLPGM("Zscroll_0: ");
-	SERIAL_PROTOCOLLN(Zscroll_0);
-	SERIAL_PROTOCOLPGM("z2_0: ");
-	SERIAL_PROTOCOLLN(z2_0);
-	SERIAL_PROTOCOLPGM("z3_0: ");
-	SERIAL_PROTOCOLLN(z3_0);
-	
-	SERIAL_PROTOCOLPGM("Zscroll_1: ");
-	SERIAL_PROTOCOLLN(Zscroll_1);
-	SERIAL_PROTOCOLPGM("z2_1: ");
-	SERIAL_PROTOCOLLN(z2_1);
-	SERIAL_PROTOCOLPGM("z3_1: ");
-	SERIAL_PROTOCOLLN(z3_1);
+	SERIAL_PROTOCOLPGM("planeMean.x: ");
+	SERIAL_PROTOCOLLN(planeMean.x);
+	SERIAL_PROTOCOLPGM("planeMean.y: ");
+	SERIAL_PROTOCOLLN(planeNormal_1.y);
+	SERIAL_PROTOCOLPGM("planeMean.z: ");
+	SERIAL_PROTOCOLLN(planeMean.z);
 
+	SERIAL_PROTOCOLPGM("Z_knob_back: ");
+	SERIAL_PROTOCOLLN(Z_knob_back);
+	SERIAL_PROTOCOLPGM("Z_knob_left: ");
+	SERIAL_PROTOCOLLN(Z_knob_left);
+	SERIAL_PROTOCOLPGM("Z_knob_right: ");
+	SERIAL_PROTOCOLLN(Z_knob_right);
 
-	//Update zOffset. We have to take into account the 2 different probe offsets
-	//NOT NEEDED because we have to check the bed from the same position. Theorically the offsets between probes is inexistent
-	//Calculate medians
-	///Alejandro
-
-	//float dz2 = z2_0 - (z2_0 - z2_1)/2.0 - (Zscroll_0 - (Zscroll_0 - Zscroll_1)/2.0);
-	//float dz3 = z3_0 - (z3_0 - z3_1)/2.0 - (Zscroll_0 - (Zscroll_0 - Zscroll_1)/2.0);
-	
-	float dz2_1 = (z2_0-Zscroll_0) + (z2_1-Zscroll_1);
-	dz2_1 = dz2_1/2.0;
-	float dz3_1 = (z3_0-Zscroll_0) + (z3_1-Zscroll_1);
-	dz3_1 = dz3_1/2.0;
-	
-	//Voltes cargols
-
-
+  //Message below its what the embedded needs to parse with a Regex
 
 	SERIAL_PROTOCOLPGM("ScrewBed0: ");
-	SERIAL_PROTOCOL(dz2_1);
+	SERIAL_PROTOCOL(Z_knob_left-Z_knob_back);
 	SERIAL_PROTOCOLPGM(" ScrewBed1: ");
-	SERIAL_PROTOCOLLN(dz3_1);
-	
-	//SERIAL_PROTOCOLPGM("ScrewBed0_v2: ");
-	//SERIAL_PROTOCOL(dz2_1);
-	//SERIAL_PROTOCOLPGM(" ScrewBed1_v2: ");
-	//SERIAL_PROTOCOLLN(dz3_1);
-		
-
-
+	SERIAL_PROTOCOLLN(Z_knob_right-Z_knob_back);
 	
 }
-//inline void gcode_M141() { // Set chamber temperature
-//	if (parser.seenval('S')) thermalManager.setTargetChamber(parser.value_celsius());
-//	if (parser.seenval('P')) chamberFanPWM.setup(parser.value_ushort());
-//}
 
 inline void gcode_M668() {
 	planner.synchronize();
