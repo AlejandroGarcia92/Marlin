@@ -8064,17 +8064,14 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	// TODO In case the variance is too much, we should consider send a message indicating the surface is not flat enough
 	planeMean = vector_3(planeNormal_0.x + planeNormal_1.x / 2.0, planeNormal_0.y + planeNormal_1.y / 2.0, planeNormal_0.z + planeNormal_1.z / 2.0);
 
-	// Calculate base point (Z=0) of this plane by considering that the Z axis starts at the second (2nd) probe position of the left extruder
-	float planeMean_base_point = -(planeMean.x * x_probe_left_extr[1] + planeMean.y * y_probe_left_extr[1])
+	// Calculate base point (Z=0) of this plane by considering that the Z axis starts at the exact point where the fixed knob is located
+	float planeMean_base_point = -(planeMean.x * x_screw_bed_calib_1 + planeMean.y * y_screw_bed_calib_1);
 
 	// We get the height in the fixed knob and the left and right knobs
-	float Z_knob_back = -(planeMean.x * CARGOL_1_X + planeMean.y * CARGOL_1_Y - planeMean_base_point) / planeMean.z;
-	float Z_knob_left = -(planeMean.x * CARGOL_2_X + planeMean.y * CARGOL_2_Y - planeMean_base_point) / planeMean.z;
-	float Z_knob_right = -(planeMean.x * CARGOL_3_X + planeMean.y * CARGOL_3_Y - planeMean_base_point) / planeMean.z;
-
-	// The distance we should move the screws to leave the Z at the same height of the fixed point
-	float distance_knob_left = Z_knob_left - Z_knob_back;
-	float distance_knob_right = Z_knob_right - Z_knob_back;
+	float Z_knob_back = -(planeMean.x * x_screw_bed_calib_1 + planeMean.y * y_screw_bed_calib_1 - planeMean_base_point) / planeMean.z; // we already know it's Z = 0 because is the base point
+	assert (Z_knob_back == 0);
+	float Z_knob_left = -(planeMean.x * x_screw_bed_calib_2 + planeMean.y * y_screw_bed_calib_2 - planeMean_base_point) / planeMean.z;
+	float Z_knob_right = -(planeMean.x * x_screw_bed_calib_3 + planeMean.y * y_screw_bed_calib_3 - planeMean_base_point) / planeMean.z;
 
 	SERIAL_PROTOCOLPGM("planeNormal_0.x: ");
 	SERIAL_PROTOCOLLN(planeNormal_0.x);
@@ -8103,11 +8100,6 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	SERIAL_PROTOCOLLN(Z_knob_left);
 	SERIAL_PROTOCOLPGM("Z_knob_right: ");
 	SERIAL_PROTOCOLLN(Z_knob_right);
-
-	SERIAL_PROTOCOLPGM("distance_knob_left: ");
-	SERIAL_PROTOCOL(distance_knob_left);
-	SERIAL_PROTOCOLPGM("distance_knob_right: ");
-	SERIAL_PROTOCOLLN(distance_knob_right);	
 }
 
 //inline void gcode_M141() { // Set chamber temperature
