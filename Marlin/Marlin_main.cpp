@@ -8096,10 +8096,12 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	SERIAL_PROTOCOLPGM("planeMean.z: ");
 	SERIAL_PROTOCOLLN(planeMean.z);
 
+  //Message below its what the embedded needs to parse with a Regex
+
 	SERIAL_PROTOCOLPGM("ScrewBed0: ");
-	SERIAL_PROTOCOL(Z_knob_left);
-	SERIAL_PROTOCOLPGM("ScrewBed1: ");
-	SERIAL_PROTOCOLLN(Z_knob_right);
+	SERIAL_PROTOCOL(Z_knob_left-Z_knob_back);
+	SERIAL_PROTOCOLPGM(" ScrewBed1: ");
+	SERIAL_PROTOCOLLN(Z_knob_right-Z_knob_back);
 }
 
 //inline void gcode_M141() { // Set chamber temperature
