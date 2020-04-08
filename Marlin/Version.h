@@ -36,7 +36,8 @@
    * Marlin release version identifier
    */
 
-  #define SHORT_BUILD_VERSION "v0.6.1RC14"
+  #define SHORT_BUILD_VERSION "v0.7.0RC3"
+
 		
   /**
    * Verbose version identifier which should contain a reference to the location
@@ -50,7 +51,7 @@
    * version was tagged.
    */
 
-  #define STRING_DISTRIBUTION_DATE "2020-03-25"
+  #define STRING_DISTRIBUTION_DATE "2020-04-08"
 
   /**
    * Required minimum Configuration.h and Configuration_adv.h file versions.
@@ -72,7 +73,7 @@
   /**
    * Defines a generic printer name to be output to the LCD after booting Marlin.
    */
-  #define MACHINE_NAME "BCN3D Epsilon"
+  #define MACHINE_NAME "BCN3D Machine"
 
   /**
    * The SOURCE_CODE_URL is the location where users will find the Marlin Source

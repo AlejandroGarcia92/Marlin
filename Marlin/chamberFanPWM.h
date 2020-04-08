@@ -11,14 +11,18 @@
 
 class ChamberFanPWM {
 	
-	public:
+public:
 	ChamberFanPWM() {}
 
-	static void setup();
-	static void setup(uint16_t timer_period);
-	
-	static void setDuty(uint8_t duty);
+	void setup(uint16_t timer_period = 500);
+	void setDuty(uint8_t duty);
 
+private:
+	//Counters
+	uint8_t dutycycle = 0; //value range 0% to 100;
+	uint8_t counter_timer = 0; //value range 0% to 100;
+	//Timer
+	uint32_t timeelapsed_fan = 0;
 };
 
 extern ChamberFanPWM chamberFanPWM;

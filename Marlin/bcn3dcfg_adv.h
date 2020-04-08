@@ -18,11 +18,9 @@
 #define RAFT_Z_THRESHOLD 0.05
 //	END DUAL MODE SETTINGS
 
-
-#define RETRACT_PRINTER_FACTOR			 retract_printer_factor				//(mm)
-#define RETRACT_PRINT_TEST_FACTOR		 retract_print_test_factor			//(mm)
-#define PURGE_PRINTER_FACTOR			 purge_printer_factor				//(mm)
-
+#define RETRACT_PRINTER_FACTOR			 8			//(mm)
+#define RETRACT_PRINT_TEST_FACTOR		 8			//(mm)
+#define PURGE_PRINTER_FACTOR			 20			//(mm)
 
 //RETRACT SETTINGS
 
@@ -71,14 +69,20 @@
 #define X_GAP_AVOID_COLLISION_LEFT	(13.2)
 #define X_GAP_AVOID_COLLISION_RIGHT	(12.7)
 
-#define CARGOL_1_X  x_screw_bed_calib_1
-#define CARGOL_1_Y  y_screw_bed_calib_1
+//#define CARGOL_1_X  x_screw_bed_calib_1
+#define SCREW_BED_1_X (X1_MIN_POS + 262.9)
+//#define CARGOL_1_Y  y_screw_bed_calib_1
+#define SCREW_BED_1_Y (Y_MAX_POS + 30.3)
 
-#define CARGOL_2_X  x_screw_bed_calib_2
-#define CARGOL_2_Y  y_screw_bed_calib_2
+//#define CARGOL_2_X  x_screw_bed_calib_2
+#define SCREW_BED_2_X (X1_MIN_POS + 54.4)
+//#define CARGOL_2_Y  y_screw_bed_calib_2
+#define SCREW_BED_2_Y (Y_MAX_POS - 297.2)
 
-#define CARGOL_3_X  x_screw_bed_calib_3
-#define CARGOL_3_Y  y_screw_bed_calib_3
+//#define CARGOL_3_X  x_screw_bed_calib_3
+#define SCREW_BED_3_X (X1_MIN_POS + 471.4)
+//#define CARGOL_3_Y  y_screw_bed_calib_3
+#define SCREW_BED_3_Y (Y_MAX_POS - 297.2)
 
 #define DEFAULT_DUPLICATION_X_OFFSET 210
 
@@ -93,3 +97,6 @@
 #define Z_RAISE_BET_PROBINGS 2.5  //How much the extruder will be raised when traveling from between next probing points
 
 #define FANSPEED_CLASSIC // Support classic fan speed usage
+
+#define G36_LAYER_DIF 0.1
+
