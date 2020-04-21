@@ -1192,9 +1192,9 @@ inline void get_serial_commands() {
 
         #if defined(BCN3D_MOD)
         // All the commands that don't match the expected line will be discarted after a resend is requested.
-        // The maximum discarted commands is four times the serial command queue
+        // The maximum discarted commands is two times the serial command queue
         if (waiting_resend_confirmation && gcode_N != gcode_LastN + 1 && 
-            skipped_gcodes_waiting_resend < (RX_BUFFER_SIZE/MAX_CMD_SIZE) * BUFSIZE * 4) {
+            skipped_gcodes_waiting_resend < (RX_BUFFER_SIZE/MAX_CMD_SIZE) * BUFSIZE * 2) {
           skipped_gcodes_waiting_resend++;
           continue;
         }
