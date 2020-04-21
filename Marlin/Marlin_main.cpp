@@ -1094,12 +1094,11 @@ void servo_init() {
 
 #endif
 
-void gcode_line_error(const char* err, bool doFlush = true) {
+void gcode_line_error(const char* err) {
   SERIAL_ERROR_START();
   serialprintPGM(err);
   SERIAL_ERRORLN(gcode_LastN);
-  //Serial.println(gcode_N);
-  if (doFlush) flush_and_request_resend();
+  flush_and_request_resend();
   serial_count = 0;
 }
 
@@ -1119,6 +1118,7 @@ inline void get_serial_commands() {
   static int raft_indicator_is_Gcode = 0;
   static float current_z_raft_seen = 0.0;
   static uint32_t fileraftstart = 0;
+  static uint16_t skipped_gcodes_waiting_resend = 0;
   #if defined(NOTIFY_SERIAL_COMMAND_QUEUE_EMPTY)
   static bool notified_empty_queue = true;
   #endif
@@ -1191,10 +1191,17 @@ inline void get_serial_commands() {
         gcode_N = strtol(npos + 1, NULL, 10);
 
         #if defined(BCN3D_MOD)
-        if (waiting_resend_confirmation && gcode_N != gcode_LastN + 1) {
-          continue; // Ignore commands when waiting for resend confirmation
-        } else if (waiting_resend_confirmation) {
-          waiting_resend_confirmation = false; // When the correct line is sent, consider it the resend confirmation
+        // All the commands that don't match the expected line will be discarted after a resend is requested.
+        // The maximum discarted commands is four times the serial command queue
+        if (waiting_resend_confirmation && gcode_N != gcode_LastN + 1 && 
+            skipped_gcodes_waiting_resend < (RX_BUFFER_SIZE/MAX_CMD_SIZE) * BUFSIZE * 4) {
+          skipped_gcodes_waiting_resend++;
+          continue;
+        }
+        // When the correct line is sent, consider it the resend confirmation
+        else if (waiting_resend_confirmation) {
+          skipped_gcodes_waiting_resend = 0;
+          waiting_resend_confirmation = false;
         }
         #endif
 
@@ -1366,7 +1373,6 @@ inline void get_serial_commands() {
 						  raft_line_counter_g = 1;
 						  raft_line_counter = 1;
 					  }
-					  
 				  }
 			  }
 		  }
