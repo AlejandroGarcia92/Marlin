@@ -1118,7 +1118,7 @@ inline void get_serial_commands() {
   static int raft_indicator_is_Gcode = 0;
   static float current_z_raft_seen = 0.0;
   static uint32_t fileraftstart = 0;
-  static uint16_t skipped_gcodes_waiting_resend = 0;
+  static uint16_t skipped_bytes_waiting_resend = 0;
   #if defined(NOTIFY_SERIAL_COMMAND_QUEUE_EMPTY)
   static bool notified_empty_queue = true;
   #endif
@@ -1172,7 +1172,6 @@ inline void get_serial_commands() {
       if (!serial_count) { thermalManager.manage_heater(); continue; }
 
       serial_line_buffer[serial_count] = 0;             // Terminate string
-      serial_count = 0;                                 // Reset buffer
 
       char* command = serial_line_buffer;
 
@@ -1192,15 +1191,16 @@ inline void get_serial_commands() {
 
         #if defined(BCN3D_MOD)
         // All the commands that don't match the expected line will be discarted after a resend is requested.
-        // The maximum discarted commands is two times the serial command queue
+        // The maximum discarted commands is two times the serial receive buffer
         if (waiting_resend_confirmation && gcode_N != gcode_LastN + 1 && 
-            skipped_gcodes_waiting_resend < (RX_BUFFER_SIZE/MAX_CMD_SIZE) * BUFSIZE * 2) {
-          skipped_gcodes_waiting_resend++;
+            skipped_bytes_waiting_resend < RX_BUFFER_SIZE * 2) {
+          skipped_bytes_waiting_resend += serial_count;
+          serial_count = 0; // Reset buffer
           continue;
         }
         // When the correct line is sent, consider it the resend confirmation
         else if (waiting_resend_confirmation) {
-          skipped_gcodes_waiting_resend = 0;
+          skipped_bytes_waiting_resend = 0;
           waiting_resend_confirmation = false;
         }
         #endif
@@ -1225,6 +1225,8 @@ inline void get_serial_commands() {
           return gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM));
       #endif
 	  
+      serial_count = 0; // Reset buffer
+
       #if defined(BCN3D_MOD)
 		
       switch(dual_x_carriage_mode){
