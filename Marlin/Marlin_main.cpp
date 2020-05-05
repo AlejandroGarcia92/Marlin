@@ -590,7 +590,12 @@ int16_t fanSpeeds_raft[FAN_COUNT] = { 0 };
 
 static DualXMode dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
 
+DiscardSerialReason discard_serial = DiscardSerialReason::NONE;
 bool waiting_resend_confirmation = false;
+uint8_t pending_priority_commands = 0;
+bool is_ending_print = false;
+bool pause_started = false;
+bool pause_flag = false;
 
 #endif
 
@@ -1102,16 +1107,50 @@ void gcode_line_error(const char* err) {
   serial_count = 0;
 }
 
+#if defined(BCN3D_MOD)
+void priority_command_detected() {
+  if (gcode_LastN > 0 && !pause_started && !pause_flag && !is_ending_print)
+    pending_priority_commands++;
+}
+
+void end_of_print_detected() {
+  is_ending_print = true;
+}
+
+bool is_priority_command(char* const cmd) { 
+  const char command_letter = cmd[0];
+  if (command_letter != 'M') return false;
+
+  const int command_lenght = strlen(cmd);
+  uint8_t i = 0;
+  const uint8_t max_i = command_lenght < 4 ? (command_lenght - 1) : 3;
+  char codenum_str[4] = {0, 0, 0, 0};
+  while (i < max_i) {
+    const char c = cmd[i+1];
+    if (c == ' ')
+      break;
+    codenum_str[i++] = c;
+  }
+  const uint16_t codenum = atoi(codenum_str);
+
+  return codenum == 106 ||
+         codenum == 156 ||
+         codenum == 157 ||
+         codenum == 220 ||
+         codenum == 221 ||
+         codenum == 537;
+}
+
+void execute_priority_command(char * const cmd);
+#endif
+
+//#define NOTIFY_SERIAL_COMMAND_QUEUE_EMPTY
+
 /**
  * Get all commands waiting on the serial port and queue them.
  * Exit when the buffer is full or when no more characters are
  * left on the serial port.
  */
-#if defined(BCN3D_MOD)
-DiscardSerialReason discard_serial = DiscardSerialReason::NONE;
-//#define NOTIFY_SERIAL_COMMAND_QUEUE_EMPTY
-#endif
-
 inline void get_serial_commands() {
   #if defined(BCN3D_MOD)
   static int raft_indicator = 0;
@@ -1138,26 +1177,27 @@ inline void get_serial_commands() {
     }
   #endif
 
+  #if defined(BCN3D_MOD)
+    if(discard_serial != DiscardSerialReason::NONE && !MYSERIAL0.available()) {	   
+      switch(discard_serial) {
+        case DiscardSerialReason::PAUSE:
+          SERIAL_PROTOCOLLNPGM("M669 executed");
+          break;
+        case DiscardSerialReason::CANCEL:
+          SERIAL_PROTOCOLLNPGM("M541 executed");
+          break;
+        default:
+          break;
+      }
+      discard_serial = DiscardSerialReason::NONE;
+    }
+  #endif
+
   /**
    * Loop while serial characters are incoming and the queue is not full
    */
   int c;
-  #if defined(BCN3D_MOD)
-  if(discard_serial != DiscardSerialReason::NONE && !MYSERIAL0.available()) {	   
-	   switch(discard_serial) {
-		   case DiscardSerialReason::PAUSE:
-		   SERIAL_PROTOCOLLNPGM("M669 executed");
-		   break;
-		   case DiscardSerialReason::CANCEL:
-		   SERIAL_PROTOCOLLNPGM("M541 executed");
-		   break;
-		   default:
-		   break;
-	   }
-	   discard_serial = DiscardSerialReason::NONE;
-  }
-  #endif
-  while (commands_in_queue < BUFSIZE && (c = MYSERIAL0.read()) >= 0) {
+  while ((commands_in_queue < BUFSIZE || pending_priority_commands > 0) && (c = MYSERIAL0.read()) >= 0) {
 
     char serial_char = c;
 
@@ -1205,7 +1245,11 @@ inline void get_serial_commands() {
         }
         #endif
 
+        #if defined(BCN3D_MOD)
+        if (gcode_N != gcode_LastN + 1 && !M110 && discard_serial == DiscardSerialReason::NONE)
+        #else
         if (gcode_N != gcode_LastN + 1 && !M110)
+        #endif
           return gcode_line_error(PSTR(MSG_ERR_LINE_NO));
 
         char *apos = strrchr(command, '*');
@@ -1218,7 +1262,9 @@ inline void get_serial_commands() {
         else
           return gcode_line_error(PSTR(MSG_ERR_NO_CHECKSUM));
 
-        gcode_LastN = gcode_N;
+        #ifndef BCN3D_MOD
+          gcode_LastN = gcode_N;
+        #endif
       }
       #if ENABLED(SDSUPPORT)
         else if (card.saving && strcmp(command, "M29") != 0) // No line number with M29 in Pronterface
@@ -1233,7 +1279,7 @@ inline void get_serial_commands() {
         case DXC_DUPLICATION_MODE_R:
         case DXC_MIRROR_MODE_R:
         {
-          if(raft_indicator){
+          if(commands_in_queue < BUFSIZE && raft_indicator && npos){
             char *strchr_pointer; // just a pointer to find chars in the command string like X, Y, Z, E, etc
             strchr_pointer = strchr(serial_line_buffer, 'Z');
             if(strchr_pointer != NULL){
@@ -1247,7 +1293,7 @@ inline void get_serial_commands() {
                 SERIAL_PROTOCOLPAIR("Last line subs: ", serial_line_buffer);
                 SERIAL_EOL();
                 memset(serial_line_buffer, '\0', sizeof(serial_line_buffer));
-                gcode_LastN = fileraftstart - 1;
+                gcode_N = fileraftstart - 1;
                 sprintf(serial_line_buffer, "G92 E0 Z0 R%d%c", raft_line_counter_g, 0);
               }
             }
@@ -1343,7 +1389,13 @@ inline void get_serial_commands() {
 
       // Add the command to the queue
       #if defined(BCN3D_MOD)
-      if(discard_serial == DiscardSerialReason::NONE)_enqueuecommand(serial_line_buffer, true);
+      if (pending_priority_commands > 0 && is_priority_command(serial_line_buffer)) {
+        execute_priority_command(serial_line_buffer);
+        pending_priority_commands--;
+      } else if (discard_serial == DiscardSerialReason::NONE && commands_in_queue < BUFSIZE) {
+        _enqueuecommand(serial_line_buffer, true);
+        if (npos) gcode_LastN = gcode_N;
+      }
       #else
       _enqueuecommand(serial_line_buffer, true);
       #endif
@@ -7306,9 +7358,12 @@ inline void gcode_G92() {
 
 #endif // MECHADUINO_I2C_COMMANDS
 
+void report_feedrate();
+void report_flow_percentage(const int target_extruder);
+
 #if defined(BCN3D_MOD)
 inline void gcode_G71(){ //GO Park
-	SERIAL_PROTOCOLPAIR("Go park -> feedrate_mm_s is: ", feedrate_mm_s);
+	SERIAL_PROTOCOLLNPAIR("Go park -> feedrate_mm_s is: ", feedrate_mm_s);
 	float saved_x_position = current_position[X_AXIS];
 	planner.synchronize();
 	if(dual_x_carriage_mode ==DXC_DUPLICATION_MODE)	motorMode = motordriver_mode::motordefault;
@@ -7349,12 +7404,12 @@ inline void gcode_G72(){ //GO unPark
 	if(dual_x_carriage_mode == DXC_DUPLICATION_MODE) motorMode = motordriver_mode::motorduplication;
 	if(dual_x_carriage_mode == DXC_DUPLICATION_MODE_R || dual_x_carriage_mode == DXC_MIRROR_MODE_R) active_extruder_parked = true;
 	SERIAL_PROTOCOLPAIR("Go unpark -> DXC: ", dual_x_carriage_mode);
+	pause_flag = false;
 }
 
 static DualXMode dual_x_carriage_mode_resume = DEFAULT_DUAL_X_CARRIAGE_MODE;
 static uint8_t active_extruder_resume = 0;
 static motordriver_mode motorModeResume = motordriver_mode::motordefault;
-static bool pause_flag = false;
 static int16_t flow_percentage_save[EXTRUDERS] = ARRAY_BY_EXTRUDERS1(100);
 static int16_t fanSpeedsClassic_resume = 0;
 
@@ -7366,7 +7421,7 @@ inline void gcode_G73(){ //Save State and get back to DefaultMode
 	if(current_position[X_AXIS] != x_home_pos(active_extruder)){
 		SERIAL_PROTOCOLLNPGM("Axes are not at home, pause save failed");
 		return;
-	}	
+	}
 	pause_flag = true;
 	//Save Values	
 	dual_x_carriage_mode_resume = dual_x_carriage_mode;
@@ -7383,16 +7438,17 @@ inline void gcode_G73(){ //Save State and get back to DefaultMode
 	SERIAL_PROTOCOLLNPGM("Paused");
 }
 inline void gcode_G74(){ //Recover State
-	if(pause_flag){
-		fanSpeedsClassic = fanSpeedsClassic_resume;
-		tool_change(active_extruder_resume);	//Just in case there is another tool active
-		active_extruder_parked = false;
-		dual_x_carriage_mode = dual_x_carriage_mode_resume;
-		motorMode = motorModeResume;		
-		COPY(planner.flow_percentage, flow_percentage_save); 
-	}else{
-		SERIAL_PROTOCOLLNPGM("Not paused");
-	}	
+  if (pause_flag){
+    fanSpeedsClassic = fanSpeedsClassic_resume;
+    tool_change(active_extruder_resume);	//Just in case there is another tool active
+    active_extruder_parked = false;
+    dual_x_carriage_mode = dual_x_carriage_mode_resume;
+    motorMode = motorModeResume;		
+    COPY(planner.flow_percentage, flow_percentage_save);
+  } else if (!pause_started) {
+    SERIAL_PROTOCOLLNPGM("Not paused");
+  }
+  pause_started = false;
 }
 // Calib
 float extrusion_multiplier(float distance, float layerh, float hSize=0.4/*default value*/)
@@ -8190,9 +8246,9 @@ inline void gcode_M536(){ // report FRS state and Door Monitoring
 }
 
 inline void gcode_M537(){ // Set Max Led level
-	if(parser.seen('S')){
+	if (parser.seen('S')) {
 		leds_handler.setMaxLevel(parser.value_byte());
-		}else{
+	} else {
 		SERIAL_ECHO_START();
 		SERIAL_ECHOLNPGM("No imput light level");
 	}
@@ -8208,6 +8264,33 @@ inline void gcode_M539() { // Printer stats reset
 
 inline void gcode_M543() { // Printer trigger
 	if (parser.seen('V')) digitalWrite(SDA_PIN,parser.value_byte()); 
+}
+
+inline void gcode_M544() { // Begin print
+  // Reset the feedrate
+  feedrate_percentage = 100;
+  report_feedrate();
+  // Reset the flow percentage of all the extruders
+  for (uint8_t i = 0; i < EXTRUDERS; i++) {
+    planner.flow_percentage[i] = 100;
+    report_flow_percentage(i);
+  }
+  // Expect the first Gcode line to be 0 (Most of the times will be an M101)
+  gcode_LastN = -1;
+  // Reset the print flags
+  pause_started = false;
+  pause_flag = false;
+  is_ending_print = false;
+  // Report the current printer positions
+  planner.synchronize();
+  report_current_position();
+  
+  SERIAL_PROTOCOLLN("Begin print");
+}
+
+inline void gcode_M545() { // End print
+  // Reset the gcode line counter
+  gcode_LastN = 0;
 }
 #endif  //BCN3D Mod
 
@@ -9868,20 +9951,20 @@ inline void gcode_M105() {
         }
       #endif // EXTRA_FAN_SPEED
       const uint16_t s = parser.ushortval('S', 255);      
-	  #if ENABLED(FANSPEED_CLASSIC)
-		if(!parser.byteval('P')) { 
-			fanSpeedsClassic = MIN(s, 255U);
-		}
-		else {
-			fanSpeeds[p] = MIN(s, 255U);
-		}
-	  #else
-	    fanSpeeds[p] = MIN(s, 255U);
-	  #endif
+      #if ENABLED(FANSPEED_CLASSIC)
+      if(!parser.byteval('P')) { 
+        fanSpeedsClassic = MIN(s, 255U);
+      }
+      else {
+        fanSpeeds[p] = MIN(s, 255U);
+      }
+      #else
+      fanSpeeds[p] = MIN(s, 255U);
+      #endif
     }
-	#ifdef BCN3D_MOD
-	fanStastusReport();
-	#endif
+    #ifdef BCN3D_MOD
+    fanStastusReport();
+    #endif
   }
 
   /**
@@ -10260,6 +10343,38 @@ inline void gcode_M109() {
   }
 
 #endif // HAS_HEATED_BED
+
+#ifdef BCN3D_MOD
+inline void gcode_M156() {
+  if (DEBUGGING(DRYRUN)) return;
+  if (get_target_extruder_from_command(156)) return;
+
+  #if ENABLED(SINGLENOZZLE)
+    if (target_extruder != active_extruder) return;
+  #endif
+
+  if (parser.seenval('S')) {
+    const int16_t temp = parser.value_celsius();
+    thermalManager.setTargetHotend(temp, target_extruder);
+  }
+
+  #if HAS_TEMP_SENSOR
+    thermalManager.print_heaterstates();
+    SERIAL_EOL();
+  #endif
+}
+
+#if HAS_HEATED_BED
+inline void gcode_M157() {
+  if (DEBUGGING(DRYRUN)) return;
+  if (parser.seenval('S')) thermalManager.setTargetBed(parser.value_celsius());
+  #if HAS_TEMP_SENSOR
+    thermalManager.print_heaterstates();
+    SERIAL_EOL();
+  #endif
+}
+#endif // HAS_HEATED_BED
+#endif // BCN3D_MOD
 
 /**
  * M110: Set Current Line Number
@@ -11442,11 +11557,28 @@ inline void gcode_M211() {
 
 #endif // HOTENDS > 1
 
+void report_feedrate() {
+  SERIAL_ECHO_START();
+  SERIAL_ECHOPAIR("Feedrate: ", feedrate_percentage);
+  SERIAL_CHAR('%');
+  SERIAL_EOL();
+}
+
 /**
  * M220: Set speed percentage factor, aka "Feed Rate" (M220 S95)
  */
 inline void gcode_M220() {
   if (parser.seenval('S')) feedrate_percentage = parser.value_int();
+  report_feedrate();
+}
+
+void report_flow_percentage(const int target_extruder) {
+  SERIAL_ECHO_START();
+  SERIAL_CHAR('E');
+  SERIAL_CHAR('0' + target_extruder);
+  SERIAL_ECHOPAIR(" Flow: ", planner.flow_percentage[target_extruder]);
+  SERIAL_CHAR('%');
+  SERIAL_EOL();
 }
 
 /**
@@ -11458,14 +11590,7 @@ inline void gcode_M221() {
     planner.flow_percentage[target_extruder] = parser.value_int();
     planner.refresh_e_factor(target_extruder);
   }
-  else {
-    SERIAL_ECHO_START();
-    SERIAL_CHAR('E');
-    SERIAL_CHAR('0' + target_extruder);
-    SERIAL_ECHOPAIR(" Flow: ", planner.flow_percentage[target_extruder]);
-    SERIAL_CHAR('%');
-    SERIAL_EOL();
-  }
+  report_flow_percentage(target_extruder);
 }
 
 /**
@@ -12332,9 +12457,9 @@ inline void gcode_M303() {
  * M400: Finish all moves
  */
 inline void gcode_M400() { 
-	planner.synchronize(); 
-	SERIAL_ECHO_START();
-	SERIAL_ECHOLNPGM(" Idle: no moves");
+  planner.synchronize();
+  SERIAL_ECHO_START();
+  SERIAL_ECHOLNPGM(" Idle: no moves");
 }
 #if HAS_BED_PROBE
 
@@ -14805,7 +14930,7 @@ void process_parsed_command() {
 	  #if defined(BCN3D_MOD)
 	  case 71: gcode_G71(); break;                                // G71: BCN3D Go Park
 	  case 72: gcode_G72(); break;                                // G72: BCN3D Go unPark
-	  case 73: gcode_G73(); break;                                // G71: BCN3D Exec Pause
+	  case 73: gcode_G73(); break;                                // G73: BCN3D Exec Pause
 	  case 74: gcode_G74(); break;                                // G72: BCN3D Exec UnPause  
 	  #endif
 	  
@@ -14901,7 +15026,6 @@ void process_parsed_command() {
 
       case 101: break;                                            // M101: Dummy GCODE
 
-      case 104: gcode_M104(); break;                              // M104: Set Hotend Temperature
       case 110: gcode_M110(); break;                              // M110: Set Current Line Number
       case 111: gcode_M111(); break;                              // M111: Set Debug Flags
 
@@ -14923,11 +15047,18 @@ void process_parsed_command() {
         case 155: gcode_M155(); break;                            // M155: Set Temperature Auto-report Interval
       #endif
 
+      case 104: gcode_M104(); break;                              // M104: Set Hotend Temperature
       case 109: gcode_M109(); break;                              // M109: Set Hotend Temperature. Wait for target.
+      #ifdef BCN3D_MOD
+        case 156: gcode_M156(); break;                            // M156: Set Hotend temperature while the printer is busy
+      #endif
 		
       #if HAS_HEATED_BED
         case 140: gcode_M140(); break;                            // M140: Set Bed Temperature
         case 190: gcode_M190(); break;                            // M190: Set Bed Temperature. Wait for target.
+        #ifdef BCN3D_MOD
+          case 157: gcode_M157(); break;                          // M157: Set Bed temperature while the printer is busy
+        #endif
       #endif
 	  
 	  //#if defined(BCN3D_MOD)
@@ -15139,14 +15270,16 @@ void process_parsed_command() {
         case 504: gcode_M504(); break;                            // M504: Validate EEPROM
       #endif
 	  
-	  #ifdef BCN3D_MOD
-		case 535: gcode_M535(); break;							  // M535: Set Led State
-		case 536: gcode_M536(); break;							  // M536: Report FRS and Door State
-		case 537: gcode_M537(); break;							  // M537: Set led level
-		case 538: gcode_M538(); break;							  // M538: Printer Stats report
-		case 539: gcode_M539(); break;							  // M539: Printer Stats reset
-		case 543: gcode_M543(); break;							  // M543: Printer Stats reset
-	  #endif
+      #ifdef BCN3D_MOD
+        case 535: gcode_M535(); break;							  // M535: Set Led State
+        case 536: gcode_M536(); break;							  // M536: Report FRS and Door State
+        case 537: gcode_M537(); break;							  // M537: Set led level
+        case 538: gcode_M538(); break;							  // M538: Printer Stats report
+        case 539: gcode_M539(); break;							  // M539: Printer Stats reset
+        case 543: gcode_M543(); break;							  // M543: Printer trigger
+        case 544: gcode_M544(); break;							  // M544: Begin print
+        case 545: gcode_M545(); break;							  // M545: End print
+      #endif
 		
       #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
         case 540: gcode_M540(); break;                            // M540: Set Abort on Endstop Hit for SD Printing
@@ -15276,6 +15409,25 @@ void process_next_command() {
   #endif
   process_parsed_command();
 }
+
+#ifdef BCN3D_MOD
+void execute_priority_command(char * const cmd) { 
+  // Parse the priority command
+  parser.parse(cmd);
+  // Identify and execute it
+  if (parser.command_letter == 'M') {
+    switch (parser.codenum) {
+      case 106: gcode_M106(); break;
+      case 156: gcode_M156(); break;
+      case 157: gcode_M157(); break;
+      case 220: gcode_M220(); break;
+      case 221: gcode_M221(); break;
+      case 537: gcode_M537(); break;
+      default: return;
+    }
+  }
+}
+#endif
 
 /**
  * Send a "Resend: nnn" message to the host to
@@ -17186,7 +17338,7 @@ void disable_all_steppers() {
   disable_e_steppers();
 }
 
-void dropSeriabuffer() {
+void dropSerialbuffer() {
 	
 	thermalManager.disable_all_heaters(); // disable heaters
 	
@@ -17199,12 +17351,9 @@ void dropSeriabuffer() {
 }
 
 void execPauseFromSerial() {
-	
-	//MYSERIAL0.clear_buffer(); // drop serial buffer
-			
 	clear_command_queue(); // clear marlin queue
 	discard_serial = DiscardSerialReason::PAUSE; // Release the flag once Serial buffer is Empty
-
+  pause_started = true;
 }
 
 /**
