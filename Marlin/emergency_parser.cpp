@@ -31,6 +31,7 @@
 #include "emergency_parser.h"
 
 // Static data members
+bool EmergencyParser::has_line_number; // = false
 bool EmergencyParser::killed_by_M112; // = false
 EmergencyParser::State EmergencyParser::state; // = EP_RESET
 

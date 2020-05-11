@@ -30,8 +30,10 @@
 // External references
 extern volatile bool wait_for_user, wait_for_heatup;
 void quickstop_stepper();
-void dropSeriabuffer();
+void dropSerialbuffer();
 void execPauseFromSerial();
+void priority_command_detected();
+void end_of_print_detected();
 
 class EmergencyParser {
 
@@ -44,21 +46,33 @@ public:
     EP_M,
     EP_M1,
     EP_M10,
+    EP_M106,
     EP_M108,
     EP_M11,
     EP_M112,
+    EP_M15,
+    EP_M156,
+    EP_M157,
+    EP_M2,
+    EP_M22,
+    EP_M220,
+    EP_M221,
     EP_M4,
     EP_M41,
     EP_M410,
-	EP_M5,
-	EP_M54,
-	EP_M541,
-	EP_M6,
-	EP_M66,
-	EP_M669,
+    EP_M5,
+    EP_M53,
+    EP_M537,
+    EP_M54,
+    EP_M541,
+    EP_M545,
+    EP_M6,
+    EP_M66,
+    EP_M669,
     EP_IGNORE // to '\n'
   };
 
+  static bool has_line_number;
   static bool killed_by_M112;
   static State state;
 
@@ -71,8 +85,8 @@ public:
       case EP_RESET:
         switch (c) {
           case ' ': break;
-          case 'N': state = EP_N;      break;
-          case 'M': state = EP_M;      break;
+          case 'N': state = EP_N; has_line_number = true; break;
+          case 'M': state = EP_M; has_line_number = false; break;
           default: state  = EP_IGNORE;
         }
         break;
@@ -82,8 +96,8 @@ public:
           case '0': case '1': case '2':
           case '3': case '4': case '5':
           case '6': case '7': case '8':
-          case '9': case '-': case ' ':   break;
-          case 'M': state = EP_M;      break;
+          case '9': case '-': case ' ': break;
+          case 'M': state = EP_M;       break;
           default:  state = EP_IGNORE;
         }
         break;
@@ -92,9 +106,10 @@ public:
         switch (c) {
           case ' ': break;
           case '1': state = EP_M1;     break;
+          case '2': state = EP_M2;     break;
           case '4': state = EP_M4;     break;
-		  case '5': state = EP_M5;     break;
-		  case '6': state = EP_M6;     break;
+          case '5': state = EP_M5;     break;
+          case '6': state = EP_M6;     break;
           default: state  = EP_IGNORE;
         }
         break;
@@ -103,16 +118,41 @@ public:
         switch (c) {
           case '0': state = EP_M10;    break;
           case '1': state = EP_M11;    break;
+          case '5': state = EP_M15;    break;
           default: state  = EP_IGNORE;
         }
         break;
 
       case EP_M10:
-        state = (c == '8') ? EP_M108 : EP_IGNORE;
+        switch (c) {
+          case '6': state = EP_M106;    break;
+          case '8': state = EP_M108;    break;
+          default: state  = EP_IGNORE;
+        }
         break;
 
       case EP_M11:
         state = (c == '2') ? EP_M112 : EP_IGNORE;
+        break;
+
+      case EP_M15:
+        switch (c) {
+          case '6': state = EP_M156;    break;
+          case '7': state = EP_M157;    break;
+          default: state  = EP_IGNORE;
+        }
+        break;
+
+      case EP_M2:
+        state = (c == '2') ? EP_M22 : EP_IGNORE;
+        break;
+
+      case EP_M22:
+        switch (c) {
+          case '0': state = EP_M220;    break;
+          case '1': state = EP_M221;    break;
+          default: state  = EP_IGNORE;
+        }
         break;
 
       case EP_M4:
@@ -123,21 +163,33 @@ public:
         state = (c == '0') ? EP_M410 : EP_IGNORE;
         break;
 		
-	  case EP_M5:
-	    state = (c == '4') ? EP_M54 : EP_IGNORE;
-	    break;
+      case EP_M5:
+        switch (c) {
+          case '3': state = EP_M53;    break;
+          case '4': state = EP_M54;    break;
+          default: state  = EP_IGNORE;
+        }
+        break;
 
-	  case EP_M54:
-	    state = (c == '1') ? EP_M541 : EP_IGNORE;
-	    break;
-		
-	  case EP_M6:
-		state = (c == '6') ? EP_M66 : EP_IGNORE;
-	  break;
+      case EP_M53:
+        state = (c == '7') ? EP_M537 : EP_IGNORE;
+        break;
 
-	  case EP_M66:
-		state = (c == '9') ? EP_M669 : EP_IGNORE;
-	  break;
+      case EP_M54:
+        switch (c) {
+          case '1': state = EP_M541;    break;
+          case '5': state = EP_M545;    break;
+          default: state  = EP_IGNORE;
+        }
+        break;
+      
+      case EP_M6:
+        state = (c == '6') ? EP_M66 : EP_IGNORE;
+        break;
+
+      case EP_M66:
+        state = (c == '9') ? EP_M669 : EP_IGNORE;
+        break;
 
       case EP_IGNORE:
         if (c == '\n') state = EP_RESET;
@@ -155,11 +207,25 @@ public:
             case EP_M410:
               quickstop_stepper();
               break;
-			case EP_M541:
-			  dropSeriabuffer();			  			  
-			  break;
-			case EP_M669:
-			  execPauseFromSerial();
+            case EP_M541:
+              dropSerialbuffer();			  			  
+              break;
+            case EP_M669:
+              execPauseFromSerial();
+              break;
+            #ifdef BCN3D_MOD
+              case EP_M106:
+              case EP_M156:
+              case EP_M157:
+              case EP_M220:
+              case EP_M221:
+              case EP_M537:
+                if (!has_line_number) priority_command_detected();
+                break;
+              case EP_M545:
+                end_of_print_detected();
+                break;
+            #endif
             default:
               break;
           }
