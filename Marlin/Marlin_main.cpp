@@ -12184,28 +12184,33 @@ inline void gcode_M226() {
  *       U<bool> with a non-zero value will apply the result to current settings
  */
 inline void gcode_M303() {
-  #if HAS_PID_HEATING
-    const int e = parser.intval('E'), c = parser.intval('C', 5);
-    const bool u = parser.boolval('U');
+  #ifndef BCN3D_PRINT_SIMULATION	
+    #if HAS_PID_HEATING
+      const int e = parser.intval('E'), c = parser.intval('C', 5);
+      const bool u = parser.boolval('U');
 
-    int16_t temp = parser.celsiusval('S', e < 0 ? 70 : 150);
+      int16_t temp = parser.celsiusval('S', e < 0 ? 70 : 150);
 
-    if (WITHIN(e, 0, HOTENDS - 1))
-      target_extruder = e;
+      if (WITHIN(e, 0, HOTENDS - 1))
+        target_extruder = e;
 
-    #if DISABLED(BUSY_WHILE_HEATING)
-      KEEPALIVE_STATE(NOT_BUSY);
+      #if DISABLED(BUSY_WHILE_HEATING)
+        KEEPALIVE_STATE(NOT_BUSY);
+      #endif
+
+      thermalManager.PID_autotune(temp, e, c, u);
+
+      #if DISABLED(BUSY_WHILE_HEATING)
+        KEEPALIVE_STATE(IN_HANDLER);
+      #endif
+    #else
+      SERIAL_ERROR_START();
+      SERIAL_ERRORLNPGM(MSG_ERR_M303_DISABLED);
     #endif
-
-    thermalManager.PID_autotune(temp, e, c, u);
-
-    #if DISABLED(BUSY_WHILE_HEATING)
-      KEEPALIVE_STATE(IN_HANDLER);
-    #endif
-  #else
-    SERIAL_ERROR_START();
-    SERIAL_ERRORLNPGM(MSG_ERR_M303_DISABLED);
+  #else 
+    dwell(10);
   #endif
+
 }
 
 #if ENABLED(MORGAN_SCARA)
@@ -13067,63 +13072,67 @@ inline void gcode_M502() {
    *    Note: the X axis should be homed after changing dual x-carriage mode.
    */
   inline void gcode_M605() {
-    planner.synchronize();
-    if (parser.seen('S')) dual_x_carriage_mode = (DualXMode)parser.value_byte();
-    switch (dual_x_carriage_mode) {
-      case DXC_FULL_CONTROL_MODE:
-      case DXC_AUTO_PARK_MODE:
-        break;   
-	#if defined(BCN3D_MOD)
-	  case DXC_FULL_SIGMA_MODE:
-	  case DXC_MIRROR_MODE:
-	  case DXC_MIRROR_MODE_R:
-		break;
-	  case DXC_DUPLICATION_MODE_R:
-	#endif  
-	  case DXC_DUPLICATION_MODE:	
-        if (parser.seen('X')) duplicate_extruder_x_offset = MAX(parser.value_linear_units(), X2_MIN_POS - x_home_pos(0));
-        if (parser.seen('R')) duplicate_extruder_temp_offset = parser.value_celsius_diff();
-        SERIAL_ECHO_START();
-        SERIAL_ECHOPGM(MSG_HOTEND_OFFSET);
-        SERIAL_CHAR(' ');
-        SERIAL_ECHO(hotend_offset[X_AXIS][0]);
-        SERIAL_CHAR(',');
-        SERIAL_ECHO(hotend_offset[Y_AXIS][0]);
-        SERIAL_CHAR(' ');
-        SERIAL_ECHO(duplicate_extruder_x_offset);
-        SERIAL_CHAR(',');
-        SERIAL_ECHOLN(hotend_offset[Y_AXIS][1]);
-        break;
-      default:
-        dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
-        break;
-    }
+    #ifndef BCN3D_PRINT_SIMULATION
+      planner.synchronize();
+      if (parser.seen('S')) dual_x_carriage_mode = (DualXMode)parser.value_byte();
+      switch (dual_x_carriage_mode) {
+        case DXC_FULL_CONTROL_MODE:
+        case DXC_AUTO_PARK_MODE:
+          break;   
+      #if defined(BCN3D_MOD)
+      case DXC_FULL_SIGMA_MODE:
+      case DXC_MIRROR_MODE:
+      case DXC_MIRROR_MODE_R:
+      break;
+      case DXC_DUPLICATION_MODE_R:
+      #endif  
+      case DXC_DUPLICATION_MODE:	
+          if (parser.seen('X')) duplicate_extruder_x_offset = MAX(parser.value_linear_units(), X2_MIN_POS - x_home_pos(0));
+          if (parser.seen('R')) duplicate_extruder_temp_offset = parser.value_celsius_diff();
+          SERIAL_ECHO_START();
+          SERIAL_ECHOPGM(MSG_HOTEND_OFFSET);
+          SERIAL_CHAR(' ');
+          SERIAL_ECHO(hotend_offset[X_AXIS][0]);
+          SERIAL_CHAR(',');
+          SERIAL_ECHO(hotend_offset[Y_AXIS][0]);
+          SERIAL_CHAR(' ');
+          SERIAL_ECHO(duplicate_extruder_x_offset);
+          SERIAL_CHAR(',');
+          SERIAL_ECHOLN(hotend_offset[Y_AXIS][1]);
+          break;
+        default:
+          dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
+          break;
+      }
 
-    active_extruder_parked = false;
-    motorMode = motordriver_mode::motordefault;
-    delayed_move_time = 0;
-	#if defined(BCN3D_MOD)
-	raft_line = 0;
-	raft_line_counter = 0;
-	raft_line_counter_g = 0;
-	planner.flow_percentage[0] = 100;
-	planner.flow_percentage[1] = 100;
-	Flag_raft_last_line = false;
-	Flag_serial_new_layer = false;
-	Flag_Raft_Dual_Mode_On = false;
-	switch(dual_x_carriage_mode){
-			
-		case DXC_DUPLICATION_MODE:
-		case DXC_DUPLICATION_MODE_R:
-		case DXC_MIRROR_MODE:
-		case DXC_MIRROR_MODE_R:
-		home_axis_from_code(true, false, false);
-		break;
-		
-		default:
-		break;
-	}
-	#endif
+      active_extruder_parked = false;
+      motorMode = motordriver_mode::motordefault;
+      delayed_move_time = 0;
+      #if defined(BCN3D_MOD)
+      raft_line = 0;
+      raft_line_counter = 0;
+      raft_line_counter_g = 0;
+      planner.flow_percentage[0] = 100;
+      planner.flow_percentage[1] = 100;
+      Flag_raft_last_line = false;
+      Flag_serial_new_layer = false;
+      Flag_Raft_Dual_Mode_On = false;
+      switch(dual_x_carriage_mode){
+          
+        case DXC_DUPLICATION_MODE:
+        case DXC_DUPLICATION_MODE_R:
+        case DXC_MIRROR_MODE:
+        case DXC_MIRROR_MODE_R:
+        home_axis_from_code(true, false, false);
+        break;
+        
+        default:
+        break;
+      }
+      #endif
+    #else
+      dwell(10);
+    #endif
   }
 
 #elif ENABLED(DUAL_NOZZLE_DUPLICATION_MODE)
