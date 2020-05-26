@@ -229,7 +229,7 @@ void ok_to_send();
 void kill(const char*);
 
 void quickstop_stepper();
-void dropSeriabuffer();
+void dropSerialbuffer();
 void execPauseFromSerial();
 
 extern uint8_t marlin_debug_flags;
@@ -239,7 +239,7 @@ extern bool Running;
 inline bool IsRunning() { return  Running; }
 inline bool IsStopped() { return !Running; }
 
-bool enqueue_and_echo_command(const char* cmd);           // Add a single command to the end of the buffer. Return false on failure.
+bool enqueue_and_echo_command(const char* cmd, bool say_ok=false); // Add a single command to the end of the buffer. Return false on failure.
 void enqueue_and_echo_commands_P(const char * const cmd); // Set one or more commands to be prioritized over the next Serial/SD command.
 void clear_command_queue();
 
@@ -360,6 +360,8 @@ void dual_mode_z_adjust_raft(void);
 void dual_mode_duplication_extruder_parked(bool skip);
 void dual_mode_mirror_extruder_parked(bool skip);
 void dual_mode_duplication_extruder_parked_purge(void);
+void prioritary_command_detected();
+void end_of_print_detected();
 #endif
 
 void report_current_position();

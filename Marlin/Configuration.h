@@ -45,7 +45,7 @@
 #define BCN3D_PRINTER_IS_EPSILON	040
 
 //#define TEST_TRULLAS
-//#define PROTO_EPSILON
+#define PROTO_EPSILON
 
 #ifndef BCN3D_PRINTER_SETUP
 	#define BCN3D_PRINTER_SETUP BCN3D_PRINTER_IS_EPSILON
@@ -356,6 +356,7 @@
 #define TEMP_BED_HYSTERESIS 3       // (degC) range of +/- temperatures considered "close" to the target one
 #define TEMP_BED_WINDOW     1       // (degC) Window around target to start the residency timer x degC early.
 
+
 // The minimal temperature defines the temperature below which the heater will not be enabled It is used
 // to check that the wiring to the thermistor is not broken.
 // Otherwise this would lead to the heater being powered on all the time.
@@ -374,7 +375,7 @@
 #define HEATER_2_MAXTEMP 300
 #define HEATER_3_MAXTEMP 300
 #define HEATER_4_MAXTEMP 300
-#define BED_MAXTEMP 125
+#define BED_MAXTEMP 120
 
 //===========================================================================
 //============================= PID Settings ================================
@@ -913,38 +914,21 @@
 // @section machine
 
 // The size of the print bed
-#if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_SIGMA
-	#define X_BED_SIZE 210
-	#define Y_BED_SIZE 297
-#else
-	#define X_BED_SIZE 420
-	#define Y_BED_SIZE 300
-#endif
+
+
+#define X_BED_SIZE 420
+#define Y_BED_SIZE 300
+
 
 
 // Travel limits (mm) after homing, corresponding to endstop positions.
-#if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_SIGMA
-    #define BED_OFFSET_X	 0
-	#define X_MIN_POS		 -47
-#else
-#ifdef PROTO_EPSILON
-	#define BED_OFFSET_X	 0
-#else
-	#define BED_OFFSET_X	 2
-#endif	
-	#define X_MIN_POS		 -51.5 - BED_OFFSET_X
-	//#define X_MIN_POS -51
-#endif
+// Epsilon default values
+#define X_MIN_POS -53.5
 #define Y_MIN_POS -1
 #define Z_MIN_POS 0
 #define X_MAX_POS (X_BED_SIZE + 2) 
 #define Y_MAX_POS Y_BED_SIZE + 1
-#if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_SIGMA
-	#define Z_MAX_POS 210
-#else
-	#define Z_MAX_POS 400//PRO
-#endif
-
+#define Z_MAX_POS 400
 
 /**
  * Software Endstops
@@ -1200,19 +1184,8 @@
 #define Z_SAFE_HOMING
 
 #if ENABLED(Z_SAFE_HOMING)
-  //#define Z_SAFE_HOMING_X_POINT ((X_BED_SIZE) / 2)    // X point for Z homing when homing all axes (G28).
-  //#define Z_SAFE_HOMING_Y_POINT ((Y_BED_SIZE) / 2)    // Y point for Z homing when homing all axes (G28).
-  #if BCN3D_PRINTER_SETUP == BCN3D_PRINTER_IS_EPSILON
-	  #ifdef PROTO_EPSILON
-		#define Z_SAFE_HOMING_X_POINT	4.5
-	  #else
-		#define Z_SAFE_HOMING_X_POINT	-4.5 - BED_OFFSET_X   // X point for Z homing when homing all axes (G28).
-	  #endif	  
-	  #define Z_SAFE_HOMING_Y_POINT 150    // Y point for Z homing when homing all axes (G28).
-  #else
-	  #define Z_SAFE_HOMING_X_POINT 4   // X point for Z homing when homing all axes (G28).
-	  #define Z_SAFE_HOMING_Y_POINT 147    // Y point for Z homing when homing all axes (G28). 
-  #endif
+  #define Z_SAFE_HOMING_X_POINT -2.5   // X point for Z homing when homing all axes (G28).
+  #define Z_SAFE_HOMING_Y_POINT 150    // Y point for Z homing when homing all axes (G28).
 #endif
 
 // Homing speeds (mm/m)
