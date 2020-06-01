@@ -590,12 +590,13 @@ int16_t fanSpeeds_raft[FAN_COUNT] = { 0 };
 
 static DualXMode dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
 
-DiscardSerialReason discard_serial = DiscardSerialReason::NONE;
-bool waiting_resend_confirmation = false;
-uint8_t pending_priority_commands = 0;
-bool is_ending_print = false;
-bool pause_started = false;
-bool pause_flag = false;
+static DiscardSerialReason discard_serial = DiscardSerialReason::NONE;
+static bool waiting_resend_confirmation = false;
+static uint8_t pending_priority_commands = 0;
+static bool is_ending_print = false;
+static bool pause_started = false;
+static bool pause_flag = false;
+static bool relative_mode_before_pause = false;
 
 #endif
 
@@ -1115,6 +1116,7 @@ void priority_command_detected() {
 
 void end_of_print_detected() {
   is_ending_print = true;
+  waiting_resend_confirmation = false;
 }
 
 bool is_priority_command(char* const cmd) { 
@@ -1178,9 +1180,11 @@ inline void get_serial_commands() {
   #endif
 
   #if defined(BCN3D_MOD)
-    if(discard_serial != DiscardSerialReason::NONE && !MYSERIAL0.available()) {	   
+    if (discard_serial != DiscardSerialReason::NONE && !MYSERIAL0.available()) {	   
       switch(discard_serial) {
         case DiscardSerialReason::PAUSE:
+          // Report the tracking position (current position isn't correctly updated sometimes)
+          report_tracking_position();
           SERIAL_PROTOCOLLNPGM("M669 executed");
           break;
         case DiscardSerialReason::CANCEL:
@@ -7445,6 +7449,7 @@ inline void gcode_G74(){ //Recover State
     dual_x_carriage_mode = dual_x_carriage_mode_resume;
     motorMode = motorModeResume;		
     COPY(planner.flow_percentage, flow_percentage_save);
+    relative_mode = relative_mode_before_pause;
   } else if (!pause_started) {
     SERIAL_PROTOCOLLNPGM("Not paused");
   }
@@ -8177,21 +8182,13 @@ inline void gcode_M668() {
 	planner.synchronize();
 
 	gcode_LastN = tracking_lastgcode - 1;
+	relative_mode_before_pause = relative_mode;
 
-	SERIAL_PROTOCOLPGM("Stored Position");
-	SERIAL_PROTOCOLPGM(" X:");
-	MYSERIAL0.print(tracking_position[X_AXIS],3);
-	SERIAL_PROTOCOLPGM(" Y:");
-	MYSERIAL0.print(tracking_position[Y_AXIS],3);
-	SERIAL_PROTOCOLPGM(" Z:");
-	MYSERIAL0.print(tracking_position[Z_AXIS],3);
-	SERIAL_PROTOCOLPGM(" E:");
-	MYSERIAL0.print(tracking_position[E_CART],5);
-	SERIAL_PROTOCOLLNPAIR(" F:", tracking_feedrate);
+	SERIAL_PROTOCOLPGM("Stored Position ");
+	
+	report_tracking_position();
 	
 	SERIAL_PROTOCOLLNPAIR("Last gcode line:", tracking_lastgcode);
-		
-	
 }
 
 inline void gcode_G715() {
@@ -10687,6 +10684,22 @@ void report_current_position() {
     SERIAL_EOL();
   #endif
 }
+
+#ifdef BCN3D_MOD
+void report_tracking_position() {
+  SERIAL_PROTOCOLPGM("X:");
+  MYSERIAL0.print(tracking_position[X_AXIS], 3);
+  SERIAL_PROTOCOLPGM(" Y:");
+  MYSERIAL0.print(tracking_position[Y_AXIS], 3);
+  SERIAL_PROTOCOLPGM(" Z:");
+  MYSERIAL0.print(tracking_position[Z_AXIS], 3);
+  SERIAL_PROTOCOLPGM(" E:");
+  MYSERIAL0.print(tracking_position[E_CART], 5);
+  SERIAL_PROTOCOLPGM(" F:");
+  MYSERIAL0.print(tracking_feedrate, 2);
+  SERIAL_EOL();
+}
+#endif
 
 #ifdef M114_DETAIL
 
