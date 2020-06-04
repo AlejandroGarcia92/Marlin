@@ -8163,7 +8163,7 @@ inline void gcode_G290(){//BCN3D Bed leveling
   //Message below its what the embedded needs to parse with a Regex
 
 	SERIAL_PROTOCOLPGM("ScrewBed0: ");
-  MYSERIAL0.print(Z_knob_left-Z_knob_back, 4);
+	MYSERIAL0.print(Z_knob_left-Z_knob_back, 4);
 	SERIAL_PROTOCOLPGM(" ScrewBed1: ");
 	MYSERIAL0.print(Z_knob_right-Z_knob_back, 4);
 	SERIAL_EOL();
