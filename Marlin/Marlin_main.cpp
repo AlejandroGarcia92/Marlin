@@ -286,7 +286,7 @@
 #endif
 
 #if ENABLED(BEZIER_CURVE_SUPPORT)
-  #include "planner_bezier.h"
+  #include "planner_bezier.h"v0.7.0RC6
 #endif
 
 #if ENABLED(FWRETRACT)
@@ -8168,9 +8168,9 @@ inline void gcode_G290(){//BCN3D Bed leveling
     //Message below its what the embedded needs to parse with a Regex
 
 	SERIAL_PROTOCOLPGM("ScrewBed0: ");
-	MYSERIAL0.print(Z_knob_left-Z_knob_back, 4);
+	MYSERIAL0.print(Z_knob_left-Z_knob_back, 6);
 	SERIAL_PROTOCOLPGM(" ScrewBed1: ");
-	MYSERIAL0.print(Z_knob_right-Z_knob_back, 4);
+	MYSERIAL0.print(Z_knob_right-Z_knob_back, 6);
 	SERIAL_EOL();
 }
 
