@@ -1,0 +1,39 @@
+pipeline {
+    agent {
+        kubernetes {}
+    }
+
+    options {
+        timeout(time: 5, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '5'))
+    }
+
+    environment {
+        BINARY_NAME = 'arduino-cli'
+    }
+
+    stages {
+        stage('Install compiler') {
+            steps {
+                sh '''
+                    curl --silent https://api.github.com/repos/arduino/arduino-cli/releases/latest \
+                    | grep browser_download_url \
+                    | grep Linux_64 \
+                    | cut --delimiter '"' --fields 4 \
+                    | wget --quiet --input-file -
+                   '''
+                sh 'tar --get --file `ls *.tar.gz` -gzip "${BINARY_NAME}"'
+                sh 'chmod 755 "${BINARY_NAME}"'
+                sh 'rm `ls *.tar.gz`'
+
+                sh './"${BINARY_NAME}" core update-index'
+                sh './"${BINARY_NAME}" core install arduino:avr'
+            }
+        }
+        stage('Build project') {
+            steps {
+                sh './"${BINARY_NAME}" compile --fqbn arduino:avr:mega Marlin/Marlin.ino'
+            }
+        }
+    }
+}

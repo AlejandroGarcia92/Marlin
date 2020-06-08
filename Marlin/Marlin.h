@@ -229,7 +229,7 @@ void ok_to_send();
 void kill(const char*);
 
 void quickstop_stepper();
-void dropSeriabuffer();
+void dropSerialbuffer();
 void execPauseFromSerial();
 
 extern uint8_t marlin_debug_flags;
@@ -360,6 +360,8 @@ void dual_mode_z_adjust_raft(void);
 void dual_mode_duplication_extruder_parked(bool skip);
 void dual_mode_mirror_extruder_parked(bool skip);
 void dual_mode_duplication_extruder_parked_purge(void);
+void prioritary_command_detected();
+void end_of_print_detected();
 #endif
 
 void report_current_position();
