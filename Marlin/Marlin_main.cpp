@@ -8185,7 +8185,6 @@ inline void gcode_M668() {
 	relative_mode_before_pause = relative_mode;
 
 	SERIAL_PROTOCOLPGM("Stored Position ");
-	
 	report_tracking_position();
 	
 	SERIAL_PROTOCOLLNPAIR("Last gcode line:", tracking_lastgcode);
