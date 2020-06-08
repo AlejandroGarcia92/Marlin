@@ -286,7 +286,7 @@
 #endif
 
 #if ENABLED(BEZIER_CURVE_SUPPORT)
-  #include "planner_bezier.h"v0.7.0RC6
+  #include "planner_bezier.h"
 #endif
 
 #if ENABLED(FWRETRACT)
