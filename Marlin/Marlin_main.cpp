@@ -10250,10 +10250,10 @@ inline void gcode_M109() {
   }
 
   #ifndef MIN_COOLING_SLOPE_DEG_BED
-    #define MIN_COOLING_SLOPE_DEG_BED 1.50
+    #define MIN_COOLING_SLOPE_DEG_BED 0.75
   #endif
   #ifndef MIN_COOLING_SLOPE_TIME_BED
-    #define MIN_COOLING_SLOPE_TIME_BED 60
+    #define MIN_COOLING_SLOPE_TIME_BED 150
   #endif
 
   /**
