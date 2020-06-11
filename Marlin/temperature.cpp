@@ -1794,14 +1794,14 @@ void Temperature::updateTemperaturesFromRawValues() {
 		#endif
 		HOTEND_LOOP() {
 			if(target_temperature[e] > current_temperature[e]) {	// Heating
-				current_temperature[e] = constrain(current_temperature[e] + 1 , SIMULATION_TEMP_AMB, target_temperature[e]);				
+				current_temperature[e] = constrain(current_temperature[e] + 4.7 , SIMULATION_TEMP_AMB, target_temperature[e]);				
 			} else {											// Cooling
-				current_temperature[e] = constrain(current_temperature[e] - 1 , SIMULATION_TEMP_AMB, HEATER_0_MAXTEMP);	
+				current_temperature[e] = constrain(current_temperature[e] - 2.2 , SIMULATION_TEMP_AMB, HEATER_0_MAXTEMP);
 			}
 		}
 		#if HAS_HEATED_BED
 		if(target_temperature_bed > current_temperature_bed) {	// Heating
-			current_temperature_bed = constrain(current_temperature_bed + 1 , SIMULATION_TEMP_AMB, target_temperature_bed);
+			current_temperature_bed = constrain(current_temperature_bed + 1.5 , SIMULATION_TEMP_AMB, target_temperature_bed);
 			} else {											// Cooling
 			current_temperature_bed = constrain(current_temperature_bed - 1 , SIMULATION_TEMP_AMB, BED_MAXTEMP);
 		}
