@@ -25,7 +25,7 @@
 
 #include "Marlin.h"
 #include "macros.h"
-
+#include "thermistornames.h"
 #define OVERSAMPLENR 16
 #define OV(N) int16_t((N)*(OVERSAMPLENR))
 
@@ -41,103 +41,77 @@
 #define PtAdVal(T,R0,Rup) (short)(1024/(Rup/PtRt(T,R0)+1))
 #define PtLine(T,R0,Rup) { OV(PtAdVal(T,R0,Rup)), T },
 
-#if ANY_THERMISTOR_IS(1) // 100k bed thermistor
+
   #include "thermistortable_1.h"
-#endif
-#if ANY_THERMISTOR_IS(2) // 200k bed thermistor
+
   #include "thermistortable_2.h"
-#endif
-#if ANY_THERMISTOR_IS(3) // mendel-parts
+
   #include "thermistortable_3.h"
-#endif
-#if ANY_THERMISTOR_IS(4) // 10k thermistor
+
   #include "thermistortable_4.h"
-#endif
-#if ANY_THERMISTOR_IS(5) // 100k ParCan thermistor (104GT-2)
+
   #include "thermistortable_5.h"
-#endif
-#if ANY_THERMISTOR_IS(501) // 100k Zonestar thermistor
+
   #include "thermistortable_501.h"
-#endif
-#if ANY_THERMISTOR_IS(6) // 100k Epcos thermistor
+
   #include "thermistortable_6.h"
-#endif
-#if ANY_THERMISTOR_IS(7) // 100k Honeywell 135-104LAG-J01
+
   #include "thermistortable_7.h"
-#endif
-#if ANY_THERMISTOR_IS(71) // 100k Honeywell 135-104LAF-J01
+
   #include "thermistortable_71.h"
-#endif
-#if ANY_THERMISTOR_IS(8) // 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup)
+
   #include "thermistortable_8.h"
-#endif
-#if ANY_THERMISTOR_IS(9) // 100k GE Sensing AL03006-58.2K-97-G1 (4.7k pullup)
+
   #include "thermistortable_9.h"
-#endif
-#if ANY_THERMISTOR_IS(10) // 100k RS thermistor 198-961 (4.7k pullup)
+
   #include "thermistortable_10.h"
-#endif
-#if ANY_THERMISTOR_IS(11) // QU-BD silicone bed QWG-104F-3950 thermistor
+
   #include "thermistortable_11.h"
-#endif
-#if ANY_THERMISTOR_IS(13) // Hisens thermistor B25/50 =3950 +/-1%
+
   #include "thermistortable_13.h"
-#endif
-#if ANY_THERMISTOR_IS(15) // JGAurora A5 thermistor calibration
+
   #include "thermistortable_15.h"
-#endif
-#if ANY_THERMISTOR_IS(20) // PT100 with INA826 amp on Ultimaker v2.0 electronics
+
   #include "thermistortable_20.h"
-#endif
-#if ANY_THERMISTOR_IS(51) // 100k EPCOS (WITH 1kohm RESISTOR FOR PULLUP, R9 ON SANGUINOLOLU! NOT FOR 4.7kohm PULLUP! THIS IS NOT NORMAL!)
+
   #include "thermistortable_51.h"
-#endif
-#if ANY_THERMISTOR_IS(52) // 200k ATC Semitec 204GT-2 (WITH 1kohm RESISTOR FOR PULLUP, R9 ON SANGUINOLOLU! NOT FOR 4.7kohm PULLUP! THIS IS NOT NORMAL!)
+
   #include "thermistortable_52.h"
-#endif
-#if ANY_THERMISTOR_IS(55) // 100k ATC Semitec 104GT-2 (Used on ParCan) (WITH 1kohm RESISTOR FOR PULLUP, R9 ON SANGUINOLOLU! NOT FOR 4.7kohm PULLUP! THIS IS NOT NORMAL!)
+
   #include "thermistortable_55.h"
-#endif
-#if ANY_THERMISTOR_IS(60) // Maker's Tool Works Kapton Bed Thermistor
+
   #include "thermistortable_60.h"
-#endif
-#if ANY_THERMISTOR_IS(66) // DyzeDesign 500°C Thermistor
+
   #include "thermistortable_66.h"
-#endif
-#if ANY_THERMISTOR_IS(12) // 100k 0603 SMD Vishay NTCS0603E3104FXT (4.7k pullup) (calibrated for Makibox hot bed)
+
   #include "thermistortable_12.h"
-#endif
-#if ANY_THERMISTOR_IS(70) // bqh2 stock thermistor
+
   #include "thermistortable_70.h"
-#endif
-#if ANY_THERMISTOR_IS(75) // Many of the generic silicon heat pads use the MGB18-104F39050L32 Thermistor
+
   #include "thermistortable_75.h"
-#endif
-#if ANY_THERMISTOR_IS(110) // Pt100 with 1k0 pullup
+
   #include "thermistortable_110.h"
-#endif
-#if ANY_THERMISTOR_IS(147) // Pt100 with 4k7 pullup
+
   #include "thermistortable_147.h"
-#endif
-#if ANY_THERMISTOR_IS(1010) // Pt1000 with 1k0 pullup
+
   #include "thermistortable_1010.h"
-#endif
-#if ANY_THERMISTOR_IS(1047) // Pt1000 with 4k7 pullup
+
   #include "thermistortable_1047.h"
-#endif
-#if ANY_THERMISTOR_IS(998) // User-defined table 1
+
   #include "thermistortable_998.h"
-#endif
-#if ANY_THERMISTOR_IS(999) // User-defined table 2
+
   #include "thermistortable_999.h"
-#endif
+
 
 #define _TT_NAME(_N) temptable_ ## _N
 #define TT_NAME(_N) _TT_NAME(_N)
+#define _INIT_NAME(_N) THERMISTOR_NAME_ ## _N
+#define INIT_NAME(_N) _INIT_NAME(_N)
 
 #if THERMISTORHEATER_0
   #define HEATER_0_TEMPTABLE TT_NAME(THERMISTORHEATER_0)
   #define HEATER_0_TEMPTABLE_LEN COUNT(HEATER_0_TEMPTABLE)
+  #define HEATER_0_SENSOR_NAME INIT_NAME(THERMISTORHEATER_0)
 #elif defined(HEATER_0_USES_THERMISTOR)
   #error "No heater 0 thermistor table specified"
 #else
@@ -148,6 +122,7 @@
 #if THERMISTORHEATER_1
   #define HEATER_1_TEMPTABLE TT_NAME(THERMISTORHEATER_1)
   #define HEATER_1_TEMPTABLE_LEN COUNT(HEATER_1_TEMPTABLE)
+  #define HEATER_1_SENSOR_NAME INIT_NAME(THERMISTORHEATER_1)
 #elif defined(HEATER_1_USES_THERMISTOR)
   #error "No heater 1 thermistor table specified"
 #else
@@ -158,6 +133,7 @@
 #if THERMISTORHEATER_2
   #define HEATER_2_TEMPTABLE TT_NAME(THERMISTORHEATER_2)
   #define HEATER_2_TEMPTABLE_LEN COUNT(HEATER_2_TEMPTABLE)
+  #define HEATER_2_SENSOR_NAME INIT_NAME(THERMISTORHEATER_2)
 #elif defined(HEATER_2_USES_THERMISTOR)
   #error "No heater 2 thermistor table specified"
 #else
@@ -168,6 +144,7 @@
 #if THERMISTORHEATER_3
   #define HEATER_3_TEMPTABLE TT_NAME(THERMISTORHEATER_3)
   #define HEATER_3_TEMPTABLE_LEN COUNT(HEATER_3_TEMPTABLE)
+  #define HEATER_3_SENSOR_NAME INIT_NAME(THERMISTORHEATER_3)
 #elif defined(HEATER_3_USES_THERMISTOR)
   #error "No heater 3 thermistor table specified"
 #else
@@ -178,6 +155,7 @@
 #if THERMISTORHEATER_4
   #define HEATER_4_TEMPTABLE TT_NAME(THERMISTORHEATER_4)
   #define HEATER_4_TEMPTABLE_LEN COUNT(HEATER_4_TEMPTABLE)
+  #define HEATER_4_SENSOR_NAME INIT_NAME(THERMISTORHEATER_4)
 #elif defined(HEATER_4_USES_THERMISTOR)
   #error "No heater 4 thermistor table specified"
 #else
@@ -188,6 +166,7 @@
 #ifdef THERMISTORBED
   #define BEDTEMPTABLE TT_NAME(THERMISTORBED)
   #define BEDTEMPTABLE_LEN COUNT(BEDTEMPTABLE)
+  #define BED_SENSOR_NAME INIT_NAME(THERMISTORBED)
 #elif defined(HEATER_BED_USES_THERMISTOR)
   #error "No bed thermistor table specified"
 #else
@@ -197,6 +176,7 @@
 #ifdef THERMISTORCHAMBER
   #define CHAMBERTEMPTABLE TT_NAME(THERMISTORCHAMBER)
   #define CHAMBERTEMPTABLE_LEN COUNT(CHAMBERTEMPTABLE)
+  #define CHAMBER_SENSOR_NAME INIT_NAME(THERMISTORCHAMBER)
 #elif defined(HEATER_CHAMBER_USES_THERMISTOR)
   #error "No chamber thermistor table specified"
 #else
