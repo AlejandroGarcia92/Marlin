@@ -8186,17 +8186,16 @@ inline void gcode_M668() {
 	SERIAL_PROTOCOLLNPAIR("Last gcode line:", tracking_lastgcode);
 }
 
-inline void gcode_G291() { //BCN3D G36 pattern
-
+inline void gcode_G36() { //BCN3D G36 pattern
   if(!parser.seen('X') || !parser.seen('Y') || !parser.seen('O') || !parser.seen('H')) {
       SERIAL_ECHO_START();
       SERIAL_ECHOLNPGM(" Parameter is missing");
       return;
   }
+  
   const float patternInitCoord_x = parser.floatval('X');
   const float patternInitCoord_y = parser.floatval('Y');
   const float patternOffset_z = parser.floatval('O');
-  const float layerDif = G36_LAYER_DIF;
   const float layer_height = LINES_LAYER_HEIGHT_XY;
   const float hSize = parser.floatval('H');
 
@@ -8249,10 +8248,10 @@ inline void gcode_G291() { //BCN3D G36 pattern
 
 		draw_print_line(Z_AXIS, -52, layer_height, hSize); //draw a line
 
-		if(i != 5){
+		if (i != 5) {
 
-			current_position[Z_AXIS]-= layerDif;
-			planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], 25,active_extruder); // set next Z height
+			current_position[Z_AXIS]-= G36_LAYER_DIF;
+			planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], 25, active_extruder); // set next Z height
 
 			draw_print_line_scrirt(X_AXIS, -4+hSize, hSize, layer_height); //Move to next line position
 
@@ -14979,6 +14978,10 @@ void process_parsed_command() {
         case 33: gcode_G33(); break;                              // G33: Delta Auto-Calibration
       #endif
 
+      #if defined(BCN3D_MOD)
+        case 36: gcode_G36(); break;                              // G33: BCN3D G36 implementation
+      #endif
+
       #if ENABLED(G38_PROBE_TARGET)
         case 38:
           if (parser.subcode == 2 || parser.subcode == 3)
@@ -15012,7 +15015,7 @@ void process_parsed_command() {
 	    case 241: gcode_G241(); break;                            // G241: BCN3D Calib X
 		case 242: gcode_G242(); break;                            // G242: BCN3D Calib Y
 		case 290: gcode_G290(); break;                            // G290: BCN3D Bed leveling
-    case 291: gcode_G291(); break;                            // G290: BCN3D G36 implementation
+    //case 291: gcode_G291(); break;                            // G290: BCN3D G36 implementation
 		case 715: gcode_G715(); break;                            // G715: Start New layer
       #endif
 
