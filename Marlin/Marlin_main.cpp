@@ -15008,15 +15008,14 @@ void process_parsed_command() {
         case 95: gcode_G95(); break;                              // G95: Set torque mode
         case 96: gcode_G96(); break;                              // G96: Mark encoder reference point
       #endif
-	  #if defined(BCN3D_MOD)
-		case 238: gcode_G238(); break;							  // G238: BCN3D Rise Z
-		case 239: gcode_G239(); break;							  // G238: BCN3D Fall Z
-	    case 240: gcode_G240(); break;                            // G240: BCN3D Calib Z
-	    case 241: gcode_G241(); break;                            // G241: BCN3D Calib X
-		case 242: gcode_G242(); break;                            // G242: BCN3D Calib Y
-		case 290: gcode_G290(); break;                            // G290: BCN3D Bed leveling
-    //case 291: gcode_G291(); break;                            // G290: BCN3D G36 implementation
-		case 715: gcode_G715(); break;                            // G715: Start New layer
+	    #if defined(BCN3D_MOD)
+        case 238: gcode_G238(); break;							              // G238: BCN3D Rise Z
+        case 239: gcode_G239(); break;							              // G238: BCN3D Fall Z
+        case 240: gcode_G240(); break;                            // G240: BCN3D Calib Z
+        case 241: gcode_G241(); break;                            // G241: BCN3D Calib X
+        case 242: gcode_G242(); break;                            // G242: BCN3D Calib Y
+        case 290: gcode_G290(); break;                            // G290: BCN3D Bed leveling
+        case 715: gcode_G715(); break;                            // G715: Start New layer
       #endif
 
 
