@@ -45,7 +45,7 @@
 #define BCN3D_PRINTER_IS_EPSILON	040
 
 //#define TEST_TRULLAS
-#define PROTO_EPSILON
+//#define PROTO_EPSILON
 
 #ifndef BCN3D_PRINTER_SETUP
 	#define BCN3D_PRINTER_SETUP BCN3D_PRINTER_IS_EPSILON
@@ -355,7 +355,6 @@
 #define TEMP_BED_RESIDENCY_TIME 2   // (seconds)
 #define TEMP_BED_HYSTERESIS 3       // (degC) range of +/- temperatures considered "close" to the target one
 #define TEMP_BED_WINDOW     1       // (degC) Window around target to start the residency timer x degC early.
-
 
 // The minimal temperature defines the temperature below which the heater will not be enabled It is used
 // to check that the wiring to the thermistor is not broken.
