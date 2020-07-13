@@ -7979,7 +7979,7 @@ inline void gcode_G290(){//BCN3D Bed leveling
 
 	#ifdef BCN3D_PRINT_SIMULATION
 	dwell(4000); // 4 seconds delays
-  SERIAL_PROTOCOLPGM("ScrewBed0: ");
+	SERIAL_PROTOCOLPGM("ScrewBed0: ");
 	MYSERIAL0.print(0, 6);
 	SERIAL_PROTOCOLPGM(" ScrewBed1: ");
 	MYSERIAL0.print(0, 6);
