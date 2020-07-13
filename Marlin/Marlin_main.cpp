@@ -6241,10 +6241,19 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
    *   E   Engage the probe for each probe (default 1)
    */
   inline void gcode_G30() {
+
+    #if defined(BCN3D_MOD)
+    const float xpos = parser.linearval('X', current_position[X_AXIS]),
+                ypos = parser.linearval('Y', current_position[Y_AXIS]);
+
+    #else
     const float xpos = parser.linearval('X', current_position[X_AXIS] + X_PROBE_OFFSET_FROM_EXTRUDER),
                 ypos = parser.linearval('Y', current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_EXTRUDER);
 
     if (!position_is_reachable_by_probe(xpos, ypos)) return;
+    #endif
+
+
 
     // Disable leveling so the planner won't mess with us
     #if HAS_LEVELING
@@ -7969,6 +7978,11 @@ inline void gcode_G290(){//BCN3D Bed leveling
 
 	#ifdef BCN3D_PRINT_SIMULATION
 	dwell(4000); // 4 seconds delays
+	SERIAL_PROTOCOLPGM("ScrewBed0: ");
+	MYSERIAL0.print(0, 6);
+	SERIAL_PROTOCOLPGM(" ScrewBed1: ");
+	MYSERIAL0.print(0, 6);
+	SERIAL_EOL();
 	return;
 	#endif
 
