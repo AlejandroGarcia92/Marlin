@@ -362,6 +362,7 @@ void dual_mode_mirror_extruder_parked(bool skip);
 void dual_mode_duplication_extruder_parked_purge(void);
 void prioritary_command_detected();
 void end_of_print_detected();
+void report_tracking_position();
 #endif
 
 void report_current_position();
