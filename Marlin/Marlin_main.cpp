@@ -8350,6 +8350,7 @@ inline void gcode_M544() { // Begin print
 
 inline void gcode_M545() { // End print
   // Reset the gcode line counter
+  SERIAL_PROTOCOLLN("End print");
   gcode_LastN = 0;
 }
 #endif  //BCN3D Mod
