@@ -7480,10 +7480,6 @@ inline void gcode_G74(){ //Recover State
   }
   pause_started = false;
 }
-inline void gcode_G75(){ //Recover Relative State
-    relative_mode = relative_mode_before_pause;
-    SERIAL_PROTOCOLLNPGM("Relative state recovered");
-}
 
 inline void gcode_G75(){
 
@@ -7495,6 +7491,11 @@ inline void gcode_G75(){
   if(parser.seen('R')) { flow_percentage_save[1] = parser.byteval('R'); }
   //if(parser.seen('Y')) { onFirstLayerExec = parser.byteval('Y')?true:false; }
   pause_flag = true;
+}
+
+inline void gcode_G76(){ //Recover Relative State
+    relative_mode = relative_mode_before_pause;
+    SERIAL_PROTOCOLLNPGM("Relative state recovered");
 }
 // Calib
 float extrusion_multiplier(float distance, float layerh, float hSize=0.4/*default value*/)
@@ -15050,6 +15051,7 @@ void process_parsed_command() {
         case 73: gcode_G73(); break;                                // G73: BCN3D Exec Pause
         case 74: gcode_G74(); break;                                // G74: BCN3D Exec UnPause 
         case 75: gcode_G75(); break;                                // G75: BCN3D Recover Relative State
+        case 76: gcode_G76(); break;                                // G75: BCN3D Recover Pause State
       #endif
 
       case 90: relative_mode = false; break;                      // G90: Absolute coordinates
