@@ -98,5 +98,4 @@
 
 #define FANSPEED_CLASSIC // Support classic fan speed usage
 
-#define G36_LAYER_DIF 0.1
-
+#define G36_LAYER_DIF 0.05
