@@ -374,11 +374,10 @@
 #endif
 
 #if defined(BCN3D_MOD)
-#include "FRS_Monitoring.h"
-#include "Door_Monitoring.h"
-#include "Leds_handler.h"
-//#include "chamberFanPWM.h"
-#include "printerStats.h"
+  #include "FRS_Monitoring.h"
+  #include "Door_Monitoring.h"
+  #include "Leds_handler.h"
+  #include "printerStats.h"
 #endif
 
 bool Running = true;
