@@ -7481,8 +7481,12 @@ inline void gcode_G74(){ //Recover State
   pause_started = false;
 }
 
-inline void gcode_G75(){
+inline void gcode_G75(){ //Recover Relative State
+    relative_mode = relative_mode_before_pause;
+    SERIAL_PROTOCOLLNPGM("Relative state recovered");
+}
 
+inline void gcode_G76(){
   if(parser.seen('D')) { dual_x_carriage_mode_resume = static_cast<DualXMode>(parser.intval('D')); }
   if(parser.seen('M')) { motorModeResume = static_cast<motordriver_mode>(parser.intval('M')); }
   if(parser.seen('F')) { fanSpeedsClassic_resume = parser.intval('F'); }
@@ -7493,10 +7497,6 @@ inline void gcode_G75(){
   pause_flag = true;
 }
 
-inline void gcode_G76(){ //Recover Relative State
-    relative_mode = relative_mode_before_pause;
-    SERIAL_PROTOCOLLNPGM("Relative state recovered");
-}
 // Calib
 float extrusion_multiplier(float distance, float layerh, float hSize=0.4/*default value*/)
 {
