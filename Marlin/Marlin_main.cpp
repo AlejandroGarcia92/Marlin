@@ -1343,7 +1343,7 @@ inline void get_serial_commands() {
                   }
                 }
                 break;
-                default:                
+                default:
                 break;
               }
             }
@@ -7444,18 +7444,18 @@ inline void gcode_G73(){ //Save State and get back to DefaultMode
 	fanSpeedsClassic_resume = fanSpeedsClassic;
 	active_extruder_resume = active_extruder;
 	COPY(flow_percentage_save, planner.flow_percentage);
-  // Send Pause Info
-  SERIAL_ECHO_START();
-  SERIAL_ECHOPGM("Pause state: ");
-  SERIAL_ECHOPAIR("D:", static_cast<int>(dual_x_carriage_mode_resume));
-  SERIAL_ECHOPAIR(" M:", static_cast<int>(motorModeResume));
-  SERIAL_ECHOPAIR(" F:", static_cast<int>(fanSpeedsClassic_resume));
-  for(size_t i = 0; i < EXTRUDERS; i++){
-      SERIAL_ECHOPAIR(" FL", i);
-      SERIAL_ECHOPAIR(":",flow_percentage_save[i]);
-  }
-  SERIAL_ECHOPAIR(" Y:", onFirstLayerExec?1:0);
-  SERIAL_ECHOLNPAIR(" T:", static_cast<int>(active_extruder_resume));
+	// Send Pause Info
+	SERIAL_ECHO_START();
+	SERIAL_ECHOPGM("Pause state: ");
+	SERIAL_ECHOPAIR("D:", static_cast<int>(dual_x_carriage_mode_resume));
+	SERIAL_ECHOPAIR(" M:", static_cast<int>(motorModeResume));
+	SERIAL_ECHOPAIR(" F:", static_cast<int>(fanSpeedsClassic_resume));
+	for(size_t i = 0; i < EXTRUDERS; i++){
+		SERIAL_ECHOPAIR(" FL", i);
+		SERIAL_ECHOPAIR(":",flow_percentage_save[i]);
+	}
+	SERIAL_ECHOPAIR(" Y:", onFirstLayerExec?1:0);
+	SERIAL_ECHOLNPAIR(" T:", static_cast<int>(active_extruder_resume));
   
 
 
@@ -7468,33 +7468,33 @@ inline void gcode_G73(){ //Save State and get back to DefaultMode
 	SERIAL_PROTOCOLLNPGM("Paused");
 }
 inline void gcode_G74(){ //Recover State
-  if (pause_flag) {
-    fanSpeedsClassic = fanSpeedsClassic_resume;
-    tool_change(active_extruder_resume);	//Just in case there is another tool active
-    active_extruder_parked = false;
-    dual_x_carriage_mode = dual_x_carriage_mode_resume;
-    motorMode = motorModeResume;		
-    COPY(planner.flow_percentage, flow_percentage_save);
-  } else if (!pause_started) {
-    SERIAL_PROTOCOLLNPGM("Not paused");
-  }
-  pause_started = false;
+	if (pause_flag) {
+		fanSpeedsClassic = fanSpeedsClassic_resume;
+		tool_change(active_extruder_resume);	//Just in case there is another tool active
+		active_extruder_parked = false;
+		dual_x_carriage_mode = dual_x_carriage_mode_resume;
+		motorMode = motorModeResume;		
+		COPY(planner.flow_percentage, flow_percentage_save);
+	} else if (!pause_started) {
+		SERIAL_PROTOCOLLNPGM("Not paused");
+	}
+	pause_started = false;
 }
 
 inline void gcode_G75(){ //Recover Relative State
-    relative_mode = relative_mode_before_pause;
-    SERIAL_PROTOCOLLNPGM("Relative state recovered");
+	relative_mode = relative_mode_before_pause;
+	SERIAL_PROTOCOLLNPGM("Relative state recovered");
 }
 
 inline void gcode_G76(){
-  if(parser.seen('D')) { dual_x_carriage_mode_resume = static_cast<DualXMode>(parser.intval('D')); }
-  if(parser.seen('M')) { motorModeResume = static_cast<motordriver_mode>(parser.intval('M')); }
-  if(parser.seen('F')) { fanSpeedsClassic_resume = parser.intval('F'); }
-  if(parser.seen('T')) { active_extruder_resume = parser.byteval('T'); }
-  if(parser.seen('L')) { flow_percentage_save[0] = parser.byteval('L'); }
-  if(parser.seen('R')) { flow_percentage_save[1] = parser.byteval('R'); }
-  //if(parser.seen('Y')) { onFirstLayerExec = parser.byteval('Y')?true:false; }
-  pause_flag = true;
+	if(parser.seen('D')) { dual_x_carriage_mode_resume = static_cast<DualXMode>(parser.intval('D')); }
+	if(parser.seen('M')) { motorModeResume = static_cast<motordriver_mode>(parser.intval('M')); }
+	if(parser.seen('F')) { fanSpeedsClassic_resume = parser.intval('F'); }
+	if(parser.seen('T')) { active_extruder_resume = parser.byteval('T'); }
+	if(parser.seen('L')) { flow_percentage_save[0] = parser.byteval('L'); }
+	if(parser.seen('R')) { flow_percentage_save[1] = parser.byteval('R'); }
+	//if(parser.seen('Y')) { onFirstLayerExec = parser.byteval('Y')?true:false; }
+	pause_flag = true;
 }
 
 // Calib
