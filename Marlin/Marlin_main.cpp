@@ -15051,7 +15051,7 @@ void process_parsed_command() {
         case 73: gcode_G73(); break;                                // G73: BCN3D Exec Pause
         case 74: gcode_G74(); break;                                // G74: BCN3D Exec UnPause 
         case 75: gcode_G75(); break;                                // G75: BCN3D Recover Relative State
-        case 76: gcode_G76(); break;                                // G75: BCN3D Recover Pause State
+        case 76: gcode_G76(); break;                                // G76: BCN3D Recover Pause State
       #endif
 
       case 90: relative_mode = false; break;                      // G90: Absolute coordinates
