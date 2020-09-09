@@ -8322,7 +8322,6 @@ inline void gcode_G36() { //BCN3D G36 pattern
 inline void gcode_G715() {
 	SERIAL_PROTOCOLLNPGM("New layer");
   if(onFirstLayerExec) { 
-    SERIAL_PROTOCOLLNPGM("El Comisario Oliver");
     onFirstLayerExec = false;
   }
 }
