@@ -8321,9 +8321,9 @@ inline void gcode_G36() { //BCN3D G36 pattern
 
 inline void gcode_G715() {
 	SERIAL_PROTOCOLLNPGM("New layer");
-  if(onFirstLayerExec) { 
-    onFirstLayerExec = false;
-  }
+	if(onFirstLayerExec) { 
+		onFirstLayerExec = false;
+	}
 }
 
 inline void gcode_M535() {
