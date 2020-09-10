@@ -7457,11 +7457,14 @@ inline void gcode_G74(){ //Recover State
     dual_x_carriage_mode = dual_x_carriage_mode_resume;
     motorMode = motorModeResume;		
     COPY(planner.flow_percentage, flow_percentage_save);
-    relative_mode = relative_mode_before_pause;
   } else if (!pause_started) {
     SERIAL_PROTOCOLLNPGM("Not paused");
   }
   pause_started = false;
+}
+inline void gcode_G75(){ //Recover Relative State
+    relative_mode = relative_mode_before_pause;
+    SERIAL_PROTOCOLLNPGM("Relative state recovered");
 }
 // Calib
 float extrusion_multiplier(float distance, float layerh, float hSize=0.4/*default value*/)
@@ -8349,6 +8352,7 @@ inline void gcode_M544() { // Begin print
 
 inline void gcode_M545() { // End print
   // Reset the gcode line counter
+  SERIAL_PROTOCOLLN("End print");
   gcode_LastN = 0;
 }
 #endif  //BCN3D Mod
@@ -15006,12 +15010,13 @@ void process_parsed_command() {
         case 42: gcode_G42(); break;                              // G42: Move to mesh point
       #endif
 
-	  #if defined(BCN3D_MOD)
-	  case 71: gcode_G71(); break;                                // G71: BCN3D Go Park
-	  case 72: gcode_G72(); break;                                // G72: BCN3D Go unPark
-	  case 73: gcode_G73(); break;                                // G73: BCN3D Exec Pause
-	  case 74: gcode_G74(); break;                                // G72: BCN3D Exec UnPause  
-	  #endif
+      #if defined(BCN3D_MOD)
+        case 71: gcode_G71(); break;                                // G71: BCN3D Go Park
+        case 72: gcode_G72(); break;                                // G72: BCN3D Go unPark
+        case 73: gcode_G73(); break;                                // G73: BCN3D Exec Pause
+        case 74: gcode_G74(); break;                                // G74: BCN3D Exec UnPause 
+        case 75: gcode_G75(); break;                                // G75: BCN3D Recover Relative State
+      #endif
 
       case 90: relative_mode = false; break;                      // G90: Absolute coordinates
       case 91: relative_mode = true; break;                       // G91: Relative coordinates
