@@ -14918,22 +14918,32 @@ void trackgcode_parse_command() {
 	if(parser.codenum != 0 && parser.codenum != 1) return;
 
 
-	// set X
-	if(parser.seen('X')) {
-		tracking_position[X_AXIS] = parser.value_float();
-	}
-	// set Y
-	if(parser.seen('Y')) {
-		tracking_position[Y_AXIS] = parser.value_float();
-	}
-	// set Z
-	if(parser.seen('Z')) {
-		tracking_position[Z_AXIS] = parser.value_float();
-	}
-	// set E
-	if(parser.seen('E')) {
-		tracking_position[E_CART] = parser.value_float();
-	}
+	// // set X
+	// if(parser.seen('X')) {
+	// 	tracking_position[X_AXIS] = parser.value_float();
+	// }
+	// // set Y
+	// if(parser.seen('Y')) {
+	// 	tracking_position[Y_AXIS] = parser.value_float();
+	// }
+	// // set Z
+	// if(parser.seen('Z')) {
+	// 	tracking_position[Z_AXIS] = parser.value_float();
+	// }
+	// // set E
+	// if(parser.seen('E')) {
+	// 	tracking_position[E_CART] = parser.value_float();
+	// }
+
+    LOOP_XYZE(i) {
+    if (parser.seen(axis_codes[i])) {
+      const float v = parser.value_axis_units((AxisEnum)i);
+      tracking_position[i] = (axis_relative_modes[i] || relative_mode)
+        ? current_position[i] + v
+        : (i == E_CART) ? v : LOGICAL_TO_NATIVE(v, i);
+    }
+  }
+
 	// set F
 	if(parser.seen('F')) {
 		tracking_feedrate = parser.value_float();
