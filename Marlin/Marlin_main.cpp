@@ -12662,7 +12662,7 @@ inline void gcode_M400() {
 void quickstop_stepper() {
 
   while(MYSERIAL0.read() >= 0); // drop serial buffer
-
+  clear_command_queue();
   planner.quick_stop();
   //planner.synchronize();
   //set_current_from_steppers_for_axis(ALL_AXES);
