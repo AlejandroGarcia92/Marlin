@@ -50,7 +50,7 @@
    * version was tagged.
    */
 
-  #define STRING_DISTRIBUTION_DATE "2020-09-21"
+  #define STRING_DISTRIBUTION_DATE "2020-10-09"
 
   /**
    * Required minimum Configuration.h and Configuration_adv.h file versions.
