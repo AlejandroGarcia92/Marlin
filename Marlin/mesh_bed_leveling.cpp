@@ -43,6 +43,16 @@
     reset();
   }
 
+  void mesh_bed_leveling::update_mesh_bed_leveling(float max_x, float max_y) {
+    const float mesh_x_dist = (max_x - MESH_MIN_X) / (GRID_MAX_POINTS_X - 1);
+    const float mesh_y_dist = (max_y - MESH_MIN_Y) / (GRID_MAX_POINTS_Y - 1);
+    for (uint8_t i = 0; i < GRID_MAX_POINTS_X; ++i)
+      index_to_xpos[i] = MESH_MIN_X + i * (mesh_x_dist);
+    for (uint8_t i = 0; i < GRID_MAX_POINTS_Y; ++i)
+      index_to_ypos[i] = MESH_MIN_Y + i * (mesh_y_dist);
+    reset();
+  }
+
   void mesh_bed_leveling::reset() {
     z_offset = 0;
     ZERO(z_values);

@@ -282,6 +282,9 @@
     #include "least_squares_fit.h"
   #endif
 #elif ENABLED(MESH_BED_LEVELING)
+  #ifdef BCN3D_MOD
+    #include "vector_3.h"
+  #endif
   #include "mesh_bed_leveling.h"
 #endif
 
@@ -8244,15 +8247,18 @@ inline void gcode_G36() { //BCN3D G36 pattern
   const float patternOffset_z = parser.floatval('O');
   const float layer_height = LINES_LAYER_HEIGHT_XY;
   const float hSize = parser.floatval('H');
+  const bool continuePrinting = parser.boolval('C');
+ 
+  if (!continuePrinting) {
+    current_position[E_AXIS]+=15;
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(50),active_extruder); // slow purge
 
-  current_position[E_AXIS]+=15;
-	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(50),active_extruder); // slow purge
+    current_position[Z_AXIS] = 2;
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // move Z
 
-	current_position[Z_AXIS] = 2;
-	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // move Z
-
-	current_position[E_AXIS]-= RETRACT_PRINTER_FACTOR;
-	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder); // Retract
+    current_position[E_AXIS]-= RETRACT_PRINTER_FACTOR;
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder); // Retract
+  }
 
 
 	//POS A start
@@ -8312,9 +8318,9 @@ inline void gcode_G36() { //BCN3D G36 pattern
 	current_position[Z_AXIS]+= 5;
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // rise Z
 
-	current_position[X_AXIS] = x_home_pos(active_extruder);
-	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder); // Go Park
-	planner.synchronize();
+	// current_position[X_AXIS] = x_home_pos(active_extruder);
+	// planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder); // Go Park
+	// planner.synchronize();
 
 }
 
@@ -11911,6 +11917,7 @@ inline void gcode_M226() {
 			xBedSize = parser.floatval('X');
 			yBedSize = parser.floatval('Y');
 			duplicate_extruder_x_offset = xBedSize/2.0;
+      mesh_bed_leveling::update_mesh_bed_leveling(xBedSize,yBedSize);
 	   }
 	   else{
 		   SERIAL_ECHOLNPAIR("Bed Size X: ", xBedSize);
