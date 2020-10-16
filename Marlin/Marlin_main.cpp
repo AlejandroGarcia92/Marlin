@@ -7578,7 +7578,7 @@ void z_test_print_code(uint8_t tool, float x_offset, float hSize=0.4/*default va
 
 	tool_change(tool); // Select Tool
 
-	current_position[E_AXIS]+=15;
+	current_position[E_AXIS]+=purge_printer_factor;
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(50),active_extruder); // slow purge
 
 	current_position[Z_AXIS] = 2;
@@ -7638,7 +7638,7 @@ void z_test_print_code(uint8_t tool, float x_offset, float hSize=0.4/*default va
 	}
 
 
-	current_position[E_AXIS]-=retract_printer_factor;
+	current_position[E_AXIS]-=retract_print_test_factor;
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder);// Retract
 
 	//RETIRE HOTEND
@@ -7649,7 +7649,7 @@ void z_test_print_code(uint8_t tool, float x_offset, float hSize=0.4/*default va
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder); // Go Park
 	planner.synchronize();
 
-	if(active_extruder == 1) tool_change(0); // back to tool 0
+  if(active_extruder == 1) tool_change(0); // back to tool 0
 
 }
 
@@ -7776,7 +7776,7 @@ inline void gcode_G241() {//BCN3D Calib pattern for X axis
 
 
 	}
-	current_position[E_AXIS]-=retract_printer_factor;
+	current_position[E_AXIS]-=retract_print_test_factor;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST) , active_extruder);
 	planner.synchronize();
 
@@ -7837,7 +7837,7 @@ inline void gcode_G241() {//BCN3D Calib pattern for X axis
 		draw_print_line(X_AXIS, 37.5,LINES_LAYER_HEIGHT_XY, hotend_size_setup[1]);
 
 	}
-	current_position[E_AXIS]-=retract_printer_factor;
+	current_position[E_AXIS]-=retract_print_test_factor;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST) , active_extruder);
 	planner.synchronize();
 	current_position[Z_AXIS]+=Z_HOMING_HEIGHT;
@@ -7996,7 +7996,7 @@ inline void gcode_G242(){//BCN3D Calib pattern for Y axis
 		}
 
 	}
-	current_position[E_AXIS]-=retract_printer_factor;
+	current_position[E_AXIS]-=retract_print_test_factor;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST), active_extruder);//Retract
 	planner.synchronize();
 	current_position[Z_AXIS]+=Z_HOMING_HEIGHT;
@@ -8256,9 +8256,8 @@ inline void gcode_G36() { //BCN3D G36 pattern
     current_position[Z_AXIS] = 2;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // move Z
 
-    current_position[E_AXIS]-= RETRACT_PRINTER_FACTOR;
-    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder); // Retract
-  }
+	current_position[E_AXIS]-= retract_printer_factor;
+	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder); // Retract
 
 
 	//POS A start
@@ -8273,7 +8272,7 @@ inline void gcode_G36() { //BCN3D G36 pattern
 	planner.synchronize();
 	//POS A done
 
-	current_position[E_AXIS]+=(RETRACT_PRINTER_FACTOR+0.1);
+	current_position[E_AXIS]+=(retract_printer_factor+0.1);
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST), active_extruder);//Purge
 
 
@@ -8311,7 +8310,7 @@ inline void gcode_G36() { //BCN3D G36 pattern
 	}
 
 
-	current_position[E_AXIS]-=RETRACT_PRINTER_FACTOR;
+	current_position[E_AXIS]-=retract_print_test_factor;
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder);// Retract
 
 	//RETIRE HOTEND
