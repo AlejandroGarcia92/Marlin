@@ -8250,15 +8250,15 @@ inline void gcode_G36() { //BCN3D G36 pattern
   const bool continuePrinting = parser.boolval('C');
  
   if (!continuePrinting) {
-    current_position[E_AXIS]+=15;
+    current_position[E_AXIS] += purge_printer_factor;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(50),active_extruder); // slow purge
 
     current_position[Z_AXIS] = 2;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // move Z
 
-	current_position[E_AXIS]-= retract_printer_factor;
-	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder); // Retract
-
+	  current_position[E_AXIS] -= retract_printer_factor;
+	  planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder); // Retract
+  }
 
 	//POS A start
 	current_position[Y_AXIS] = patternInitCoord_y;
@@ -8276,11 +8276,11 @@ inline void gcode_G36() { //BCN3D G36 pattern
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST), active_extruder);//Purge
 
 
-	draw_print_line_scrirt(Y_AXIS,-60.0, hSize, layer_height);//POS B
+	draw_print_line_scrirt(Y_AXIS,-46.0, hSize, layer_height);//POS B
 
 	draw_print_line_scrirt(X_AXIS, 24.0, hSize, layer_height);//POS C
 
-	draw_print_line_scrirt(Y_AXIS, 60.0, hSize, layer_height);//POS D
+	draw_print_line_scrirt(Y_AXIS, 46.0, hSize, layer_height);//POS D
 	//POS A
 
 	current_position[Z_AXIS] = layer_height + 2*G36_LAYER_DIF + patternOffset_z;
@@ -8297,7 +8297,7 @@ inline void gcode_G36() { //BCN3D G36 pattern
 
 	for(int i = 1; i<=5;i++){ //first line 5 to 1 ending
 
-		draw_print_line(Z_AXIS, -52, layer_height, hSize); //draw a line
+		draw_print_line(Z_AXIS, -38, layer_height, hSize); //draw a line
 
 		if (i != 5) {
 
@@ -8310,7 +8310,7 @@ inline void gcode_G36() { //BCN3D G36 pattern
 	}
 
 
-	current_position[E_AXIS]-=retract_print_test_factor;
+	current_position[E_AXIS]-=retract_printer_factor;
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder);// Retract
 
 	//RETIRE HOTEND
