@@ -33,19 +33,23 @@
   float mesh_bed_leveling::z_offset,
         mesh_bed_leveling::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
         mesh_bed_leveling::index_to_xpos[GRID_MAX_POINTS_X],
-        mesh_bed_leveling::index_to_ypos[GRID_MAX_POINTS_Y];
+        mesh_bed_leveling::index_to_ypos[GRID_MAX_POINTS_Y],
+        mesh_bed_leveling::mesh_x_dist,
+        mesh_bed_leveling::mesh_y_dist;
 
   mesh_bed_leveling::mesh_bed_leveling() {
+    mesh_x_dist = MESH_X_DIST;
+    mesh_y_dist = MESH_Y_DIST;
     for (uint8_t i = 0; i < GRID_MAX_POINTS_X; ++i)
-      index_to_xpos[i] = MESH_MIN_X + i * (MESH_X_DIST);
+      index_to_xpos[i] = MESH_MIN_X + i * (mesh_x_dist);
     for (uint8_t i = 0; i < GRID_MAX_POINTS_Y; ++i)
-      index_to_ypos[i] = MESH_MIN_Y + i * (MESH_Y_DIST);
+      index_to_ypos[i] = MESH_MIN_Y + i * (mesh_y_dist);    
     reset();
   }
 
   void mesh_bed_leveling::update_mesh_bed_leveling(float max_x, float max_y) {
-    const float mesh_x_dist = (max_x - MESH_MIN_X) / (GRID_MAX_POINTS_X - 1);
-    const float mesh_y_dist = (max_y - MESH_MIN_Y) / (GRID_MAX_POINTS_Y - 1);
+    mesh_x_dist = (max_x - MESH_MIN_X) / (GRID_MAX_POINTS_X - 1);
+    mesh_y_dist = (max_y - MESH_MIN_Y) / (GRID_MAX_POINTS_Y - 1);
     for (uint8_t i = 0; i < GRID_MAX_POINTS_X; ++i)
       index_to_xpos[i] = MESH_MIN_X + i * (mesh_x_dist);
     for (uint8_t i = 0; i < GRID_MAX_POINTS_Y; ++i)
