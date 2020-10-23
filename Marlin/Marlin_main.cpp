@@ -7646,7 +7646,7 @@ void z_test_print_code(uint8_t tool, float x_offset, float hSize=0.4/*default va
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder); // Go Park
 	planner.synchronize();
 
-  if(active_extruder == 1) tool_change(0); // back to tool 0
+	if(active_extruder == 1) tool_change(0); // back to tool 0
 
 }
 
