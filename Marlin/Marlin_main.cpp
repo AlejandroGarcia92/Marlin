@@ -8008,7 +8008,8 @@ inline void gcode_G242(){//BCN3D Calib pattern for Y axis
 }
 
 inline void gcode_G290(){//BCN3D Bed leveling
-
+#ifdef AUTO_BED_LEVELING_BILINEAR
+#else
 	#ifdef BCN3D_PRINT_SIMULATION
 	dwell(4000); // 4 seconds delays
 	SERIAL_PROTOCOLPGM("ScrewBed0: ");
@@ -8218,6 +8219,7 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	SERIAL_PROTOCOLPGM(" ScrewBed1: ");
 	MYSERIAL0.print(Z_knob_right-Z_knob_back, 6);
 	SERIAL_EOL();
+  #endif
 }
 
 inline void gcode_M668() {
