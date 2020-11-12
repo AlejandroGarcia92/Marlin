@@ -6273,6 +6273,13 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
       SERIAL_PROTOCOLLNPAIR_F(" Z: ", measured_z);
     }
 
+    #if defined(BCN3D_MOD)
+    if (parser.boolval('S', true)) {
+      hotend_offset[Z_AXIS][active_extruder] = measured_z;
+      SERIAL_PROTOCOLLNPAIR_F("T1 offset Z: ", measured_z);
+    }
+    #endif
+
     clean_up_after_endstop_or_probe_move();
 
     #ifdef Z_AFTER_PROBING
