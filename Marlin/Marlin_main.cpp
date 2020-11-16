@@ -6273,6 +6273,13 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
       SERIAL_PROTOCOLLNPAIR_F(" Z: ", measured_z);
     }
 
+    #if defined(BCN3D_MOD)
+    if (parser.boolval('S', true)) {
+      hotend_offset[Z_AXIS][active_extruder] = measured_z;
+      SERIAL_PROTOCOLLNPAIR_F("T1 offset Z: ", measured_z);
+    }
+    #endif
+
     clean_up_after_endstop_or_probe_move();
 
     #ifdef Z_AFTER_PROBING
@@ -8008,7 +8015,8 @@ inline void gcode_G242(){//BCN3D Calib pattern for Y axis
 }
 
 inline void gcode_G290(){//BCN3D Bed leveling
-
+#ifdef AUTO_BED_LEVELING_BILINEAR
+#else
 	#ifdef BCN3D_PRINT_SIMULATION
 	dwell(4000); // 4 seconds delays
 	SERIAL_PROTOCOLPGM("ScrewBed0: ");
@@ -8218,6 +8226,7 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	SERIAL_PROTOCOLPGM(" ScrewBed1: ");
 	MYSERIAL0.print(Z_knob_right-Z_knob_back, 6);
 	SERIAL_EOL();
+  #endif
 }
 
 inline void gcode_M668() {
