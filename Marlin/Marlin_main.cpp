@@ -628,10 +628,6 @@ static float y_probe_left_extr[3] = {Y_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_2_
 static float x_probe_right_extr[3] = {X_SIGMA_PROBE_1_RIGHT_EXTR, X_SIGMA_PROBE_2_RIGHT_EXTR, X_SIGMA_PROBE_3_RIGHT_EXTR};
 static float y_probe_right_extr[3] = {Y_SIGMA_PROBE_1_RIGHT_EXTR, Y_SIGMA_PROBE_2_RIGHT_EXTR, Y_SIGMA_PROBE_3_RIGHT_EXTR};
 
-//Mesh probe points
-static float x_probe_mesh_points[3] = {X_BCN3D_MESH_START_POINT_1, X_BCN3D_MESH_START_POINT_1 + X_BCN3D_MESH_SHIFT, X_BCN3D_MESH_START_POINT_1 + X_BCN3D_MESH_SHIFT*2};
-static float y_probe_mesh_points[3] = {Y_BCN3D_MESH_START_POINT_1, Y_BCN3D_MESH_START_POINT_1 - Y_BCN3D_MESH_SHIFT, Y_BCN3D_MESH_START_POINT_1 - Y_BCN3D_MESH_SHIFT*2};
-
 //Z safe homming points
 #if ENABLED(Z_SAFE_HOMING)
 static float z_safe_homing_x_point = Z_SAFE_HOMING_X_POINT;
@@ -8393,7 +8389,15 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
 	//We have to save the active extruder.
 
 	SYNC_PLAN_POSITION_KINEMATIC();
+  
+  float start_x = x_probe_left_extr[0]*2;
+  float shift_x = (xBedSize-start_x)/3; //Matrix 4x3
+  
+  float start_y = y_probe_left_extr[1]*2;
+  float shift_y = (yBedSize-start_y)/2; //Matrix 4x3
 
+  float x_probe_mesh_points[4] = {start_x, start_x + shift_x, start_x + shift_x*2, start_x + shift_x*3};
+  float y_probe_mesh_points[3] = {start_y, start_y + shift_y, start_y + shift_y*2};
 
 	//MOVING THE EXTRUDERS TO AVOID HITTING THE CASE WHEN PROBING-------------------------
 	current_position[X_AXIS] += x_gap_avoid_collision_l;
@@ -8435,9 +8439,9 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
 
 	SERIAL_PROTOCOLPGM("Zvalue after home: ");
 	SERIAL_PROTOCOLLN(current_position[Z_AXIS]);
-  float mesh_z_points[3][3];
+  float mesh_z_points[4][3];
 
-  for (int x = 0; x < 3; x++) {
+  for (int x = 0; x < 4; x++) {
     for (int y = 0; y < 3; y++) {
       	setup_for_endstop_or_probe_move();
         mesh_z_points[x][y] = probe_pt(x_probe_mesh_points[x], y_probe_mesh_points[y], PROBE_PT_RAISE, 3);
@@ -8458,18 +8462,24 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
 	MYSERIAL0.print(mesh_z_points[0][1], 3);
   SERIAL_PROTOCOLPGM(" p13:");
 	MYSERIAL0.print(mesh_z_points[0][2], 3);
+  SERIAL_PROTOCOLPGM(" p14:");
+	MYSERIAL0.print(mesh_z_points[0][3], 3);
   SERIAL_PROTOCOLPGM(" p21:");
 	MYSERIAL0.print(mesh_z_points[1][0], 3);
   SERIAL_PROTOCOLPGM(" p22:");
 	MYSERIAL0.print(mesh_z_points[1][1], 3);
   SERIAL_PROTOCOLPGM(" p23:");
-	MYSERIAL0.print(mesh_z_points[1][2], 3);
+  MYSERIAL0.print(mesh_z_points[1][2], 3);
+  SERIAL_PROTOCOLPGM(" p24:");
+	MYSERIAL0.print(mesh_z_points[1][3], 3);
   SERIAL_PROTOCOLPGM(" p31:");
 	MYSERIAL0.print(mesh_z_points[2][0], 3);
   SERIAL_PROTOCOLPGM(" p32:");
 	MYSERIAL0.print(mesh_z_points[2][1], 3);
   SERIAL_PROTOCOLPGM(" p33:");
   MYSERIAL0.print(mesh_z_points[2][2], 3);
+  SERIAL_PROTOCOLPGM(" p34:");
+	MYSERIAL0.print(mesh_z_points[2][3], 3);
 	SERIAL_EOL();
 }
 
