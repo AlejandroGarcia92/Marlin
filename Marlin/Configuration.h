@@ -806,16 +806,16 @@
  *      O-- FRONT --+
  *    (0,0)
  */
-#define X_PROBE_OFFSET_FROM_EXTRUDER 5  // X offset: -left  +right  [of the nozzle]
+#define X_PROBE_OFFSET_FROM_EXTRUDER 17  // X offset: -left  +right  [of the nozzle]
 #define Y_PROBE_OFFSET_FROM_EXTRUDER 22  // Y offset: -front +behind [the nozzle]
-#define Z_PROBE_OFFSET_FROM_EXTRUDER 0   // Z offset: -below +above  [the nozzle]
+#define Z_PROBE_OFFSET_FROM_EXTRUDER 4.8   // Z offset: -below +above  [the nozzle]
 
 #define X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER	-13.4
 #define Y_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER	22
 #define Z_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER	0//2.90
 
 // Certain types of probes need to stay away from edges
-#define MIN_PROBE_EDGE 20
+#define MIN_PROBE_EDGE -8
 
 // X and Y axis travel speed (mm/m) between probes
 #define XY_PROBE_SPEED 8000
@@ -915,19 +915,19 @@
 // The size of the print bed
 
 
-#define X_BED_SIZE 210
-#define Y_BED_SIZE 297
+#define X_BED_SIZE 420
+#define Y_BED_SIZE 300
 
 
 
 // Travel limits (mm) after homing, corresponding to endstop positions.
 // Epsilon default values
-#define X_MIN_POS -47
+#define X_MIN_POS -53.5
 #define Y_MIN_POS -1
 #define Z_MIN_POS 0
 #define X_MAX_POS (X_BED_SIZE + 2) 
 #define Y_MAX_POS Y_BED_SIZE + 1
-#define Z_MAX_POS 210
+#define Z_MAX_POS 400
 
 /**
  * Software Endstops
@@ -1014,7 +1014,7 @@
  */
 //#define AUTO_BED_LEVELING_3POINT
 //#define AUTO_BED_LEVELING_LINEAR
-#define AUTO_BED_LEVELING_BILINEAR
+//#define AUTO_BED_LEVELING_BILINEAR
 //#define AUTO_BED_LEVELING_UBL
 #define MESH_BED_LEVELING
 
@@ -1022,7 +1022,7 @@
  * Normally G28 leaves leveling disabled on completion. Enable
  * this option to have G28 restore the prior leveling state.
  */
-#define RESTORE_LEVELING_AFTER_G28
+//#define RESTORE_LEVELING_AFTER_G28
 
 /**
  * Enable detailed logging of G28, G29, M48, etc.
