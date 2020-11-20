@@ -628,6 +628,10 @@ static float y_probe_left_extr[3] = {Y_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_2_
 static float x_probe_right_extr[3] = {X_SIGMA_PROBE_1_RIGHT_EXTR, X_SIGMA_PROBE_2_RIGHT_EXTR, X_SIGMA_PROBE_3_RIGHT_EXTR};
 static float y_probe_right_extr[3] = {Y_SIGMA_PROBE_1_RIGHT_EXTR, Y_SIGMA_PROBE_2_RIGHT_EXTR, Y_SIGMA_PROBE_3_RIGHT_EXTR};
 
+//Mesh probe points
+static float x_probe_mesh_points[3] = {X_BCN3D_MESH_START_POINT_1, X_BCN3D_MESH_START_POINT_1 + X_BCN3D_MESH_SHIFT, X_BCN3D_MESH_START_POINT_1 + X_BCN3D_MESH_SHIFT*2};
+static float y_probe_mesh_points[3] = {Y_BCN3D_MESH_START_POINT_1, Y_BCN3D_MESH_START_POINT_1 - Y_BCN3D_MESH_SHIFT, Y_BCN3D_MESH_START_POINT_1 - Y_BCN3D_MESH_SHIFT*2};
+
 //Z safe homming points
 #if ENABLED(Z_SAFE_HOMING)
 static float z_safe_homing_x_point = Z_SAFE_HOMING_X_POINT;
@@ -8431,87 +8435,17 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
 
 	SERIAL_PROTOCOLPGM("Zvalue after home: ");
 	SERIAL_PROTOCOLLN(current_position[Z_AXIS]);
+  float mesh_z_points[3][3];
 
-	setup_for_endstop_or_probe_move();
-	float p31 = probe_pt(x_probe_left_extr[0],yBedSize-y_probe_left_extr[2], PROBE_PT_RAISE, 3);
-	clean_up_after_endstop_or_probe_move();
+  for (int x = 0; x < 3; x++) {
+    for (int y = 0; y < 3; y++) {
+      	setup_for_endstop_or_probe_move();
+        mesh_z_points[x][y] = probe_pt(x_probe_mesh_points[x], y_probe_mesh_points[y], PROBE_PT_RAISE, 3);
+        clean_up_after_endstop_or_probe_move();
 
-  feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
-
-	setup_for_endstop_or_probe_move();
-	float p21 = probe_pt(x_probe_left_extr[0],yBedSize/2, PROBE_PT_RAISE, 3);
-	clean_up_after_endstop_or_probe_move();
-
-	// Move the probe to the starting Y
-	current_position[Y_AXIS] = y_probe_left_extr[2] - Y_PROBE_OFFSET_FROM_EXTRUDER;
-	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], XY_PROBE_FEEDRATE_MM_S, 1);
-
-	setup_for_endstop_or_probe_move();
-	float p11 = probe_pt(x_probe_left_extr[1],y_probe_left_extr[1], PROBE_PT_RAISE, 3);
-	clean_up_after_endstop_or_probe_move();
-
-  setup_for_endstop_or_probe_move();
-	float p12 = probe_pt(x_probe_left_extr[1] + (x_probe_left_extr[2] - x_probe_left_extr[1])/2,y_probe_left_extr[2], PROBE_PT_RAISE, 3);
-	clean_up_after_endstop_or_probe_move();
-
-	setup_for_endstop_or_probe_move();
-	float p13_t0 = probe_pt(x_probe_left_extr[2],y_probe_left_extr[2], PROBE_PT_RAISE, 3);
-	clean_up_after_endstop_or_probe_move();
-
-	current_position[Z_AXIS] += Z_RAISE_BET_PROBINGS;
-	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(600), 0);
-
-	current_position[X_AXIS]=x_home_pos(active_extruder)+x_gap_avoid_collision_l;
-	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
-
-	planner.synchronize();
-
-	//Now the right extruder joins the party!
-
-	active_extruder=1;
-	set_axis_is_at_home(X_AXIS); //Redoes the Max Min calculus for the right extruder
-	current_position[X_AXIS]-=x_gap_avoid_collision_r;
-	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]);
-
-
-// Right probing
-//
-//  +--------------------------+
-//  |                      33  |
-//  |                          |
-//  |                          |
-//  |                      23  |
-//  |                          |
-//  |                          |
-//  |                      13  |
-//  +--------------------------+
-
-	//Probe at 3 arbitrary points
-	//probe right extruder
-
-	setup_for_endstop_or_probe_move();
-	float p13_t1 = probe_pt(x_probe_right_extr[1], y_probe_right_extr[1], PROBE_PT_RAISE, 3);
-	clean_up_after_endstop_or_probe_move();
-
-  feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;	
-
-	// Move the probe to the starting X
-	current_position[X_AXIS] = x_probe_right_extr[0] - X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
-	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(4000), 1);
-
-  setup_for_endstop_or_probe_move();
-	float p23 = probe_pt(x_probe_right_extr[0], yBedSize/2, PROBE_PT_RAISE, 3);
-	clean_up_after_endstop_or_probe_move();
-
-	setup_for_endstop_or_probe_move();
-	float p33 = probe_pt(x_probe_right_extr[0], yBedSize-y_probe_right_extr[1], PROBE_PT_RAISE, 3);
-	clean_up_after_endstop_or_probe_move();
-
-	current_position[Z_AXIS] = Z_AFTER_PROBING;
-	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(480), 1);
-
-	current_position[X_AXIS]=x_home_pos(active_extruder)-10;
-	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 1);
+        feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+    }
+  }
 
 	planner.synchronize();
 
@@ -8519,23 +8453,24 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
 	tool_change(0);
 
   SERIAL_PROTOCOLPGM("Auto Mesh Bed Leveling p11:");
-	MYSERIAL0.print(p11, 3);
+	MYSERIAL0.print(mesh_z_points[0][0], 3);
 	SERIAL_PROTOCOLPGM(" p12:");
-	MYSERIAL0.print(p12, 3);
-  SERIAL_PROTOCOLPGM(" p13t0:");
-	MYSERIAL0.print(p13_t0, 3);
-  SERIAL_PROTOCOLPGM(" p13t1:");
-	MYSERIAL0.print(p13_t1, 3);
+	MYSERIAL0.print(mesh_z_points[0][1], 3);
+  SERIAL_PROTOCOLPGM(" p13:");
+	MYSERIAL0.print(mesh_z_points[0][2], 3);
   SERIAL_PROTOCOLPGM(" p21:");
-	MYSERIAL0.print(p21, 3);
+	MYSERIAL0.print(mesh_z_points[1][0], 3);
+  SERIAL_PROTOCOLPGM(" p22:");
+	MYSERIAL0.print(mesh_z_points[1][1], 3);
   SERIAL_PROTOCOLPGM(" p23:");
-	MYSERIAL0.print(p23, 3);
+	MYSERIAL0.print(mesh_z_points[1][2], 3);
   SERIAL_PROTOCOLPGM(" p31:");
-	MYSERIAL0.print(p31, 3);
+	MYSERIAL0.print(mesh_z_points[2][0], 3);
+  SERIAL_PROTOCOLPGM(" p32:");
+	MYSERIAL0.print(mesh_z_points[2][1], 3);
   SERIAL_PROTOCOLPGM(" p33:");
-	MYSERIAL0.print(p33, 3);
+  MYSERIAL0.print(mesh_z_points[2][2], 3);
 	SERIAL_EOL();
-
 }
 
 inline void gcode_M668() {
