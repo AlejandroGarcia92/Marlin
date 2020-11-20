@@ -8452,7 +8452,7 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
 	home_axis_from_code(true, true, false);
 	tool_change(0);
 
-  SERIAL_PROTOCOLPGM("Auto Mesh Bed Leveling p11:");
+  SERIAL_PROTOCOLPGM("Probe Auto Mesh Bed Leveling p11:");
 	MYSERIAL0.print(mesh_z_points[0][0], 3);
 	SERIAL_PROTOCOLPGM(" p12:");
 	MYSERIAL0.print(mesh_z_points[0][1], 3);
