@@ -8390,14 +8390,14 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
 
 	SYNC_PLAN_POSITION_KINEMATIC();
   
-  float start_x = x_probe_left_extr[0]*2;
-  float shift_x = (xBedSize-start_x*2)/3; //Matrix 4x3
+  const float start_x = x_probe_left_extr[0]*2;
+  const float shift_x = (xBedSize-start_x*2)/3; //Matrix 4x3
   
-  float start_y = y_probe_left_extr[1]*2;
-  float shift_y = (yBedSize-start_y*2)/2; //Matrix 4x3
+  const float start_y = y_probe_left_extr[1]*2;
+  const float shift_y = (yBedSize-start_y*2)/2; //Matrix 4x3
 
-  float x_probe_mesh_points[4] = {start_x, start_x + shift_x, start_x + shift_x*2, start_x + shift_x*3};
-  float y_probe_mesh_points[3] = {start_y, start_y + shift_y, start_y + shift_y*2};
+  const float x_probe_mesh_points[4] = {start_x, start_x + shift_x, start_x + shift_x*2, start_x + shift_x*3};
+  const float y_probe_mesh_points[3] = {start_y, start_y + shift_y, start_y + shift_y*2};
 
 	//MOVING THE EXTRUDERS TO AVOID HITTING THE CASE WHEN PROBING-------------------------
 	current_position[X_AXIS] += x_gap_avoid_collision_l;
@@ -8459,27 +8459,27 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
   SERIAL_PROTOCOLPGM("Probe Auto Mesh Bed Leveling p11:");
 	MYSERIAL0.print(mesh_z_points[0][0], 3);
 	SERIAL_PROTOCOLPGM(" p12:");
-	MYSERIAL0.print(mesh_z_points[0][1], 3);
-  SERIAL_PROTOCOLPGM(" p13:");
-	MYSERIAL0.print(mesh_z_points[0][2], 3);
-  SERIAL_PROTOCOLPGM(" p14:");
-	MYSERIAL0.print(mesh_z_points[0][3], 3);
-  SERIAL_PROTOCOLPGM(" p21:");
 	MYSERIAL0.print(mesh_z_points[1][0], 3);
+  SERIAL_PROTOCOLPGM(" p13:");
+	MYSERIAL0.print(mesh_z_points[2][0], 3);
+  SERIAL_PROTOCOLPGM(" p14:");
+	MYSERIAL0.print(mesh_z_points[3][0], 3);
+  SERIAL_PROTOCOLPGM(" p21:");
+	MYSERIAL0.print(mesh_z_points[0][1], 3);
   SERIAL_PROTOCOLPGM(" p22:");
 	MYSERIAL0.print(mesh_z_points[1][1], 3);
   SERIAL_PROTOCOLPGM(" p23:");
-  MYSERIAL0.print(mesh_z_points[1][2], 3);
+  MYSERIAL0.print(mesh_z_points[2][1], 3);
   SERIAL_PROTOCOLPGM(" p24:");
-	MYSERIAL0.print(mesh_z_points[1][3], 3);
+	MYSERIAL0.print(mesh_z_points[3][1], 3);
   SERIAL_PROTOCOLPGM(" p31:");
-	MYSERIAL0.print(mesh_z_points[2][0], 3);
+	MYSERIAL0.print(mesh_z_points[0][2], 3);
   SERIAL_PROTOCOLPGM(" p32:");
-	MYSERIAL0.print(mesh_z_points[2][1], 3);
+	MYSERIAL0.print(mesh_z_points[1][2], 3);
   SERIAL_PROTOCOLPGM(" p33:");
   MYSERIAL0.print(mesh_z_points[2][2], 3);
   SERIAL_PROTOCOLPGM(" p34:");
-	MYSERIAL0.print(mesh_z_points[2][3], 3);
+	MYSERIAL0.print(mesh_z_points[3][2], 3);
 	SERIAL_EOL();
 }
 
