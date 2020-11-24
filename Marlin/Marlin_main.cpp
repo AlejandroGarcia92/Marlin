@@ -8220,6 +8220,105 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	SERIAL_EOL();
 }
 
+inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
+
+	//We have to save the active extruder.
+
+	SYNC_PLAN_POSITION_KINEMATIC();
+  
+  const float start_x = x_probe_left_extr[1];
+  const float shift_x = (xBedSize-start_x*2)/3; //Matrix 4x3
+  
+  const float start_y = y_probe_left_extr[1];
+  const float shift_y = (yBedSize-start_y*2)/2; //Matrix 4x3
+
+  const float x_probe_mesh_points[4] = {start_x, start_x + shift_x, start_x + shift_x*2, start_x + shift_x*3};
+  const float y_probe_mesh_points[3] = {start_y, start_y + shift_y, start_y + shift_y*2};
+
+	//MOVING THE EXTRUDERS TO AVOID HITTING THE CASE WHEN PROBING-------------------------
+	current_position[X_AXIS] += x_gap_avoid_collision_l;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
+	///////planner.synchronize();
+	//current_position[X_AXIS] = x_home_pos(RIGHT_EXTRUDER);
+
+	active_extruder=1;
+	set_axis_is_at_home(X_AXIS); //Redoes the Max Min calculus for the Right extruder
+	SERIAL_PROTOCOLLN(current_position[X_AXIS]);
+	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]);
+	current_position[X_AXIS]-=x_gap_avoid_collision_r;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 1);
+
+	//*********************************************************************
+	//Now we can proceed to probe the first 3 points with the left extruder
+	active_extruder=0;
+	set_axis_is_at_home(X_AXIS);
+	current_position[X_AXIS]+=x_gap_avoid_collision_l;
+	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]); // We are now at position
+	planner.synchronize();
+
+
+// Left probing
+//
+//  +--------------------------+
+//  |  31                      |
+//  |                          |
+//  |                          |
+//  |  21                      |
+//  |                          |
+//  |                          |
+//  |  11       12          12 |
+//  +--------------------------+
+
+
+	// Probe at 3 arbitrary points
+	// probe left extruder
+
+	SERIAL_PROTOCOLPGM("Zvalue after home: ");
+	SERIAL_PROTOCOLLN(current_position[Z_AXIS]);
+  float mesh_z_points[4][3];
+
+  for (int x = 0; x < 4; x++) {
+    for (int y = 0; y < 3; y++) {
+      	setup_for_endstop_or_probe_move();
+        mesh_z_points[x][y] = probe_pt(x_probe_mesh_points[x], y_probe_mesh_points[y], PROBE_PT_RAISE, 3);
+        clean_up_after_endstop_or_probe_move();
+
+        feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+    }
+  }
+
+	planner.synchronize();
+
+	home_axis_from_code(true, true, false);
+	tool_change(0);
+
+  SERIAL_PROTOCOLPGM("Probe Auto Mesh Bed Leveling p11:");
+	MYSERIAL0.print(mesh_z_points[0][0], 3);
+	SERIAL_PROTOCOLPGM(" p12:");
+	MYSERIAL0.print(mesh_z_points[1][0], 3);
+  SERIAL_PROTOCOLPGM(" p13:");
+	MYSERIAL0.print(mesh_z_points[2][0], 3);
+  SERIAL_PROTOCOLPGM(" p14:");
+	MYSERIAL0.print(mesh_z_points[3][0], 3);
+  SERIAL_PROTOCOLPGM(" p21:");
+	MYSERIAL0.print(mesh_z_points[0][1], 3);
+  SERIAL_PROTOCOLPGM(" p22:");
+	MYSERIAL0.print(mesh_z_points[1][1], 3);
+  SERIAL_PROTOCOLPGM(" p23:");
+  MYSERIAL0.print(mesh_z_points[2][1], 3);
+  SERIAL_PROTOCOLPGM(" p24:");
+	MYSERIAL0.print(mesh_z_points[3][1], 3);
+  SERIAL_PROTOCOLPGM(" p31:");
+	MYSERIAL0.print(mesh_z_points[0][2], 3);
+  SERIAL_PROTOCOLPGM(" p32:");
+	MYSERIAL0.print(mesh_z_points[1][2], 3);
+  SERIAL_PROTOCOLPGM(" p33:");
+  MYSERIAL0.print(mesh_z_points[2][2], 3);
+  SERIAL_PROTOCOLPGM(" p34:");
+	MYSERIAL0.print(mesh_z_points[3][2], 3);
+	SERIAL_EOL();
+}
+
 inline void gcode_M668() {
 	planner.synchronize();
 
@@ -15296,6 +15395,7 @@ void process_parsed_command() {
         case 286: gcode_M286(); break;                            // M286: Collision avoidance bed leveling
         case 287: gcode_M287(); break;                            // M287: Set printing settings
         case 288: gcode_M288(); break;							              // M288: Set Chamber fan On/Off
+        case 292: gcode_G292(); break;                            // G292: BCN3D Mesh Bed leveling piezo
       #endif
 
       #if ENABLED(BABYSTEPPING)
