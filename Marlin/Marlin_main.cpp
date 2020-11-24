@@ -15158,6 +15158,7 @@ void process_parsed_command() {
         case 241: gcode_G241(); break;                            // G241: BCN3D Calib X
         case 242: gcode_G242(); break;                            // G242: BCN3D Calib Y
         case 290: gcode_G290(); break;                            // G290: BCN3D Bed leveling
+        case 292: gcode_G292(); break;                            // G292: BCN3D Mesh Bed leveling piezo
         case 715: gcode_G715(); break;                            // G715: Start New layer
       #endif
 
@@ -15395,7 +15396,6 @@ void process_parsed_command() {
         case 286: gcode_M286(); break;                            // M286: Collision avoidance bed leveling
         case 287: gcode_M287(); break;                            // M287: Set printing settings
         case 288: gcode_M288(); break;							              // M288: Set Chamber fan On/Off
-        case 292: gcode_G292(); break;                            // G292: BCN3D Mesh Bed leveling piezo
       #endif
 
       #if ENABLED(BABYSTEPPING)
