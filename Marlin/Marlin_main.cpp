@@ -8390,10 +8390,10 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
 
 	SYNC_PLAN_POSITION_KINEMATIC();
   
-  const float start_x = x_probe_left_extr[0]*2;
+  const float start_x = x_probe_left_extr[1];
   const float shift_x = (xBedSize-start_x*2)/3; //Matrix 4x3
   
-  const float start_y = y_probe_left_extr[1]*2;
+  const float start_y = y_probe_left_extr[1];
   const float shift_y = (yBedSize-start_y*2)/2; //Matrix 4x3
 
   const float x_probe_mesh_points[4] = {start_x, start_x + shift_x, start_x + shift_x*2, start_x + shift_x*3};
