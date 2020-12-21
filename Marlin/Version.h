@@ -35,7 +35,6 @@
   /**
    * Marlin release version identifier
    */
-
   #define SHORT_BUILD_VERSION "v0.8.3"
 
   /**
