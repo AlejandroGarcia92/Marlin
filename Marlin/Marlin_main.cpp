@@ -8506,7 +8506,7 @@ inline void gcode_G36() { //BCN3D G36 pattern
     current_position[E_AXIS] += purge_printer_factor;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(50),active_extruder); // slow purge
 
-    current_position[Z_AXIS] = 2;
+    current_position[Z_AXIS] = 7;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // move Z
 
 	  current_position[E_AXIS] -= retract_printer_factor;
@@ -8567,7 +8567,7 @@ inline void gcode_G36() { //BCN3D G36 pattern
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder);// Retract
 
 	//RETIRE HOTEND
-	current_position[Z_AXIS]+= 5;
+	current_position[Z_AXIS]+= 7;
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // rise Z
 
 	// current_position[X_AXIS] = x_home_pos(active_extruder);
@@ -8576,7 +8576,7 @@ inline void gcode_G36() { //BCN3D G36 pattern
 
 }
 
-inline void gcode_G37() { //BCN3D G36 pattern
+inline void gcode_G37() { //BCN3D G37 pattern
   if(!parser.seen('X') || !parser.seen('Y') || !parser.seen('O') || !parser.seen('H')) {
       SERIAL_ECHO_START();
       SERIAL_ECHOLNPGM(" Parameter is missing");
@@ -8594,7 +8594,7 @@ inline void gcode_G37() { //BCN3D G36 pattern
     current_position[E_AXIS] += purge_printer_factor;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(50),active_extruder); // slow purge
 
-    current_position[Z_AXIS] = 2;
+    current_position[Z_AXIS] = 7;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // move Z
 
 	  current_position[E_AXIS] -= retract_printer_factor;
@@ -8657,7 +8657,7 @@ inline void gcode_G37() { //BCN3D G36 pattern
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder);// Retract
 
 	//RETIRE HOTEND
-	current_position[Z_AXIS]+= 5;
+	current_position[Z_AXIS]+= 7;
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // rise Z
 
 	// current_position[X_AXIS] = x_home_pos(active_extruder);
