@@ -643,6 +643,9 @@ static float retract_printer_factor = RETRACT_PRINTER_FACTOR;
 static float retract_print_test_factor = RETRACT_PRINT_TEST_FACTOR;
 static float purge_printer_factor = PURGE_PRINTER_FACTOR;
 
+// X offset default
+static float x2_offset_default = X2_MAX_POS;
+
 #endif
 
 #if HAS_BED_PROBE
@@ -8113,24 +8116,26 @@ inline void gcode_G290(){//BCN3D Bed leveling
 //  |  3                    2  |
 //  +--------------------------+
 
+  const float x2_offset =  x_home_pos(1) - x2_offset_default;
+
 	//Probe at 3 arbitrary points
 	//probe right extruder
 	setup_for_endstop_or_probe_move();
-	float z2_at_pt_3 = probe_pt(x_probe_right_extr[2], y_probe_right_extr[2], PROBE_PT_RAISE, 3);
+	float z2_at_pt_3 = probe_pt(x_probe_right_extr[2] + x2_offset, y_probe_right_extr[2], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
 
 	feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 
 	setup_for_endstop_or_probe_move();
-	float z2_at_pt_2 = probe_pt(x_probe_right_extr[1], y_probe_right_extr[1], PROBE_PT_RAISE, 3);
+	float z2_at_pt_2 = probe_pt(x_probe_right_extr[1] + x2_offset, y_probe_right_extr[1], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
 
 	// Move the probe to the starting X
-	current_position[X_AXIS] = x_probe_right_extr[0] - X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
+	current_position[X_AXIS] = x_probe_right_extr[0] + x2_offset - X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(4000), 1);
 
 	setup_for_endstop_or_probe_move();
-	float z2_at_pt_1 = probe_pt(x_probe_right_extr[0], y_probe_right_extr[0], PROBE_PT_RAISE, 3);
+	float z2_at_pt_1 = probe_pt(x_probe_right_extr[0] + x2_offset, y_probe_right_extr[0], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
 
 	current_position[Z_AXIS] = Z_AFTER_PROBING;
@@ -12427,6 +12432,17 @@ inline void gcode_M226() {
 	   SERIAL_ECHOLNPAIR("Chamber fan: ", fan_pin);
    }
    /*
+	* M289: Set x offset default
+	*/
+   inline void gcode_M289() {
+	   if(parser.seen('X')) {
+			x2_offset_default = parser.floatval('X');
+	   }
+	   else{
+		   SERIAL_ECHOLNPAIR("x2_offset_default: ", x2_offset_default);
+	   }
+   }
+   /*
 	* M305: P#heater or B bed X#IDsensor
    */
    inline void gcode_M305() {
@@ -12578,6 +12594,8 @@ inline void gcode_M226() {
       SERIAL_ECHO(i+1);
       SERIAL_ECHOLNPAIR("]:Y=>", y_probe_right_extr[i]);
     }
+    //X default offset
+    SERIAL_ECHOLNPAIR("conf:positions:defaultXOffset=>", x2_offset_default);
 
     /* Print parameters */
     SERIAL_ECHOLNPAIR("conf:printParameters:retractPrinterFactor=>", retract_printer_factor);
@@ -15648,6 +15666,7 @@ void process_parsed_command() {
         case 286: gcode_M286(); break;                            // M286: Collision avoidance bed leveling
         case 287: gcode_M287(); break;                            // M287: Set printing settings
         case 288: gcode_M288(); break;							              // M288: Set Chamber fan On/Off
+        case 289: gcode_M289(); break;							              // M289: Set x offset default
       #endif
 
       #if ENABLED(BABYSTEPPING)
