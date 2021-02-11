@@ -8295,7 +8295,7 @@ inline void gcode_G291(){//BCN3D Mesh Bed leveling auto
 	setup_for_endstop_or_probe_move();
 	float p11 = probe_pt(x_probe_left_extr[1],y_probe_left_extr[1], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
-
+  
   setup_for_endstop_or_probe_move();
 	float p12 = probe_pt(x_probe_left_extr[1] + (x_probe_left_extr[2] - x_probe_left_extr[1])/2,y_probe_left_extr[2], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
@@ -8382,6 +8382,105 @@ inline void gcode_G291(){//BCN3D Mesh Bed leveling auto
 	MYSERIAL0.print(p33, 3);
 	SERIAL_EOL();
 
+}
+  
+inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
+
+	//We have to save the active extruder.
+
+	SYNC_PLAN_POSITION_KINEMATIC();
+  
+  const float start_x = x_probe_left_extr[1];
+  const float shift_x = (xBedSize-start_x*2)/3; //Matrix 4x3
+  
+  const float start_y = y_probe_left_extr[1];
+  const float shift_y = (yBedSize-start_y*2)/2; //Matrix 4x3
+
+  const float x_probe_mesh_points[4] = {start_x, start_x + shift_x, start_x + shift_x*2, start_x + shift_x*3};
+  const float y_probe_mesh_points[3] = {start_y, start_y + shift_y, start_y + shift_y*2};
+
+	//MOVING THE EXTRUDERS TO AVOID HITTING THE CASE WHEN PROBING-------------------------
+	current_position[X_AXIS] += x_gap_avoid_collision_l;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
+	///////planner.synchronize();
+	//current_position[X_AXIS] = x_home_pos(RIGHT_EXTRUDER);
+
+	active_extruder=1;
+	set_axis_is_at_home(X_AXIS); //Redoes the Max Min calculus for the Right extruder
+	SERIAL_PROTOCOLLN(current_position[X_AXIS]);
+	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]);
+	current_position[X_AXIS]-=x_gap_avoid_collision_r;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 1);
+
+	//*********************************************************************
+	//Now we can proceed to probe the first 3 points with the left extruder
+	active_extruder=0;
+	set_axis_is_at_home(X_AXIS);
+	current_position[X_AXIS]+=x_gap_avoid_collision_l;
+	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]); // We are now at position
+	planner.synchronize();
+
+
+// Left probing
+//
+//  +--------------------------+
+//  |  31                      |
+//  |                          |
+//  |                          |
+//  |  21                      |
+//  |                          |
+//  |                          |
+//  |  11       12          12 |
+//  +--------------------------+
+
+
+	// Probe at 3 arbitrary points
+	// probe left extruder
+
+	SERIAL_PROTOCOLPGM("Zvalue after home: ");
+	SERIAL_PROTOCOLLN(current_position[Z_AXIS]);
+  float mesh_z_points[4][3];
+
+  for (int x = 0; x < 4; x++) {
+    for (int y = 0; y < 3; y++) {
+      	setup_for_endstop_or_probe_move();
+        mesh_z_points[x][y] = probe_pt(x_probe_mesh_points[x], y_probe_mesh_points[y], PROBE_PT_RAISE, 3);
+        clean_up_after_endstop_or_probe_move();
+
+        feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+    }
+  }
+
+	planner.synchronize();
+
+	home_axis_from_code(true, true, false);
+	tool_change(0);
+
+  SERIAL_PROTOCOLPGM("Probe Auto Mesh Bed Leveling p11:");
+	MYSERIAL0.print(mesh_z_points[0][0], 3);
+	SERIAL_PROTOCOLPGM(" p12:");
+	MYSERIAL0.print(mesh_z_points[1][0], 3);
+  SERIAL_PROTOCOLPGM(" p13:");
+	MYSERIAL0.print(mesh_z_points[2][0], 3);
+  SERIAL_PROTOCOLPGM(" p14:");
+	MYSERIAL0.print(mesh_z_points[3][0], 3);
+  SERIAL_PROTOCOLPGM(" p21:");
+	MYSERIAL0.print(mesh_z_points[0][1], 3);
+  SERIAL_PROTOCOLPGM(" p22:");
+	MYSERIAL0.print(mesh_z_points[1][1], 3);
+  SERIAL_PROTOCOLPGM(" p23:");
+  MYSERIAL0.print(mesh_z_points[2][1], 3);
+  SERIAL_PROTOCOLPGM(" p24:");
+	MYSERIAL0.print(mesh_z_points[3][1], 3);
+  SERIAL_PROTOCOLPGM(" p31:");
+	MYSERIAL0.print(mesh_z_points[0][2], 3);
+  SERIAL_PROTOCOLPGM(" p32:");
+	MYSERIAL0.print(mesh_z_points[1][2], 3);
+  SERIAL_PROTOCOLPGM(" p33:");
+  MYSERIAL0.print(mesh_z_points[2][2], 3);
+  SERIAL_PROTOCOLPGM(" p34:");
+	MYSERIAL0.print(mesh_z_points[3][2], 3);
+	SERIAL_EOL();
 }
 
 inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
@@ -8513,7 +8612,7 @@ inline void gcode_G36() { //BCN3D G36 pattern
     current_position[E_AXIS] += purge_printer_factor;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(50),active_extruder); // slow purge
 
-    current_position[Z_AXIS] = 2;
+    current_position[Z_AXIS] = 7;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // move Z
 
 	  current_position[E_AXIS] -= retract_printer_factor;
@@ -8574,7 +8673,7 @@ inline void gcode_G36() { //BCN3D G36 pattern
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder);// Retract
 
 	//RETIRE HOTEND
-	current_position[Z_AXIS]+= 5;
+	current_position[Z_AXIS]+= 7;
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // rise Z
 
 	// current_position[X_AXIS] = x_home_pos(active_extruder);
@@ -8583,7 +8682,7 @@ inline void gcode_G36() { //BCN3D G36 pattern
 
 }
 
-inline void gcode_G37() { //BCN3D G36 pattern
+inline void gcode_G37() { //BCN3D G37 pattern
   if(!parser.seen('X') || !parser.seen('Y') || !parser.seen('O') || !parser.seen('H')) {
       SERIAL_ECHO_START();
       SERIAL_ECHOLNPGM(" Parameter is missing");
@@ -8601,7 +8700,7 @@ inline void gcode_G37() { //BCN3D G36 pattern
     current_position[E_AXIS] += purge_printer_factor;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(50),active_extruder); // slow purge
 
-    current_position[Z_AXIS] = 2;
+    current_position[Z_AXIS] = 7;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // move Z
 
 	  current_position[E_AXIS] -= retract_printer_factor;
@@ -8664,7 +8763,7 @@ inline void gcode_G37() { //BCN3D G36 pattern
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST),active_extruder);// Retract
 
 	//RETIRE HOTEND
-	current_position[Z_AXIS]+= 5;
+	current_position[Z_AXIS]+= 7;
 	planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(600),active_extruder); // rise Z
 
 	// current_position[X_AXIS] = x_home_pos(active_extruder);
