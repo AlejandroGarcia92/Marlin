@@ -726,6 +726,7 @@
  *
  */
 //#define Z_MIN_PROBE_ENDSTOP
+//#define Z_MIN_PROBE_PIN 34
 
 /**
  * Probe Type

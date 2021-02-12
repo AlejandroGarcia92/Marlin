@@ -207,6 +207,10 @@ extern const char axis_codes[XYZE];
   extern bool G38_move,        // flag to tell the interrupt handler that a G38 command is being run
               G38_endstop_hit; // flag from the interrupt handler to indicate if the endstop went active
 #endif
+#if defined(BCN3D_MOD)
+  extern bool G40_move,        // flag to tell the interrupt handler that a G38 command is being run
+              G40_endstop_hit; // flag from the interrupt handler to indicate if the endstop went active
+#endif
 
 void enable_all_steppers();
 void disable_e_stepper(const uint8_t e);

@@ -367,6 +367,11 @@
        G38_endstop_hit = false;
 #endif
 
+#if defined(BCN3D_MOD)
+  bool G40_move = false,
+       G40_endstop_hit = false;
+#endif
+
 #if ENABLED(AUTO_BED_LEVELING_UBL)
   #include "ubl.h"
 #endif
@@ -8673,6 +8678,93 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
 }
 
+  static bool G40_run_probe() {
+
+    bool G40_pass_fail = false;
+
+    #if MULTIPLE_PROBING > 1
+      // Get direction of move and retract
+      float retract_mm[XYZ];
+      LOOP_XYZ(i) {
+        float dist = destination[i] - current_position[i];
+        retract_mm[i] = ABS(dist) < G38_MINIMUM_MOVE ? 0 : home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
+      }
+    #endif
+
+    // Move until destination reached or target hit
+    planner.synchronize();
+    endstops.enable(true);
+    G40_move = true;
+    G40_endstop_hit = false;
+    prepare_move_to_destination();
+    planner.synchronize();
+    G40_move = false;
+
+    endstops.hit_on_purpose();
+    set_current_from_steppers_for_axis(ALL_AXES);
+    SYNC_PLAN_POSITION_KINEMATIC();
+
+    if (G40_endstop_hit) {
+
+      G40_pass_fail = true;
+
+      #if MULTIPLE_PROBING > 1
+        // Move away by the retract distance
+        set_destination_from_current();
+        LOOP_XYZ(i) destination[i] += retract_mm[i];
+        endstops.enable(false);
+        prepare_move_to_destination();
+
+        feedrate_mm_s /= 4;
+
+        // Bump the target more slowly
+        LOOP_XYZ(i) destination[i] -= retract_mm[i] * 2;
+
+        planner.synchronize();
+        endstops.enable(true);
+        G40_move = true;
+        prepare_move_to_destination();
+        planner.synchronize();
+        G40_move = false;
+
+        set_current_from_steppers_for_axis(ALL_AXES);
+        SYNC_PLAN_POSITION_KINEMATIC();
+      #endif
+    }
+
+    endstops.hit_on_purpose();
+    endstops.not_homing();
+    return G40_pass_fail;
+  }
+
+  /**
+   * G38.2 - probe toward workpiece, stop on contact, signal error if failure
+   * G38.3 - probe toward workpiece, stop on contact
+   *
+   * Like G28 except uses Z min probe for all axes
+   */
+  inline void gcode_G40() {
+    // Get X Y Z E F
+    gcode_get_destination();
+
+    setup_for_endstop_or_probe_move();
+
+    // If any axis has enough movement, do the move
+    LOOP_XYZ(i)
+      if (ABS(destination[i] - current_position[i]) >= G38_MINIMUM_MOVE) {
+        if (!parser.seenval('F')) feedrate_mm_s = homing_feedrate((AxisEnum)i);
+        // If G38.2 fails throw an error
+        if (!G40_run_probe()) {
+          SERIAL_ERROR_START();
+          SERIAL_ERRORLNPGM("Failed to reach target");
+        }
+        break;
+      }
+
+    clean_up_after_endstop_or_probe_move();
+  }
+
+
 inline void gcode_G715() {
 	SERIAL_PROTOCOLLNPGM("New layer");
 	if(onFirstLayerExec) { 
@@ -15379,6 +15471,7 @@ void process_parsed_command() {
       #if defined(BCN3D_MOD)
         case 36: gcode_G36(); break;                              // G36: BCN3D G36 implementation
         case 37: gcode_G37(); break;                              // G37: BCN3D G37 MBL pattern
+        case 40: gcode_G40(); break;
       #endif
 
       #if ENABLED(G38_PROBE_TARGET)

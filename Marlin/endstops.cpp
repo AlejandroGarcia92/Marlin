@@ -577,6 +577,18 @@ void Endstops::update() {
     } \
   }while(0)
 
+  #if defined(BCN3D_MOD)
+    #define PROCESS_DUAL_Z_PROBE_ENDSTOP() do { \
+    const byte dual_hit = TEST_ENDSTOP(_ENDSTOP(Z, false)) | TEST_ENDSTOP(_ENDSTOP(Z2, false)); \
+    if (dual_hit) { \
+      _ENDSTOP_HIT(Z, false); \
+      /* if not performing home or if both endstops were trigged during homing... */ \
+      /*if (!stepper.homing_dual_axis || dual_hit == 0b11) */ \
+        planner.endstop_triggered(); \
+    } \
+  }while(0)
+  #endif
+
   #if ENABLED(G38_PROBE_TARGET) && PIN_EXISTS(Z_MIN_PROBE) && !(CORE_IS_XY || CORE_IS_XZ)
     // If G38 command is active check Z_MIN_PROBE for ALL movement
     if (G38_move) {
@@ -585,6 +597,16 @@ void Endstops::update() {
         else if (stepper.axis_is_moving(Y_AXIS)) { _ENDSTOP_HIT(Y, MIN); planner.endstop_triggered(Y_AXIS); }
         else if (stepper.axis_is_moving(Z_AXIS)) { _ENDSTOP_HIT(Z, MIN); planner.endstop_triggered(Z_AXIS); }
         G38_endstop_hit = true;
+      }
+    }
+  #endif
+  #if defined(BCN3D_MOD)
+    // If G40 command is active check Z_MIN_PROBE for ALL movement
+    if (G40_move) {
+      if (TEST_ENDSTOP(_ENDSTOP(Z, MIN))) {
+        if      (stepper.axis_is_moving(X_AXIS)) { _ENDSTOP_HIT(X, MIN); planner.endstop_triggered(X_AXIS); }
+        else if (stepper.axis_is_moving(Y_AXIS)) { _ENDSTOP_HIT(Y, MIN); planner.endstop_triggered(Y_AXIS); }
+        G40_endstop_hit = true;
       }
     }
   #endif
