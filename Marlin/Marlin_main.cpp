@@ -8758,7 +8758,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
       destination[Y_AXIS] = yPos;
       //TODO: improve "magic numbers" below
       if (i % 2 == 0) {
-        tool_change(active_extruder == 0 ? 1 : 0);
+        if (i != 0) tool_change(active_extruder == 0 ? 1 : 0);
+        
         destination[X_AXIS] += i > 3 ? 0 : 20;
         destination[Y_AXIS] += i > 3 ? 20 : 0;          
       } else {
@@ -8780,8 +8781,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
         SERIAL_ERROR_START();
         SERIAL_ERRORLNPGM("Failed XY autocalibration");
       } else {
-          points[i] = i > 3 ? current_position[X_AXIS] : current_position[Y_AXIS];
+        points[i] = i > 3 ? planner.get_axis_position_mm(AxisEnum::X_AXIS) : planner.get_axis_position_mm(AxisEnum::Y_AXIS);
       }
+      SERIAL_ECHOLNPAIR("point", points[i]);
       clean_up_after_endstop_or_probe_move();
     }
     
@@ -8791,13 +8793,11 @@ inline void gcode_G37() { //BCN3D G37 pattern
       xLeft = xPos + (points[0]-xPos+points[1]-xPos) / 2;
       xRight = xPos + (points[2]-xPos+points[3]-xPos) / 2;
       xOffset = xLeft - xRight;
-      SERIAL_ERROR_START();
       SERIAL_ECHOLNPAIR("xOffset:", xOffset);
       double yLeft, yRight, yOffset;
       yLeft = yPos + (points[0]-yPos+points[1]-yPos) / 2;
       yRight = yPos + (points[2]-yPos+points[3]-yPos) / 2;
       yOffset = yLeft - yRight;
-      SERIAL_ERROR_START();
       SERIAL_ECHOLNPAIR("yOffset:", yOffset);
   }
 
