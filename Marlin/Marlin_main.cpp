@@ -8744,24 +8744,61 @@ inline void gcode_G37() { //BCN3D G37 pattern
    * Like G28 except uses Z min probe for all axes
    */
   inline void gcode_G40() {
-    // Get X Y Z E F
-    gcode_get_destination();
+    
+    //Go to prove coords.
+    double points[8] = {0};
+    float xPos = parser.floatval('X');
+    float yPos = parser.floatval('Y');
+    feedrate_mm_s = 5;
+    tool_change(0); 
 
-    setup_for_endstop_or_probe_move();
-
-    // If any axis has enough movement, do the move
-    LOOP_XYZ(i)
-      if (ABS(destination[i] - current_position[i]) >= G38_MINIMUM_MOVE) {
-        if (!parser.seenval('F')) feedrate_mm_s = homing_feedrate((AxisEnum)i);
-        // If G38.2 fails throw an error
-        if (!G40_run_probe()) {
-          SERIAL_ERROR_START();
-          SERIAL_ERRORLNPGM("Failed to reach target");
-        }
-        break;
+    for (uint8_t i = 0; i < 8; i++) {
+    
+      destination[X_AXIS] = xPos;
+      destination[Y_AXIS] = yPos;
+      //TODO: improve "magic numbers" below
+      if (i % 2 == 0) {
+        tool_change(active_extruder == 0 ? 1 : 0);
+        destination[X_AXIS] += i > 3 ? 0 : 20;
+        destination[Y_AXIS] += i > 3 ? 20 : 0;          
+      } else {
+        destination[X_AXIS] -= i > 3 ? 0 : 20;
+        destination[Y_AXIS] -= i > 3 ? 20 : 0;  
       }
 
-    clean_up_after_endstop_or_probe_move();
+      current_position[X_AXIS] = xPos;
+      current_position[Y_AXIS] = yPos;
+      
+      
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+
+      setup_for_endstop_or_probe_move();
+
+      // If G38.2 fails throw an error
+      if (!G40_run_probe()) {
+        SERIAL_ERROR_START();
+        SERIAL_ERRORLNPGM("Failed XY autocalibration");
+      } else {
+          points[i] = i > 3 ? current_position[X_AXIS] : current_position[Y_AXIS];
+      }
+      clean_up_after_endstop_or_probe_move();
+    }
+    
+
+    //Calc of offsets
+      double xLeft, xRight, xOffset;
+      xLeft = xPos + (points[0]-xPos+points[1]-xPos) / 2;
+      xRight = xPos + (points[2]-xPos+points[3]-xPos) / 2;
+      xOffset = xLeft - xRight;
+      SERIAL_ERROR_START();
+      SERIAL_ECHOLNPAIR("xOffset:", xOffset);
+      double yLeft, yRight, yOffset;
+      yLeft = yPos + (points[0]-yPos+points[1]-yPos) / 2;
+      yRight = yPos + (points[2]-yPos+points[3]-yPos) / 2;
+      yOffset = yLeft - yRight;
+      SERIAL_ERROR_START();
+      SERIAL_ECHOLNPAIR("yOffset:", yOffset);
   }
 
 

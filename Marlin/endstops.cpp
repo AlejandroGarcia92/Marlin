@@ -603,7 +603,7 @@ void Endstops::update() {
   #if defined(BCN3D_MOD)
     // If G40 command is active check Z_MIN_PROBE for ALL movement
     if (G40_move) {
-      if (TEST_ENDSTOP(_ENDSTOP(Z, MIN))) {
+      if (TEST_ENDSTOP(_ENDSTOP(Z, MIN)) || TEST_ENDSTOP(_ENDSTOP(Z2, MIN))) {
         if      (stepper.axis_is_moving(X_AXIS)) { _ENDSTOP_HIT(X, MIN); planner.endstop_triggered(X_AXIS); }
         else if (stepper.axis_is_moving(Y_AXIS)) { _ENDSTOP_HIT(Y, MIN); planner.endstop_triggered(Y_AXIS); }
         G40_endstop_hit = true;
