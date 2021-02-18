@@ -8681,7 +8681,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
   static bool G40_run_probe() {
 
     bool G40_pass_fail = false;
-
     #if MULTIPLE_PROBING > 1
       // Get direction of move and retract
       float retract_mm[XYZ];
@@ -8696,7 +8695,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
     endstops.enable(true);
     G40_move = true;
     G40_endstop_hit = false;
-    prepare_move_to_destination();
+    //prepare_move_to_destination();
+    planner.buffer_line(destination[X_AXIS],destination[Y_AXIS],destination[Z_AXIS],current_position[E_AXIS],feedrate_mm_s,active_extruder);
     planner.synchronize();
     G40_move = false;
 
@@ -8713,8 +8713,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
         set_destination_from_current();
         LOOP_XYZ(i) destination[i] += retract_mm[i];
         endstops.enable(false);
-        prepare_move_to_destination();
-
+        //prepare_move_to_destination();
+        planner.buffer_line(destination[X_AXIS],destination[Y_AXIS],destination[Z_AXIS],current_position[E_AXIS],feedrate_mm_s,active_extruder);
         feedrate_mm_s /= 4;
 
         // Bump the target more slowly
@@ -8723,7 +8723,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
         planner.synchronize();
         endstops.enable(true);
         G40_move = true;
-        prepare_move_to_destination();
+        //prepare_move_to_destination();
+        planner.buffer_line(destination[X_AXIS],destination[Y_AXIS],destination[Z_AXIS],current_position[E_AXIS],feedrate_mm_s,active_extruder);
         planner.synchronize();
         G40_move = false;
 
@@ -8744,17 +8745,46 @@ inline void gcode_G37() { //BCN3D G37 pattern
    * Like G28 except uses Z min probe for all axes
    */
   inline void gcode_G40() {
-    
     //Go to prove coords.
     double points[8] = {0};
     float xPos = parser.floatval('X');
     float yPos = parser.floatval('Y');
     feedrate_mm_s = 5;
     AxisEnum currentAxis = X_AXIS;
-    tool_change(0); 
+    current_position[X_AXIS] = xPos;
+    current_position[Y_AXIS] = yPos;
+    tool_change(0);
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+    planner.synchronize();
+    current_position[Z_AXIS] = -5;
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+    planner.synchronize();
+    destination[Z_AXIS] = -5;
 
     for (uint8_t i = 0; i < 8; i++) {
     
+      
+      if (i == 4) {
+        current_position[Z_AXIS] = 5;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+        tool_change(active_extruder == 0 ? 1 : 0);
+        current_position[X_AXIS] = xPos;
+        current_position[Y_AXIS] = yPos;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+        current_position[Z_AXIS] = -5;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+        destination[Z_AXIS] = -5;
+      } else {
+        current_position[X_AXIS] = xPos;
+        current_position[Y_AXIS] = yPos;
+        current_position[Z_AXIS] = -5;
+        
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+      }
       destination[X_AXIS] = xPos;
       destination[Y_AXIS] = yPos;
       //TODO: improve "magic numbers" below
@@ -8764,14 +8794,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
       } else {
         destination[currentAxis] -= 20;  
       }
-      if (i == 4)  tool_change(active_extruder == 0 ? 1 : 0);
 
-      current_position[X_AXIS] = xPos;
-      current_position[Y_AXIS] = yPos;
-      
-      
-      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-      planner.synchronize();
+
 
       setup_for_endstop_or_probe_move();
 
@@ -8785,7 +8809,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
       SERIAL_ECHOLNPAIR("point", points[i]);
       clean_up_after_endstop_or_probe_move();
     }
-    
 
     //Calc of offsets
     //TODO: improve "magic numbers" below
@@ -17021,7 +17044,6 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
         #endif
       }
     #endif // HAS_MESH
-
     buffer_line_to_destination(MMS_SCALED(feedrate_mm_s));
     return false; // caller will update current_position
   }
