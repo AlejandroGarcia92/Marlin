@@ -8746,6 +8746,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
    */
   inline void gcode_G40() {
     //Go to prove coords.
+    bool success = true;
     double points[8] = {0};
     float xPos = parser.floatval('X');
     float yPos = parser.floatval('Y');
@@ -8801,17 +8802,18 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
       // If G40 fails throw an error
       if (!G40_run_probe()) {
-        SERIAL_ERROR_START();
-        SERIAL_ERRORLNPGM("Failed XY autocalibration");
+        //SERIAL_ERROR_START();
+        //SERIAL_ERRORLNPGM("Failed XY autocalibration");
+        success = false;
       } else {
         points[i] = current_position[currentAxis];
       }
-      SERIAL_ECHOLNPAIR("point", points[i]);
       clean_up_after_endstop_or_probe_move();
     }
 
     //Calc of offsets
     //TODO: improve "magic numbers" below
+    if (success) {
       double xLeft, xRight, xOffset;
       xLeft = xPos + (points[0]-xPos+points[1]-xPos) / 2;
       xRight = xPos + (points[4]-xPos+points[5]-xPos) / 2;
@@ -8822,6 +8824,14 @@ inline void gcode_G37() { //BCN3D G37 pattern
       yRight = yPos + (points[6]-yPos+points[7]-yPos) / 2;
       yOffset = yLeft - yRight;
       SERIAL_ECHOLNPAIR("yOffset:", yOffset);
+      SERIAL_ECHOLN("XY autocalibration finished");
+      hotend_offset[X_AXIS][1] = xOffset;
+      hotend_offset[Y_AXIS][1] = yOffset;
+    } else {
+      SERIAL_ERROR_START();
+      SERIAL_ERRORLNPGM("Failed XY autocalibration");
+    }
+
   }
 
 
