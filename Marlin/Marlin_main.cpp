@@ -8818,15 +8818,17 @@ inline void gcode_G37() { //BCN3D G37 pattern
       xLeft = xPos + (points[0]-xPos+points[1]-xPos) / 2;
       xRight = xPos + (points[4]-xPos+points[5]-xPos) / 2;
       xOffset = xLeft - xRight;
-      SERIAL_ECHOLNPAIR("xOffset:", xOffset);
+      
       double yLeft, yRight, yOffset;
       yLeft = yPos + (points[2]-yPos+points[3]-yPos) / 2;
       yRight = yPos + (points[6]-yPos+points[7]-yPos) / 2;
       yOffset = yLeft - yRight;
-      SERIAL_ECHOLNPAIR("yOffset:", yOffset);
+      hotend_offset[X_AXIS][1] += xOffset;
+      hotend_offset[Y_AXIS][1] += yOffset;
+      SERIAL_ECHOLNPAIR("xOffset:", hotend_offset[X_AXIS][1]);
+      SERIAL_ECHOLNPAIR("yOffset:", hotend_offset[Y_AXIS][1]);
       SERIAL_ECHOLN("XY autocalibration finished");
-      hotend_offset[X_AXIS][1] = xOffset;
-      hotend_offset[Y_AXIS][1] = yOffset;
+      
     } else {
       SERIAL_ERROR_START();
       SERIAL_ERRORLNPGM("Failed XY autocalibration");
