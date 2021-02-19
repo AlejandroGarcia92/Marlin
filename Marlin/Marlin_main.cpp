@@ -619,6 +619,12 @@ static bool relative_mode_before_pause = false;
 static float xBedSize = X_BED_SIZE;
 static float yBedSize = Y_BED_SIZE;
 
+//Probe offsets
+static float xProbeOffset = X_PROBE_OFFSET_FROM_EXTRUDER;
+static float yProbeOffset = Y_PROBE_OFFSET_FROM_EXTRUDER;
+static float xSecondProbeOffset = X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
+static float ySecondProbeOffset = Y_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
+
 //Knob positions
 static float x_screw_bed_calib_1 = SCREW_BED_1_X;
 static float y_screw_bed_calib_1 = SCREW_BED_1_Y;
@@ -2777,11 +2783,11 @@ void clean_up_after_endstop_or_probe_move() {
       //if (!position_is_reachable_by_probe(rx, ry)) return NAN;  // The given position is in terms of the probe
 	  #if defined(BCN3D_MOD)
 	  if(active_extruder == 0){
-		nx -= (X_PROBE_OFFSET_FROM_EXTRUDER);                     // Get the nozzle position
-		ny -= (Y_PROBE_OFFSET_FROM_EXTRUDER);
+		nx -= (xProbeOffset);                     // Get the nozzle position
+		ny -= (yProbeOffset);
 	  }else{
-		nx -= (X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER);        // Get the nozzle position
-		ny -= (Y_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER);
+		nx -= (xSecondProbeOffset);        // Get the nozzle position
+		ny -= (ySecondProbeOffset);
 	  }
 	  #else
 	  nx -= (X_PROBE_OFFSET_FROM_EXTRUDER);                     // Get the nozzle position
@@ -4525,8 +4531,8 @@ inline void gcode_G4() {
     destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
 
     #if HOMING_Z_WITH_PROBE
-      destination[X_AXIS] -= X_PROBE_OFFSET_FROM_EXTRUDER;
-      destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_EXTRUDER;
+      destination[X_AXIS] -= xProbeOffset;
+      destination[Y_AXIS] -= yProbeOffset;
     #endif
 
     if (position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) {
@@ -7118,8 +7124,8 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
       if (hasI) destination[X_AXIS] = _GET_MESH_X(ix);
       if (hasJ) destination[Y_AXIS] = _GET_MESH_Y(iy);
       if (parser.boolval('P')) {
-        if (hasI) destination[X_AXIS] -= X_PROBE_OFFSET_FROM_EXTRUDER;
-        if (hasJ) destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_EXTRUDER;
+        if (hasI) destination[X_AXIS] -= xProbeOffset;
+        if (hasJ) destination[Y_AXIS] -= yProbeOffset;
       }
 
       const float fval = parser.linearval('F');
@@ -8138,7 +8144,7 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	clean_up_after_endstop_or_probe_move();
 
 	// Move the probe to the starting X
-	current_position[X_AXIS] = x_probe_right_extr[0] - X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
+	current_position[X_AXIS] = x_probe_right_extr[0] - xSecondProbeOffset;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(4000), 1);
 
 	setup_for_endstop_or_probe_move();
@@ -8347,7 +8353,7 @@ inline void gcode_G291(){//BCN3D Mesh Bed leveling auto
   feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;	
 
 	// Move the probe to the starting X
-	current_position[X_AXIS] = x_probe_right_extr[0] - X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
+	current_position[X_AXIS] = x_probe_right_extr[0] - xSecondProbeOffset;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(4000), 1);
 
   setup_for_endstop_or_probe_move();
@@ -13573,6 +13579,33 @@ inline void gcode_M502() {
 #if HAS_BED_PROBE
 
   inline void gcode_M851() {
+    #if defined(BCN3D_MOD)
+    if (!parser.boolval('T')) {
+      if (parser.seenval('Z')) {
+        const float value = parser.floatval('Z');
+        if (WITHIN(value, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX))
+          zprobe_zoffset = value;
+      }
+      if (parser.seenval('X')) {
+        const float value = parser.floatval('X');
+        xProbeOffset = value;
+      }
+      if (parser.seenval('Y')) {
+        const float value = parser.floatval('Y');
+        yProbeOffset = value;
+      }
+    } else {
+      if (parser.seenval('X')) {
+        const float value = parser.floatval('X');
+        xSecondProbeOffset = value;
+      }
+      if (parser.seenval('Y')) {
+        const float value = parser.floatval('Y');
+        ySecondProbeOffset = value;
+      }
+    }
+    return;
+    #else
     if (parser.seenval('Z')) {
       const float value = parser.value_linear_units();
       if (WITHIN(value, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX))
@@ -13586,6 +13619,7 @@ inline void gcode_M502() {
     SERIAL_ECHO_START();
     SERIAL_ECHOPGM(MSG_PROBE_Z_OFFSET);
     SERIAL_ECHOLNPAIR(": ", zprobe_zoffset);
+    #endif
   }
 
 #endif // HAS_BED_PROBE
