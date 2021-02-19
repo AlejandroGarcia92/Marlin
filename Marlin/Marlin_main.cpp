@@ -8400,7 +8400,7 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
 	//We have to save the active extruder.
 
 	SYNC_PLAN_POSITION_KINEMATIC();
-  
+
   const float start_x = x_probe_left_extr[1];
   const float shift_x = (xBedSize-start_x*2)/3; //Matrix 4x3
   
