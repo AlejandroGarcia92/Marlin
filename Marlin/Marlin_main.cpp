@@ -12761,6 +12761,13 @@ inline void gcode_M226() {
     SERIAL_ECHOLNPAIR("conf:printParameters:retractPrintTestFactor=>", retract_print_test_factor);
     SERIAL_ECHOLNPAIR("conf:printParameters:purgePrinterFactor=>", purge_printer_factor);
 
+    /* Probe offsets */
+    SERIAL_ECHOLNPAIR("conf:probeOffsets:X0offset=>", xProbeOffset);
+    SERIAL_ECHOLNPAIR("conf:probeOffsets:Y0offset=>", yProbeOffset);
+    SERIAL_ECHOLNPAIR("conf:probeOffsets:Z0offset=>", zprobe_zoffset);
+    SERIAL_ECHOLNPAIR("conf:probeOffsets:X1offset=>", xSecondProbeOffset);
+    SERIAL_ECHOLNPAIR("conf:probeOffsets:Y1offset=>", ySecondProbeOffset);
+
     /* End of config */
     SERIAL_ECHOLNPGM("Config end");
   }
