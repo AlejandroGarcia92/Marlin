@@ -8566,7 +8566,7 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
 	home_axis_from_code(true, true, false);
 	tool_change(0);
 
-  SERIAL_PROTOCOLPGM("Probe Piezo Mesh Bed Leveling p11:");
+  SERIAL_PROTOCOLPGM("Piezo Mesh Bed Leveling p11:");
 	MYSERIAL0.print(mesh_z_points[0][0], 3);
 	SERIAL_PROTOCOLPGM(" p12:");
 	MYSERIAL0.print(mesh_z_points[1][0], 3);
@@ -8924,8 +8924,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
       yOffset = yLeft - yRight;
       hotend_offset[X_AXIS][1] += xOffset;
       hotend_offset[Y_AXIS][1] += yOffset;
-      SERIAL_ECHOLNPAIR("xOffset:", hotend_offset[X_AXIS][1]);
-      SERIAL_ECHOLNPAIR("yOffset:", hotend_offset[Y_AXIS][1]);
+      SERIAL_ECHOLNPAIR("T1 offset X: ", hotend_offset[X_AXIS][1]);
+      SERIAL_ECHOLNPAIR("T1 offset Y: ", hotend_offset[Y_AXIS][1]);
       SERIAL_ECHOLN("XY autocalibration finished");
       
     } else {
