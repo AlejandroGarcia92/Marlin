@@ -1106,7 +1106,7 @@
   #define _PROBE_RADIUS (DELTA_PRINTABLE_RADIUS - (MIN_PROBE_EDGE))
   #ifndef DELTA_CALIBRATION_RADIUS
     #ifdef X_PROBE_OFFSET_FROM_EXTRUDER
-      #define DELTA_CALIBRATION_RADIUS (DELTA_PRINTABLE_RADIUS - MAX3(abs(X_PROBE_OFFSET_FROM_EXTRUDER), abs(Y_PROBE_OFFSET_FROM_EXTRUDER), abs(MIN_PROBE_EDGE)))
+      #define DELTA_CALIBRATION_RADIUS (DELTA_PRINTABLE_RADIUS - MAX3(abs(xProbeOffset), abs(yProbeOffset), abs(MIN_PROBE_EDGE)))
     #else
       #define DELTA_CALIBRATION_RADIUS _PROBE_RADIUS
     #endif
@@ -1144,10 +1144,10 @@
 #else
 
   // Boundaries for Cartesian probing based on bed limits
-  #define _MIN_PROBE_X (max(X_MIN_BED + MIN_PROBE_EDGE, X_MIN_POS + X_PROBE_OFFSET_FROM_EXTRUDER))
-  #define _MIN_PROBE_Y (max(Y_MIN_BED + MIN_PROBE_EDGE, Y_MIN_POS + Y_PROBE_OFFSET_FROM_EXTRUDER))
-  #define _MAX_PROBE_X (min(X_MAX_BED - (MIN_PROBE_EDGE), X_MAX_POS + X_PROBE_OFFSET_FROM_EXTRUDER))
-  #define _MAX_PROBE_Y (min(Y_MAX_BED - (MIN_PROBE_EDGE), Y_MAX_POS + Y_PROBE_OFFSET_FROM_EXTRUDER))
+  #define _MIN_PROBE_X (max(X_MIN_BED + MIN_PROBE_EDGE, X_MIN_POS + xProbeOffset))
+  #define _MIN_PROBE_Y (max(Y_MIN_BED + MIN_PROBE_EDGE, Y_MIN_POS + yProbeOffset))
+  #define _MAX_PROBE_X (min(X_MAX_BED - (MIN_PROBE_EDGE), X_MAX_POS + xProbeOffset))
+  #define _MAX_PROBE_Y (min(Y_MAX_BED - (MIN_PROBE_EDGE), Y_MAX_POS + yProbeOffset))
 
 #endif
 
@@ -1189,10 +1189,12 @@
       #define _MESH_MAX_X (min(X_MAX_BED - (MESH_INSET), X_MAX_POS))
       #define _MESH_MAX_Y (min(Y_MAX_BED - (MESH_INSET), Y_MAX_POS))
     #else
-      #define _MESH_MIN_X (max(X_MIN_BED + MESH_INSET, X_MIN_POS + X_PROBE_OFFSET_FROM_EXTRUDER))
-      #define _MESH_MIN_Y (max(Y_MIN_BED + MESH_INSET, Y_MIN_POS + Y_PROBE_OFFSET_FROM_EXTRUDER))
-      #define _MESH_MAX_X (min(X_MAX_BED - (MESH_INSET), X_MAX_POS + X_PROBE_OFFSET_FROM_EXTRUDER))
-      #define _MESH_MAX_Y (min(Y_MAX_BED - (MESH_INSET), Y_MAX_POS + Y_PROBE_OFFSET_FROM_EXTRUDER))
+      extern float xProbeOffset;
+      extern float yProbeOffset;
+      #define _MESH_MIN_X (max(X_MIN_BED + MESH_INSET, X_MIN_POS + xProbeOffset))
+      #define _MESH_MIN_Y (max(Y_MIN_BED + MESH_INSET, Y_MIN_POS + yProbeOffset))
+      #define _MESH_MAX_X (min(X_MAX_BED - (MESH_INSET), X_MAX_POS + xProbeOffset))
+      #define _MESH_MAX_Y (min(Y_MAX_BED - (MESH_INSET), Y_MAX_POS + yProbeOffset))
     #endif
   #endif
 

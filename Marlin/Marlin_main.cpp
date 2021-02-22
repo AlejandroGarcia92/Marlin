@@ -620,10 +620,10 @@ static float xBedSize = X_BED_SIZE;
 static float yBedSize = Y_BED_SIZE;
 
 //Probe offsets
-static float xProbeOffset = X_PROBE_OFFSET_FROM_EXTRUDER;
-static float yProbeOffset = Y_PROBE_OFFSET_FROM_EXTRUDER;
-static float xSecondProbeOffset = X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
-static float ySecondProbeOffset = Y_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
+float xProbeOffset = X_PROBE_OFFSET_FROM_EXTRUDER;
+float yProbeOffset = Y_PROBE_OFFSET_FROM_EXTRUDER;
+float xSecondProbeOffset = X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
+float ySecondProbeOffset = Y_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
 
 //Knob positions
 static float x_screw_bed_calib_1 = SCREW_BED_1_X;
@@ -6172,8 +6172,8 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
           planner.leveling_active = false;
 
           // Use the last measured distance to the bed, if possible
-          if ( NEAR(current_position[X_AXIS], xProbe - (X_PROBE_OFFSET_FROM_EXTRUDER))
-            && NEAR(current_position[Y_AXIS], yProbe - (Y_PROBE_OFFSET_FROM_EXTRUDER))
+          if ( NEAR(current_position[X_AXIS], xProbe - (xProbeOffset))
+            && NEAR(current_position[Y_AXIS], yProbe - (yProbeOffset))
           ) {
             const float simple_z = current_position[Z_AXIS] - measured_z;
             #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -6263,8 +6263,8 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
                 ypos = parser.linearval('Y', current_position[Y_AXIS]);
 
     #else
-    const float xpos = parser.linearval('X', current_position[X_AXIS] + X_PROBE_OFFSET_FROM_EXTRUDER),
-                ypos = parser.linearval('Y', current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_EXTRUDER);
+    const float xpos = parser.linearval('X', current_position[X_AXIS] + xProbeOffset),
+                ypos = parser.linearval('Y', current_position[Y_AXIS] + yProbeOffset);
 
     if (!position_is_reachable_by_probe(xpos, ypos)) return;
     #endif
@@ -8093,7 +8093,7 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 
 	// Move the probe to the starting Y
-	current_position[Y_AXIS] = y_probe_left_extr[2] - Y_PROBE_OFFSET_FROM_EXTRUDER;
+	current_position[Y_AXIS] = y_probe_left_extr[2] - yProbeOffset;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], XY_PROBE_FEEDRATE_MM_S, 1);
 
 	setup_for_endstop_or_probe_move();
@@ -8300,7 +8300,7 @@ inline void gcode_G291(){//BCN3D Mesh Bed leveling auto
 	clean_up_after_endstop_or_probe_move();
 
 	// Move the probe to the starting Y
-	current_position[Y_AXIS] = y_probe_left_extr[2] - Y_PROBE_OFFSET_FROM_EXTRUDER;
+	current_position[Y_AXIS] = y_probe_left_extr[2] - yProbeOffset;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], XY_PROBE_FEEDRATE_MM_S, 1);
 
 	setup_for_endstop_or_probe_move();
@@ -10193,8 +10193,8 @@ inline void gcode_M42() {
     float X_current = current_position[X_AXIS],
           Y_current = current_position[Y_AXIS];
 
-    const float X_probe_location = parser.linearval('X', X_current + X_PROBE_OFFSET_FROM_EXTRUDER),
-                Y_probe_location = parser.linearval('Y', Y_current + Y_PROBE_OFFSET_FROM_EXTRUDER);
+    const float X_probe_location = parser.linearval('X', X_current + xProbeOffset),
+                Y_probe_location = parser.linearval('Y', Y_current + yProbeOffset);
 
     if (!position_is_reachable_by_probe(X_probe_location, Y_probe_location)) {
       SERIAL_PROTOCOLLNPGM("? (X,Y) out of bounds.");
@@ -10279,8 +10279,8 @@ inline void gcode_M42() {
             while (angle < 0.0)     // outside of this range.   It looks like they behave correctly with
               angle += 360.0;       // numbers outside of the range, but just to be safe we clamp them.
 
-            X_current = X_probe_location - (X_PROBE_OFFSET_FROM_EXTRUDER) + cos(RADIANS(angle)) * radius;
-            Y_current = Y_probe_location - (Y_PROBE_OFFSET_FROM_EXTRUDER) + sin(RADIANS(angle)) * radius;
+            X_current = X_probe_location - (xProbeOffset) + cos(RADIANS(angle)) * radius;
+            Y_current = Y_probe_location - (yProbeOffset) + sin(RADIANS(angle)) * radius;
 
             #if DISABLED(DELTA)
               X_current = constrain(X_current, X_MIN_POS, X_MAX_POS);
