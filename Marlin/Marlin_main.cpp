@@ -8779,7 +8779,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
 }
 
-  static bool G40_run_probe() {
+  static bool G40_run_probe(float xPos, float yPos) {
 
     bool G40_pass_fail = false;
     #if MULTIPLE_PROBING > 1
@@ -8813,10 +8813,11 @@ inline void gcode_G37() { //BCN3D G37 pattern
         // Move away by the retract distance
         set_destination_from_current();
         LOOP_XYZ(i) destination[i] += retract_mm[i];
+        
         endstops.enable(false);
         //prepare_move_to_destination();
-        planner.buffer_line(destination[X_AXIS],destination[Y_AXIS],destination[Z_AXIS],current_position[E_AXIS],feedrate_mm_s,active_extruder);
-        feedrate_mm_s /= 4;
+        planner.buffer_line(xPos, yPos, destination[Z_AXIS],current_position[E_AXIS],feedrate_mm_s,active_extruder);
+        feedrate_mm_s /= 2;
 
         // Bump the target more slowly
         LOOP_XYZ(i) destination[i] -= retract_mm[i] * 2;
@@ -8892,9 +8893,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
       //TODO: improve "magic numbers" below
       if (i % 2 == 0) {
         if (i != 0) currentAxis = currentAxis == X_AXIS ? Y_AXIS : X_AXIS;
-        destination[currentAxis] += 20;          
+        destination[currentAxis] += 7.5;          
       } else {
-        destination[currentAxis] -= 20;  
+        destination[currentAxis] -= 7.5;  
       }
 
 
@@ -8902,7 +8903,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
       setup_for_endstop_or_probe_move();
 
       // If G40 fails throw an error
-      if (!G40_run_probe()) {
+      if (!G40_run_probe(xPos, yPos)) {
         //SERIAL_ERROR_START();
         //SERIAL_ERRORLNPGM("Failed XY autocalibration");
         success = false;
