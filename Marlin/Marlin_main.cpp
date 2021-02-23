@@ -8880,6 +8880,11 @@ inline void gcode_G37() { //BCN3D G37 pattern
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
         destination[Z_AXIS] = -1.9;
+        current_position[X_AXIS] = xPos;
+        current_position[Y_AXIS] = yPos;
+        current_position[Z_AXIS] = -1.9;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
       } else {
         current_position[X_AXIS] = xPos;
         current_position[Y_AXIS] = yPos;
@@ -8904,8 +8909,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
       // If G40 fails throw an error
       if (!G40_run_probe(xPos, yPos)) {
-        //SERIAL_ERROR_START();
-        //SERIAL_ERRORLNPGM("Failed XY autocalibration");
         success = false;
       } else {
         points[i] = current_position[currentAxis];
