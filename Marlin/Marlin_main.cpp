@@ -8848,7 +8848,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
    */
   inline void gcode_G40() {
     //Go to prove coords.
-    hotend_offset[X_AXIS][1] = 0;
+    hotend_offset[X_AXIS][1] = 469.5;
     hotend_offset[Y_AXIS][1] = 0;
     bool success = true;
     double points[8] = {0};
