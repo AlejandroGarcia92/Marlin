@@ -4551,6 +4551,7 @@ inline void gcode_G4() {
       #endif
 
       do_blocking_move_to_xy(destination[X_AXIS], destination[Y_AXIS]);
+      safe_delay(500);
       homeaxis(Z_AXIS);
     }
     else {
