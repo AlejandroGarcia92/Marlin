@@ -4553,11 +4553,6 @@ inline void gcode_G4() {
       do_blocking_move_to_xy(destination[X_AXIS], destination[Y_AXIS]);
       safe_delay(500);
       homeaxis(Z_AXIS);
-      #if defined(BCN3D_MOD)
-        planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], 5, current_position[E_AXIS], homing_feedrate(X_AXIS), active_extruder);// go X head to parking
-        planner.synchronize();
-        SYNC_PLAN_POSITION_KINEMATIC();
-      #endif
     }
     else {
       LCD_MESSAGEPGM(MSG_ZPROBE_OUT);
