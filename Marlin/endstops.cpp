@@ -579,9 +579,9 @@ void Endstops::update() {
 
   #if defined(BCN3D_MOD)
     #define PROCESS_DUAL_Z_PROBE_ENDSTOP() do { \
-    const byte dual_hit = TEST_ENDSTOP(_ENDSTOP(Z, false)) | TEST_ENDSTOP(_ENDSTOP(Z2, false)); \
+    const byte dual_hit = TEST_ENDSTOP(_ENDSTOP(Z, MIN)) || TEST_ENDSTOP(_ENDSTOP(Z2, MIN)); \
     if (dual_hit) { \
-      _ENDSTOP_HIT(Z, false); \
+      _ENDSTOP_HIT(Z, MIN); \
       /* if not performing home or if both endstops were trigged during homing... */ \
       /*if (!stepper.homing_dual_axis || dual_hit == 0b11) */ \
         planner.endstop_triggered(); \
