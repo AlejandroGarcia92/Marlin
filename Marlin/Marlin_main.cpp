@@ -4551,7 +4551,6 @@ inline void gcode_G4() {
       #endif
 
       do_blocking_move_to_xy(destination[X_AXIS], destination[Y_AXIS]);
-      safe_delay(500);
       homeaxis(Z_AXIS);
     }
     else {
@@ -8849,6 +8848,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
    */
   inline void gcode_G40() {
     //Go to prove coords.
+    hotend_offset[X_AXIS][1] = 0;
+    hotend_offset[Y_AXIS][1] = 0;
     bool success = true;
     double points[8] = {0};
     float xPos = parser.floatval('X');
