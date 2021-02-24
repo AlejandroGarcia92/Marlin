@@ -8862,10 +8862,10 @@ inline void gcode_G37() { //BCN3D G37 pattern
     tool_change(0);
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
     planner.synchronize();
-    current_position[Z_AXIS] = -1.9;
+    current_position[Z_AXIS] = -1;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
     planner.synchronize();
-    destination[Z_AXIS] = -1.9;
+    destination[Z_AXIS] = -1;
 
     for (uint8_t i = 0; i < 8; i++) {
     
@@ -8879,19 +8879,19 @@ inline void gcode_G37() { //BCN3D G37 pattern
         current_position[Y_AXIS] = yPos;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
-        current_position[Z_AXIS] = -1.9;
+        current_position[Z_AXIS] = -1;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
-        destination[Z_AXIS] = -1.9;
+        destination[Z_AXIS] = -1;
         current_position[X_AXIS] = xPos;
         current_position[Y_AXIS] = yPos;
-        current_position[Z_AXIS] = -1.9;
+        current_position[Z_AXIS] = -1;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
       } else {
         current_position[X_AXIS] = xPos;
         current_position[Y_AXIS] = yPos;
-        current_position[Z_AXIS] = -1.9;
+        current_position[Z_AXIS] = -1;
         
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
