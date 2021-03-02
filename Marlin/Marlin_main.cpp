@@ -590,7 +590,8 @@ float destination_X_2 = 0.0;
 float destination_Z_2 = 0.0;
 bool Flag_Raft_Dual_Mode_On = false;
 int16_t fanSpeeds_raft[FAN_COUNT] = { 0 };
-static uint32_t fileraftstart = 0;
+uint32_t fileraftstart = 0;
+bool recoveredFromPowerOutage = false;
 
 static DualXMode dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
 
@@ -1253,12 +1254,15 @@ inline void get_serial_commands() {
         #endif
 
         #if defined(BCN3D_MOD)
-        if (gcode_N != gcode_LastN + 1 && !M110 && discard_serial == DiscardSerialReason::NONE)
+        if (gcode_N != gcode_LastN + 1 && !M110 && discard_serial == DiscardSerialReason::NONE) {
         #else
-        if (gcode_N != gcode_LastN + 1 && !M110)
+        if (gcode_N != gcode_LastN + 1 && !M110) {
         #endif
+          SERIAL_ECHOLNPAIR("gcode line err:", gcode_N);
+          SERIAL_ECHOLNPAIR("last gcode line err:", gcode_LastN);
+          
           return gcode_line_error(PSTR(MSG_ERR_LINE_NO));
-
+        }
         char *apos = strrchr(command, '*');
         if (apos) {
           uint8_t checksum = 0, count = uint8_t(apos - command);
@@ -1431,13 +1435,17 @@ inline void get_serial_commands() {
 					  raft_indicator = 1;
 					  raft_line++;
 					  if(raft_line == 1){
-						  fileraftstart = gcode_N;
-						  raft_line_counter_g = 1;
-						  raft_line_counter = 1;
+              if (!recoveredFromPowerOutage) {
+                fileraftstart = gcode_N;
+                raft_line_counter_g = 1;
+						    raft_line_counter = 1;
+              }
 					  }
 				  }
 			  }
 		  }
+      SERIAL_ECHOLNPAIR("gcode line:", gcode_N);
+      SERIAL_ECHOLNPAIR("last gcode line:", gcode_LastN);
 		  break;
 		  default:
 		  break;
@@ -7521,7 +7529,7 @@ inline void gcode_G76(){
   if(parser.seen('V')) { Flag_Raft_Dual_Mode_On = parser.byteval('V'); }
   if(parser.seen('W')) { fileraftstart = parser.byteval('W'); }
 
-
+  recoveredFromPowerOutage = true;
 	pause_flag = true;
 }
 
