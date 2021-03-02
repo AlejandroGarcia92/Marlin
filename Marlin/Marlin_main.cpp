@@ -590,6 +590,7 @@ float destination_X_2 = 0.0;
 float destination_Z_2 = 0.0;
 bool Flag_Raft_Dual_Mode_On = false;
 int16_t fanSpeeds_raft[FAN_COUNT] = { 0 };
+static uint32_t fileraftstart = 0;
 
 static DualXMode dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
 
@@ -1161,7 +1162,6 @@ inline void get_serial_commands() {
   static int raft_indicator = 0;
   static int raft_indicator_is_Gcode = 0;
   static float current_z_raft_seen = 0.0;
-  static uint32_t fileraftstart = 0;
   static uint16_t skipped_bytes_waiting_resend = 0;
   #if defined(NOTIFY_SERIAL_COMMAND_QUEUE_EMPTY)
   static bool notified_empty_queue = true;
@@ -7470,6 +7470,7 @@ inline void gcode_G73(){ //Save State and get back to DefaultMode
 		SERIAL_ECHOPAIR(" S", i);
 		SERIAL_ECHOPAIR(":",fanSpeeds_raft[i]);
 	}
+  SERIAL_ECHOPAIR(" SG:", static_cast<int>(fileraftstart));
   SERIAL_ECHOLNPAIR(" FD:", static_cast<bool>(Flag_Raft_Dual_Mode_On));
 
 	//Set to default
@@ -7518,6 +7519,7 @@ inline void gcode_G76(){
   if(parser.seen('S')) { fanSpeeds_raft[0] = parser.intval('S'); }
   if(parser.seen('U')) { fanSpeeds_raft[1] = parser.intval('U'); }
   if(parser.seen('V')) { Flag_Raft_Dual_Mode_On = parser.byteval('V'); }
+  if(parser.seen('W')) { fileraftstart = parser.byteval('V'); }
 
 
 	pause_flag = true;
