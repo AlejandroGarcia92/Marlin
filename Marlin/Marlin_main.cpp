@@ -7519,7 +7519,7 @@ inline void gcode_G76(){
   if(parser.seen('S')) { fanSpeeds_raft[0] = parser.intval('S'); }
   if(parser.seen('U')) { fanSpeeds_raft[1] = parser.intval('U'); }
   if(parser.seen('V')) { Flag_Raft_Dual_Mode_On = parser.byteval('V'); }
-  if(parser.seen('W')) { fileraftstart = parser.byteval('V'); }
+  if(parser.seen('W')) { fileraftstart = parser.byteval('W'); }
 
 
 	pause_flag = true;
