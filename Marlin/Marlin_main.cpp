@@ -7427,6 +7427,13 @@ inline void gcode_G72(){ //GO unPark
 	SERIAL_PROTOCOLPAIR("Go unpark -> DXC: ", dual_x_carriage_mode);
 	pause_flag = false;
 }
+inline void gcode_G77(){
+  if(dual_x_carriage_mode == DXC_DUPLICATION_MODE) motorMode = motordriver_mode::motordefault;
+  planner.synchronize();
+	if(dual_x_carriage_mode == DXC_DUPLICATION_MODE) motorMode = motordriver_mode::motorduplication;
+	if(dual_x_carriage_mode == DXC_DUPLICATION_MODE_R || dual_x_carriage_mode == DXC_MIRROR_MODE_R) active_extruder_parked = true;
+  pause_flag = false;
+}
 
 static DualXMode dual_x_carriage_mode_resume = DEFAULT_DUAL_X_CARRIAGE_MODE;
 static uint8_t active_extruder_resume = 0;
