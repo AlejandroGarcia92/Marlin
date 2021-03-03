@@ -1258,8 +1258,6 @@ inline void get_serial_commands() {
         #else
         if (gcode_N != gcode_LastN + 1 && !M110) {
         #endif
-          SERIAL_ECHOLNPAIR("gcode line err:", gcode_N);
-          SERIAL_ECHOLNPAIR("last gcode line err:", gcode_LastN);
           
           return gcode_line_error(PSTR(MSG_ERR_LINE_NO));
         }
@@ -1444,8 +1442,6 @@ inline void get_serial_commands() {
 				  }
 			  }
 		  }
-      SERIAL_ECHOLNPAIR("gcode line:", gcode_N);
-      SERIAL_ECHOLNPAIR("last gcode line:", gcode_LastN);
 		  break;
 		  default:
 		  break;
