@@ -367,6 +367,11 @@
        G38_endstop_hit = false;
 #endif
 
+#if defined(BCN3D_MOD)
+  bool G40_move = false,
+       G40_endstop_hit = false;
+#endif
+
 #if ENABLED(AUTO_BED_LEVELING_UBL)
   #include "ubl.h"
 #endif
@@ -615,6 +620,12 @@ static bool relative_mode_before_pause = false;
 //Bed size
 static float xBedSize = X_BED_SIZE;
 static float yBedSize = Y_BED_SIZE;
+
+//Probe offsets
+float xProbeOffset = X_PROBE_OFFSET_FROM_EXTRUDER;
+float yProbeOffset = Y_PROBE_OFFSET_FROM_EXTRUDER;
+float xSecondProbeOffset = X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
+float ySecondProbeOffset = Y_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
 
 //Knob positions
 static float x_screw_bed_calib_1 = SCREW_BED_1_X;
@@ -2776,11 +2787,11 @@ void clean_up_after_endstop_or_probe_move() {
       //if (!position_is_reachable_by_probe(rx, ry)) return NAN;  // The given position is in terms of the probe
 	  #if defined(BCN3D_MOD)
 	  if(active_extruder == 0){
-		nx -= (X_PROBE_OFFSET_FROM_EXTRUDER);                     // Get the nozzle position
-		ny -= (Y_PROBE_OFFSET_FROM_EXTRUDER);
+		nx -= (xProbeOffset);                     // Get the nozzle position
+		ny -= (yProbeOffset);
 	  }else{
-		nx -= (X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER);        // Get the nozzle position
-		ny -= (Y_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER);
+		nx -= (xSecondProbeOffset);        // Get the nozzle position
+		ny -= (ySecondProbeOffset);
 	  }
 	  #else
 	  nx -= (X_PROBE_OFFSET_FROM_EXTRUDER);                     // Get the nozzle position
@@ -4524,8 +4535,8 @@ inline void gcode_G4() {
     destination[Z_AXIS] = current_position[Z_AXIS]; // Z is already at the right height
 
     #if HOMING_Z_WITH_PROBE
-      destination[X_AXIS] -= X_PROBE_OFFSET_FROM_EXTRUDER;
-      destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_EXTRUDER;
+      destination[X_AXIS] -= xProbeOffset;
+      destination[Y_AXIS] -= yProbeOffset;
     #endif
 
     if (position_is_reachable(destination[X_AXIS], destination[Y_AXIS])) {
@@ -4544,6 +4555,7 @@ inline void gcode_G4() {
       #endif
 
       do_blocking_move_to_xy(destination[X_AXIS], destination[Y_AXIS]);
+      safe_delay(500);
       homeaxis(Z_AXIS);
     }
     else {
@@ -6165,8 +6177,8 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
           planner.leveling_active = false;
 
           // Use the last measured distance to the bed, if possible
-          if ( NEAR(current_position[X_AXIS], xProbe - (X_PROBE_OFFSET_FROM_EXTRUDER))
-            && NEAR(current_position[Y_AXIS], yProbe - (Y_PROBE_OFFSET_FROM_EXTRUDER))
+          if ( NEAR(current_position[X_AXIS], xProbe - (xProbeOffset))
+            && NEAR(current_position[Y_AXIS], yProbe - (yProbeOffset))
           ) {
             const float simple_z = current_position[Z_AXIS] - measured_z;
             #if ENABLED(DEBUG_LEVELING_FEATURE)
@@ -6256,8 +6268,8 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
                 ypos = parser.linearval('Y', current_position[Y_AXIS]);
 
     #else
-    const float xpos = parser.linearval('X', current_position[X_AXIS] + X_PROBE_OFFSET_FROM_EXTRUDER),
-                ypos = parser.linearval('Y', current_position[Y_AXIS] + Y_PROBE_OFFSET_FROM_EXTRUDER);
+    const float xpos = parser.linearval('X', current_position[X_AXIS] + xProbeOffset),
+                ypos = parser.linearval('Y', current_position[Y_AXIS] + yProbeOffset);
 
     if (!position_is_reachable_by_probe(xpos, ypos)) return;
     #endif
@@ -6279,6 +6291,15 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
       SERIAL_PROTOCOLPAIR_F(" Y: ", ypos);
       SERIAL_PROTOCOLLNPAIR_F(" Z: ", measured_z);
     }
+
+    #if defined(BCN3D_MOD)
+    if (parser.boolval('S', true)) {
+      if (!isnan(measured_z)) {
+        hotend_offset[Z_AXIS][active_extruder] = measured_z;
+        SERIAL_PROTOCOLLNPAIR_F("T1 offset Z: ", measured_z);
+      }
+    }
+    #endif
 
     clean_up_after_endstop_or_probe_move();
 
@@ -7110,8 +7131,8 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
       if (hasI) destination[X_AXIS] = _GET_MESH_X(ix);
       if (hasJ) destination[Y_AXIS] = _GET_MESH_Y(iy);
       if (parser.boolval('P')) {
-        if (hasI) destination[X_AXIS] -= X_PROBE_OFFSET_FROM_EXTRUDER;
-        if (hasJ) destination[Y_AXIS] -= Y_PROBE_OFFSET_FROM_EXTRUDER;
+        if (hasI) destination[X_AXIS] -= xProbeOffset;
+        if (hasJ) destination[Y_AXIS] -= yProbeOffset;
       }
 
       const float fval = parser.linearval('F');
@@ -8112,7 +8133,7 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 
 	// Move the probe to the starting Y
-	current_position[Y_AXIS] = y_probe_left_extr[2] - Y_PROBE_OFFSET_FROM_EXTRUDER;
+	current_position[Y_AXIS] = y_probe_left_extr[2] - yProbeOffset;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], XY_PROBE_FEEDRATE_MM_S, 1);
 
 	setup_for_endstop_or_probe_move();
@@ -8163,7 +8184,7 @@ inline void gcode_G290(){//BCN3D Bed leveling
 	clean_up_after_endstop_or_probe_move();
 
 	// Move the probe to the starting X
-	current_position[X_AXIS] = x_probe_right_extr[0] - X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
+	current_position[X_AXIS] = x_probe_right_extr[0] - xSecondProbeOffset;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(4000), 1);
 
 	setup_for_endstop_or_probe_move();
@@ -8319,7 +8340,7 @@ inline void gcode_G291(){//BCN3D Mesh Bed leveling auto
 	clean_up_after_endstop_or_probe_move();
 
 	// Move the probe to the starting Y
-	current_position[Y_AXIS] = y_probe_left_extr[2] - Y_PROBE_OFFSET_FROM_EXTRUDER;
+	current_position[Y_AXIS] = y_probe_left_extr[2] - yProbeOffset;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], XY_PROBE_FEEDRATE_MM_S, 1);
 
 	setup_for_endstop_or_probe_move();
@@ -8372,7 +8393,7 @@ inline void gcode_G291(){//BCN3D Mesh Bed leveling auto
   feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;	
 
 	// Move the probe to the starting X
-	current_position[X_AXIS] = x_probe_right_extr[0] - X_SIGMA_SECOND_PROBE_OFFSET_FROM_EXTRUDER;
+	current_position[X_AXIS] = x_probe_right_extr[0] - xSecondProbeOffset;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(4000), 1);
 
   setup_for_endstop_or_probe_move();
@@ -8419,7 +8440,7 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
 	//We have to save the active extruder.
 
 	SYNC_PLAN_POSITION_KINEMATIC();
-  
+
   const float start_x = x_probe_left_extr[1];
   const float shift_x = (xBedSize-start_x*2)/3; //Matrix 4x3
   
@@ -8486,7 +8507,7 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
 	home_axis_from_code(true, true, false);
 	tool_change(0);
 
-  SERIAL_PROTOCOLPGM("Probe Auto Mesh Bed Leveling p11:");
+  SERIAL_PROTOCOLPGM("Probe Endstop Validation Mesh Bed Leveling p11:");
 	MYSERIAL0.print(mesh_z_points[0][0], 3);
 	SERIAL_PROTOCOLPGM(" p12:");
 	MYSERIAL0.print(mesh_z_points[1][0], 3);
@@ -8510,6 +8531,99 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
   MYSERIAL0.print(mesh_z_points[2][2], 3);
   SERIAL_PROTOCOLPGM(" p34:");
 	MYSERIAL0.print(mesh_z_points[3][2], 3);
+	SERIAL_EOL();
+}
+
+inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
+
+	//We have to save the active extruder.
+
+	SYNC_PLAN_POSITION_KINEMATIC();
+
+  const float start_x = x_probe_left_extr[1];
+  const float shift_x = (xBedSize-start_x*2)/2; //Matrix 4x3
+  
+  const float start_y = y_probe_left_extr[1];
+  const float shift_y = (yBedSize-start_y*2)/2; //Matrix 4x3
+
+  const float x_probe_mesh_points[3] = {start_x, start_x + shift_x, start_x + shift_x*2};
+  const float y_probe_mesh_points[3] = {start_y, start_y + shift_y, start_y + shift_y*2};
+
+	//MOVING THE EXTRUDERS TO AVOID HITTING THE CASE WHEN PROBING-------------------------
+	current_position[X_AXIS] += x_gap_avoid_collision_l;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
+	///////planner.synchronize();
+	//current_position[X_AXIS] = x_home_pos(RIGHT_EXTRUDER);
+
+	active_extruder=1;
+	set_axis_is_at_home(X_AXIS); //Redoes the Max Min calculus for the Right extruder
+	SERIAL_PROTOCOLLN(current_position[X_AXIS]);
+	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]);
+	current_position[X_AXIS]-=x_gap_avoid_collision_r;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 1);
+
+	//*********************************************************************
+	//Now we can proceed to probe the first 3 points with the left extruder
+	active_extruder=0;
+	set_axis_is_at_home(X_AXIS);
+	current_position[X_AXIS]+=x_gap_avoid_collision_l;
+	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]); // We are now at position
+	planner.synchronize();
+
+
+// Left probing
+//
+//  +--------------------------+
+//  |  31                      |
+//  |                          |
+//  |                          |
+//  |  21                      |
+//  |                          |
+//  |                          |
+//  |  11       12          12 |
+//  +--------------------------+
+
+
+	// Probe at 3 arbitrary points
+	// probe left extruder
+
+	SERIAL_PROTOCOLPGM("Zvalue after home: ");
+	SERIAL_PROTOCOLLN(current_position[Z_AXIS]);
+  float mesh_z_points[3][3];
+
+  for (int x = 0; x < 3; x++) {
+    for (int y = 0; y < 3; y++) {
+      	setup_for_endstop_or_probe_move();
+        mesh_z_points[x][y] = probe_pt(x_probe_mesh_points[x], y_probe_mesh_points[y], PROBE_PT_RAISE, 3);
+        clean_up_after_endstop_or_probe_move();
+
+        feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+    }
+  }
+
+	planner.synchronize();
+
+	home_axis_from_code(true, true, false);
+	tool_change(0);
+
+  SERIAL_PROTOCOLPGM("Piezo Mesh Bed Leveling p11:");
+	MYSERIAL0.print(mesh_z_points[0][0], 3);
+	SERIAL_PROTOCOLPGM(" p12:");
+	MYSERIAL0.print(mesh_z_points[1][0], 3);
+  SERIAL_PROTOCOLPGM(" p13:");
+	MYSERIAL0.print(mesh_z_points[2][0], 3);
+  SERIAL_PROTOCOLPGM(" p21:");
+	MYSERIAL0.print(mesh_z_points[0][1], 3);
+  SERIAL_PROTOCOLPGM(" p22:");
+	MYSERIAL0.print(mesh_z_points[1][1], 3);
+  SERIAL_PROTOCOLPGM(" p23:");
+  MYSERIAL0.print(mesh_z_points[2][1], 3);
+  SERIAL_PROTOCOLPGM(" p31:");
+	MYSERIAL0.print(mesh_z_points[0][2], 3);
+  SERIAL_PROTOCOLPGM(" p32:");
+	MYSERIAL0.print(mesh_z_points[1][2], 3);
+  SERIAL_PROTOCOLPGM(" p33:");
+  MYSERIAL0.print(mesh_z_points[2][2], 3);
 	SERIAL_EOL();
 }
 
@@ -8702,6 +8816,171 @@ inline void gcode_G37() { //BCN3D G37 pattern
 	// planner.synchronize();
 
 }
+
+  static bool G40_run_probe(float xPos, float yPos) {
+
+    bool G40_pass_fail = false;
+    #if MULTIPLE_PROBING > 1
+      // Get direction of move and retract
+      float retract_mm[XYZ];
+      LOOP_XYZ(i) {
+        float dist = destination[i] - current_position[i];
+        retract_mm[i] = ABS(dist) < G38_MINIMUM_MOVE ? 0 : home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
+      }
+    #endif
+
+    // Move until destination reached or target hit
+    planner.synchronize();
+    endstops.enable(true);
+    G40_move = true;
+    G40_endstop_hit = false;
+    //prepare_move_to_destination();
+    planner.buffer_line(destination[X_AXIS],destination[Y_AXIS],destination[Z_AXIS],current_position[E_AXIS],feedrate_mm_s,active_extruder);
+    planner.synchronize();
+    G40_move = false;
+
+    endstops.hit_on_purpose();
+    set_current_from_steppers_for_axis(ALL_AXES);
+    SYNC_PLAN_POSITION_KINEMATIC();
+
+    if (G40_endstop_hit) {
+
+      G40_pass_fail = true;
+
+      #if MULTIPLE_PROBING > 1
+        // Move away by the retract distance
+        set_destination_from_current();
+        LOOP_XYZ(i) destination[i] += retract_mm[i];
+        
+        endstops.enable(false);
+        //prepare_move_to_destination();
+        planner.buffer_line(xPos, yPos, destination[Z_AXIS],current_position[E_AXIS],feedrate_mm_s,active_extruder);
+        feedrate_mm_s /= 2;
+
+        // Bump the target more slowly
+        LOOP_XYZ(i) destination[i] -= retract_mm[i] * 2;
+
+        planner.synchronize();
+        endstops.enable(true);
+        G40_move = true;
+        //prepare_move_to_destination();
+        planner.buffer_line(destination[X_AXIS],destination[Y_AXIS],destination[Z_AXIS],current_position[E_AXIS],feedrate_mm_s,active_extruder);
+        planner.synchronize();
+        G40_move = false;
+
+        set_current_from_steppers_for_axis(ALL_AXES);
+        SYNC_PLAN_POSITION_KINEMATIC();
+      #endif
+    }
+
+    endstops.hit_on_purpose();
+    endstops.not_homing();
+    return G40_pass_fail;
+  }
+
+  /**
+   * G38.2 - probe toward workpiece, stop on contact, signal error if failure
+   * G38.3 - probe toward workpiece, stop on contact
+   *
+   * Like G28 except uses Z min probe for all axes
+   */
+  inline void gcode_G40() {
+    //Go to prove coords.
+    hotend_offset[X_AXIS][1] = 469.5;
+    hotend_offset[Y_AXIS][1] = 0;
+    bool success = true;
+    double points[8] = {0};
+    float xPos = parser.floatval('X');
+    float yPos = parser.floatval('Y');
+    feedrate_mm_s = 5;
+    AxisEnum currentAxis = X_AXIS;
+    current_position[X_AXIS] = xPos;
+    current_position[Y_AXIS] = yPos;
+    tool_change(0);
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+    planner.synchronize();
+    current_position[Z_AXIS] = -1;
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+    planner.synchronize();
+    destination[Z_AXIS] = -1;
+
+    for (uint8_t i = 0; i < 8; i++) {
+    
+      
+      if (i == 4) {
+        current_position[Z_AXIS] = 5;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+        tool_change(active_extruder == 0 ? 1 : 0);
+        current_position[X_AXIS] = xPos;
+        current_position[Y_AXIS] = yPos;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+        current_position[Z_AXIS] = -1;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+        destination[Z_AXIS] = -1;
+        current_position[X_AXIS] = xPos;
+        current_position[Y_AXIS] = yPos;
+        current_position[Z_AXIS] = -1;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+      } else {
+        current_position[X_AXIS] = xPos;
+        current_position[Y_AXIS] = yPos;
+        current_position[Z_AXIS] = -1;
+        
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+      }
+      destination[X_AXIS] = xPos;
+      destination[Y_AXIS] = yPos;
+      //TODO: improve "magic numbers" below
+      if (i % 2 == 0) {
+        if (i != 0) currentAxis = currentAxis == X_AXIS ? Y_AXIS : X_AXIS;
+        destination[currentAxis] += 7.5;          
+      } else {
+        destination[currentAxis] -= 7.5;  
+      }
+
+
+
+      setup_for_endstop_or_probe_move();
+
+      // If G40 fails throw an error
+      if (!G40_run_probe(xPos, yPos)) {
+        success = false;
+      } else {
+        points[i] = current_position[currentAxis];
+      }
+      clean_up_after_endstop_or_probe_move();
+    }
+
+    //Calc of offsets
+    //TODO: improve "magic numbers" below
+    if (success) {
+      double xLeft, xRight, xOffset;
+      xLeft = xPos + (points[0]-xPos+points[1]-xPos) / 2;
+      xRight = xPos + (points[4]-xPos+points[5]-xPos) / 2;
+      xOffset = xLeft - xRight;
+      
+      double yLeft, yRight, yOffset;
+      yLeft = yPos + (points[2]-yPos+points[3]-yPos) / 2;
+      yRight = yPos + (points[6]-yPos+points[7]-yPos) / 2;
+      yOffset = yLeft - yRight;
+      hotend_offset[X_AXIS][1] += xOffset;
+      hotend_offset[Y_AXIS][1] += yOffset;
+      SERIAL_ECHOLNPAIR("T1 offset X: ", hotend_offset[X_AXIS][1]);
+      SERIAL_ECHOLNPAIR("T1 offset Y: ", hotend_offset[Y_AXIS][1]);
+      SERIAL_ECHOLN("XY autocalibration finished");
+      
+    } else {
+      SERIAL_ERROR_START();
+      SERIAL_ERRORLNPGM("Failed XY autocalibration");
+    }
+
+  }
+
 
 inline void gcode_G715() {
 	SERIAL_PROTOCOLLNPGM("New layer");
@@ -10053,8 +10332,8 @@ inline void gcode_M42() {
     float X_current = current_position[X_AXIS],
           Y_current = current_position[Y_AXIS];
 
-    const float X_probe_location = parser.linearval('X', X_current + X_PROBE_OFFSET_FROM_EXTRUDER),
-                Y_probe_location = parser.linearval('Y', Y_current + Y_PROBE_OFFSET_FROM_EXTRUDER);
+    const float X_probe_location = parser.linearval('X', X_current + xProbeOffset),
+                Y_probe_location = parser.linearval('Y', Y_current + yProbeOffset);
 
     if (!position_is_reachable_by_probe(X_probe_location, Y_probe_location)) {
       SERIAL_PROTOCOLLNPGM("? (X,Y) out of bounds.");
@@ -10139,8 +10418,8 @@ inline void gcode_M42() {
             while (angle < 0.0)     // outside of this range.   It looks like they behave correctly with
               angle += 360.0;       // numbers outside of the range, but just to be safe we clamp them.
 
-            X_current = X_probe_location - (X_PROBE_OFFSET_FROM_EXTRUDER) + cos(RADIANS(angle)) * radius;
-            Y_current = Y_probe_location - (Y_PROBE_OFFSET_FROM_EXTRUDER) + sin(RADIANS(angle)) * radius;
+            X_current = X_probe_location - (xProbeOffset) + cos(RADIANS(angle)) * radius;
+            Y_current = Y_probe_location - (yProbeOffset) + sin(RADIANS(angle)) * radius;
 
             #if DISABLED(DELTA)
               X_current = constrain(X_current, X_MIN_POS, X_MAX_POS);
@@ -12621,6 +12900,13 @@ inline void gcode_M226() {
     SERIAL_ECHOLNPAIR("conf:printParameters:retractPrintTestFactor=>", retract_print_test_factor);
     SERIAL_ECHOLNPAIR("conf:printParameters:purgePrinterFactor=>", purge_printer_factor);
 
+    /* Probe offsets */
+    SERIAL_ECHOLNPAIR("conf:positions:probesOffsets:X0=>", xProbeOffset);
+    SERIAL_ECHOLNPAIR("conf:positions:probesOffsets:Y0=>", yProbeOffset);
+    SERIAL_ECHOLNPAIR("conf:positions:probesOffsets:Z0=>", zprobe_zoffset);
+    SERIAL_ECHOLNPAIR("conf:positions:probesOffsets:X1=>", xSecondProbeOffset);
+    SERIAL_ECHOLNPAIR("conf:positions:probesOffsets:Y1=>", ySecondProbeOffset);
+
     /* End of config */
     SERIAL_ECHOLNPGM("Config end");
   }
@@ -13439,6 +13725,33 @@ inline void gcode_M502() {
 #if HAS_BED_PROBE
 
   inline void gcode_M851() {
+    #if defined(BCN3D_MOD)
+    if (!parser.boolval('T')) {
+      if (parser.seenval('Z')) {
+        const float value = parser.floatval('Z');
+        if (WITHIN(value, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX))
+          zprobe_zoffset = value;
+      }
+      if (parser.seenval('X')) {
+        const float value = parser.floatval('X');
+        xProbeOffset = value;
+      }
+      if (parser.seenval('Y')) {
+        const float value = parser.floatval('Y');
+        yProbeOffset = value;
+      }
+    } else {
+      if (parser.seenval('X')) {
+        const float value = parser.floatval('X');
+        xSecondProbeOffset = value;
+      }
+      if (parser.seenval('Y')) {
+        const float value = parser.floatval('Y');
+        ySecondProbeOffset = value;
+      }
+    }
+    return;
+    #else
     if (parser.seenval('Z')) {
       const float value = parser.value_linear_units();
       if (WITHIN(value, Z_PROBE_OFFSET_RANGE_MIN, Z_PROBE_OFFSET_RANGE_MAX))
@@ -13452,6 +13765,7 @@ inline void gcode_M502() {
     SERIAL_ECHO_START();
     SERIAL_ECHOPGM(MSG_PROBE_Z_OFFSET);
     SERIAL_ECHOLNPAIR(": ", zprobe_zoffset);
+    #endif
   }
 
 #endif // HAS_BED_PROBE
@@ -15409,6 +15723,7 @@ void process_parsed_command() {
       #if defined(BCN3D_MOD)
         case 36: gcode_G36(); break;                              // G36: BCN3D G36 implementation
         case 37: gcode_G37(); break;                              // G37: BCN3D G37 MBL pattern
+        case 40: gcode_G40(); break;
       #endif
 
       #if ENABLED(G38_PROBE_TARGET)
@@ -15447,7 +15762,8 @@ void process_parsed_command() {
         case 242: gcode_G242(); break;                            // G242: BCN3D Calib Y
         case 290: gcode_G290(); break;                            // G290: BCN3D Bed leveling
         case 291: gcode_G291(); break;                            // G291: BCN3D Mesh Bed leveling auto
-        case 292: gcode_G292(); break;                            // G292: BCN3D Mesh Bed leveling piezo
+        case 292: gcode_G292(); break;                            // G292: BCN3D Mesh Bed leveling probe endstop
+        case 293: gcode_G293(); break;                            // G293: BCN3D Mesh Bed leveling piezo
         case 715: gcode_G715(); break;                            // G715: Start New layer
       #endif
 
@@ -16921,7 +17237,6 @@ void set_current_from_steppers_for_axis(const AxisEnum axis) {
         #endif
       }
     #endif // HAS_MESH
-
     buffer_line_to_destination(MMS_SCALED(feedrate_mm_s));
     return false; // caller will update current_position
   }
