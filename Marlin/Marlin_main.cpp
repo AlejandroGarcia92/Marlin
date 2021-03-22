@@ -6258,6 +6258,12 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
    *   E   Engage the probe for each probe (default 1)
    */
   inline void gcode_G30() {
+    #if defined(BCN3D_MOD)
+    if (parser.boolval('S', true)) {
+      hotend_offset[Z_AXIS][active_extruder] = 0; //Reset hotend offset, this way we don't take the current one into account.
+    }
+    #endif
+    
 
     #if defined(BCN3D_MOD)
     const float xpos = parser.linearval('X', current_position[X_AXIS]),
