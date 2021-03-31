@@ -2667,7 +2667,11 @@ void clean_up_after_endstop_or_probe_move() {
     #if MULTIPLE_PROBING == 2
 
       // Do a first probe at the fast speed
+      #if defined(BCN3D_MOD)
+      if (do_probe_move(z_probe_low_point, MMM_TO_MMS(150))) {
+      #else
       if (do_probe_move(z_probe_low_point, MMM_TO_MMS(Z_PROBE_SPEED_FAST))) {
+      #endif
         #if ENABLED(DEBUG_LEVELING_FEATURE)
           if (DEBUGGING(LEVELING)) {
             SERIAL_ECHOLNPGM("FAST Probe fail!");
@@ -2706,7 +2710,11 @@ void clean_up_after_endstop_or_probe_move() {
     #endif
 
         // move down slowly to find bed
+        #if defined(BCN3D_MOD)
+        if (do_probe_move(z_probe_low_point, MMM_TO_MMS(150))) {
+        #else
         if (do_probe_move(z_probe_low_point, MMM_TO_MMS(Z_PROBE_SPEED_SLOW))) {
+        #endif
           #if ENABLED(DEBUG_LEVELING_FEATURE)
             if (DEBUGGING(LEVELING)) {
               SERIAL_ECHOLNPGM("SLOW Probe fail!");
@@ -2764,7 +2772,7 @@ void clean_up_after_endstop_or_probe_move() {
    *   - Raise to the BETWEEN height
    * - Return the probed Z position
    */
-  float probe_pt(const float &rx, const float &ry, const ProbePtRaise raise_after/*=PROBE_PT_NONE*/, const uint8_t verbose_level/*=0*/, const bool probe_relative/*=true*/) {
+  float probe_pt(const float &rx, const float &ry, const ProbePtRaise raise_after/*=PROBE_PT_NONE*/, const uint8_t verbose_level/*=0*/, const bool probe_relative/*=true*/, const uint16_t time_delay/*=0*/) {
     #if ENABLED(DEBUG_LEVELING_FEATURE)
       if (DEBUGGING(LEVELING)) {
         SERIAL_ECHOPAIR(">>> probe_pt(", LOGICAL_X_POSITION(rx));
@@ -2810,6 +2818,9 @@ void clean_up_after_endstop_or_probe_move() {
 
     // Move the probe to the starting XYZ
     do_blocking_move_to(nx, ny, nz);
+    #if defined(BCN3D_MOD)
+      safe_delay(time_delay);
+    #endif
 
     float measured_z = NAN;
     if (!DEPLOY_PROBE()) {
@@ -6258,11 +6269,6 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
    *   E   Engage the probe for each probe (default 1)
    */
   inline void gcode_G30() {
-    #if defined(BCN3D_MOD)
-    if (parser.boolval('S', true)) {
-      hotend_offset[Z_AXIS][active_extruder] = 0; //Reset hotend offset, this way we don't take the current one into account.
-    }
-    #endif
     
 
     #if defined(BCN3D_MOD)
@@ -6297,8 +6303,8 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
     #if defined(BCN3D_MOD)
     if (parser.boolval('S', true)) {
       if (!isnan(measured_z)) {
-        hotend_offset[Z_AXIS][active_extruder] = measured_z;
-        SERIAL_PROTOCOLLNPAIR_F("T1 offset Z: ", measured_z);
+        hotend_offset[Z_AXIS][active_extruder] = measured_z - hotend_offset[Z_AXIS][active_extruder];
+        SERIAL_PROTOCOLLNPAIR_F("T1 offset Z: ", hotend_offset[Z_AXIS][active_extruder]);
       }
     }
     #endif
@@ -8563,7 +8569,7 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
   for (int x = 0; x < 3; x++) {
     for (int y = 0; y < 3; y++) {
       	setup_for_endstop_or_probe_move();
-        mesh_z_points[x][y] = probe_pt(x_probe_mesh_points[x], y_probe_mesh_points[y], PROBE_PT_RAISE, 3);
+        mesh_z_points[x][y] = probe_pt(x_probe_mesh_points[x], y_probe_mesh_points[y], PROBE_PT_RAISE, 3, true, 750);
         clean_up_after_endstop_or_probe_move();
 
         feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
@@ -8797,7 +8803,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
         retract_mm[i] = ABS(dist) < G38_MINIMUM_MOVE ? 0 : home_bump_mm((AxisEnum)i) * (dist > 0 ? -1 : 1);
       }
     #endif
-
+    // Wait piezo sensor idle
+    safe_delay(750);
     // Move until destination reached or target hit
     planner.synchronize();
     endstops.enable(true);
@@ -8828,7 +8835,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
         // Bump the target more slowly
         LOOP_XYZ(i) destination[i] -= retract_mm[i] * 2;
-
+        // Wait piezo sensor idle
+        safe_delay(1750);
         planner.synchronize();
         endstops.enable(true);
         G40_move = true;
@@ -8855,7 +8863,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
    */
   inline void gcode_G40() {
     //Go to prove coords.
-    hotend_offset[X_AXIS][1] = 469.5;
+    
+    hotend_offset[X_AXIS][1] = xBedSize > 210 ? 469.5 : 256.6;
     hotend_offset[Y_AXIS][1] = 0;
     bool success = true;
     double points[8] = {0};
@@ -8875,7 +8884,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
     for (uint8_t i = 0; i < 8; i++) {
     
-      
       if (i == 4) {
         current_position[Z_AXIS] = 5;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
