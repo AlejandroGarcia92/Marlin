@@ -8831,7 +8831,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
         endstops.enable(false);
         //prepare_move_to_destination();
         planner.buffer_line(xPos, yPos, destination[Z_AXIS],current_position[E_AXIS],feedrate_mm_s,active_extruder);
-        feedrate_mm_s /= 2;
 
         // Bump the target more slowly
         LOOP_XYZ(i) destination[i] -= retract_mm[i] * 2;
