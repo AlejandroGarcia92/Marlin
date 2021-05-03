@@ -590,6 +590,8 @@ float destination_X_2 = 0.0;
 float destination_Z_2 = 0.0;
 bool Flag_Raft_Dual_Mode_On = false;
 int16_t fanSpeeds_raft[FAN_COUNT] = { 0 };
+uint32_t fileraftstart = 0;
+bool recoveredFromPowerOutage = false;
 
 static DualXMode dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
 
@@ -1161,7 +1163,6 @@ inline void get_serial_commands() {
   static int raft_indicator = 0;
   static int raft_indicator_is_Gcode = 0;
   static float current_z_raft_seen = 0.0;
-  static uint32_t fileraftstart = 0;
   static uint16_t skipped_bytes_waiting_resend = 0;
   #if defined(NOTIFY_SERIAL_COMMAND_QUEUE_EMPTY)
   static bool notified_empty_queue = true;
@@ -1253,12 +1254,13 @@ inline void get_serial_commands() {
         #endif
 
         #if defined(BCN3D_MOD)
-        if (gcode_N != gcode_LastN + 1 && !M110 && discard_serial == DiscardSerialReason::NONE)
+        if (gcode_N != gcode_LastN + 1 && !M110 && discard_serial == DiscardSerialReason::NONE) {
         #else
-        if (gcode_N != gcode_LastN + 1 && !M110)
+        if (gcode_N != gcode_LastN + 1 && !M110) {
         #endif
+          
           return gcode_line_error(PSTR(MSG_ERR_LINE_NO));
-
+        }
         char *apos = strrchr(command, '*');
         if (apos) {
           uint8_t checksum = 0, count = uint8_t(apos - command);
@@ -1431,9 +1433,11 @@ inline void get_serial_commands() {
 					  raft_indicator = 1;
 					  raft_line++;
 					  if(raft_line == 1){
-						  fileraftstart = gcode_N;
-						  raft_line_counter_g = 1;
-						  raft_line_counter = 1;
+              if (!recoveredFromPowerOutage) {
+                fileraftstart = gcode_N;
+                raft_line_counter_g = 1;
+						    raft_line_counter = 1;
+              }
 					  }
 				  }
 			  }
@@ -7423,6 +7427,13 @@ inline void gcode_G72(){ //GO unPark
 	SERIAL_PROTOCOLPAIR("Go unpark -> DXC: ", dual_x_carriage_mode);
 	pause_flag = false;
 }
+inline void gcode_G77(){
+  if(dual_x_carriage_mode == DXC_DUPLICATION_MODE) motorMode = motordriver_mode::motordefault;
+  planner.synchronize();
+	if(dual_x_carriage_mode == DXC_DUPLICATION_MODE) motorMode = motordriver_mode::motorduplication;
+	if(dual_x_carriage_mode == DXC_DUPLICATION_MODE_R || dual_x_carriage_mode == DXC_MIRROR_MODE_R) active_extruder_parked = true;
+  pause_flag = false;
+}
 
 static DualXMode dual_x_carriage_mode_resume = DEFAULT_DUAL_X_CARRIAGE_MODE;
 static uint8_t active_extruder_resume = 0;
@@ -7457,9 +7468,21 @@ inline void gcode_G73(){ //Save State and get back to DefaultMode
 		SERIAL_ECHOPAIR(":",flow_percentage_save[i]);
 	}
 	SERIAL_ECHOPAIR(" Y:", onFirstLayerExec?1:0);
-	SERIAL_ECHOLNPAIR(" T:", static_cast<int>(active_extruder_resume));
-  
-
+	SERIAL_ECHOPAIR(" T:", static_cast<int>(active_extruder_resume));
+  SERIAL_ECHOPAIR(" R:", static_cast<int>(raft_line));
+  SERIAL_ECHOPAIR(" RC:", static_cast<int>(raft_line_counter));
+  SERIAL_ECHOPAIR(" RCG:", static_cast<int>(raft_line_counter_g));
+  SERIAL_ECHOPAIR(" RZ:", static_cast<float>(raft_z_init));
+  SERIAL_ECHOPAIR(" FS:", static_cast<bool>(Flag_serial_new_layer));
+  SERIAL_ECHOPAIR(" FR:", static_cast<bool>(Flag_raft_last_line));
+  SERIAL_ECHOPAIR(" X2:", static_cast<float>(destination_X_2));
+  SERIAL_ECHOPAIR(" Z2:", static_cast<float>(destination_Z_2));
+  	for(size_t i = 0; i < FAN_COUNT; i++){
+		SERIAL_ECHOPAIR(" S", i);
+		SERIAL_ECHOPAIR(":",fanSpeeds_raft[i]);
+	}
+  SERIAL_ECHOPAIR(" SG:", static_cast<int>(fileraftstart));
+  SERIAL_ECHOLNPAIR(" FD:", static_cast<bool>(Flag_Raft_Dual_Mode_On));
 
 	//Set to default
 	dual_x_carriage_mode = DEFAULT_DUAL_X_CARRIAGE_MODE;
@@ -7495,7 +7518,21 @@ inline void gcode_G76(){
 	if(parser.seen('T')) { active_extruder_resume = parser.byteval('T'); }
 	if(parser.seen('L')) { flow_percentage_save[0] = parser.byteval('L'); }
 	if(parser.seen('R')) { flow_percentage_save[1] = parser.byteval('R'); }
-	//if(parser.seen('Y')) { onFirstLayerExec = parser.byteval('Y')?true:false; }
+	if(parser.seen('Y')) { onFirstLayerExec = parser.byteval('Y')?true:false; }
+  if(parser.seen('A')) { raft_line = parser.byteval('A'); } 
+  if(parser.seen('B')) { raft_line_counter = parser.byteval('B'); }
+  if(parser.seen('J')) { raft_line_counter_g = parser.byteval('J'); }
+  if(parser.seen('K')) { raft_z_init = parser.floatval('K'); }
+  if(parser.seen('N')) { Flag_serial_new_layer = parser.byteval('N'); }
+  if(parser.seen('O')) { Flag_raft_last_line = parser.byteval('O'); }
+  if(parser.seen('P')) { destination_X_2 = parser.floatval('P'); }
+  if(parser.seen('Q')) { destination_Z_2 = parser.floatval('Q'); }
+  if(parser.seen('S')) { fanSpeeds_raft[0] = parser.intval('S'); }
+  if(parser.seen('U')) { fanSpeeds_raft[1] = parser.intval('U'); }
+  if(parser.seen('V')) { Flag_Raft_Dual_Mode_On = parser.byteval('V'); }
+  if(parser.seen('W')) { fileraftstart = parser.byteval('W'); }
+
+  recoveredFromPowerOutage = true;
 	pause_flag = true;
 }
 
