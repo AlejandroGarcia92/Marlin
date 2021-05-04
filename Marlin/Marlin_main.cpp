@@ -6292,7 +6292,7 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
     setup_for_endstop_or_probe_move();
 
     const ProbePtRaise raise_after = parser.boolval('E', true) ? PROBE_PT_STOW : PROBE_PT_NONE;
-    const float measured_z = probe_pt(xpos, ypos, raise_after, parser.intval('V', 1));
+    const float measured_z = probe_pt(xpos, ypos, raise_after, parser.intval('V', 1), true, 750);
 
     if (!isnan(measured_z)) {
       SERIAL_PROTOCOLPAIR_F("Bed X: ", xpos);
