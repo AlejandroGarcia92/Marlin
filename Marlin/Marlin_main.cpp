@@ -8936,14 +8936,14 @@ inline void gcode_G37() { //BCN3D G37 pattern
     //TODO: improve "magic numbers" below
     if (success) {
       double xLeft, xRight, xOffset;
-      xLeft = xPos + (points[0]-xPos+points[1]-xPos) / 2;
-      xRight = xPos + (points[4]-xPos+points[5]-xPos) / 2;
-      xOffset = xLeft - xRight;
+      xLeft = xPos - (points[0] + points[1]) / 2;
+      xRight = xPos - (points[4] + points[5]) / 2;
+      xOffset = xRight - xLeft;
       
       double yLeft, yRight, yOffset;
-      yLeft = yPos + (points[2]-yPos+points[3]-yPos) / 2;
-      yRight = yPos + (points[6]-yPos+points[7]-yPos) / 2;
-      yOffset = yLeft - yRight;
+      yLeft = yPos - (points[2] + points[3]) / 2;
+      yRight = yPos - (points[6] + points[7]) / 2;
+      yOffset = yRight - yLeft;
       hotend_offset[X_AXIS][1] += xOffset;
       hotend_offset[Y_AXIS][1] += yOffset;
       SERIAL_ECHOLNPAIR("T1 offset X: ", hotend_offset[X_AXIS][1]);
