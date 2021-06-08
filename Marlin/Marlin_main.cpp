@@ -634,8 +634,8 @@ static float x_screw_bed_calib_3 = SCREW_BED_3_X;
 static float y_screw_bed_calib_3 = SCREW_BED_3_Y;
 
 //Probe positions
-static float x_probe_left_extr[3] = {X_SIGMA_PROBE_1_LEFT_EXTR, X_SIGMA_PROBE_2_LEFT_EXTR, X_SIGMA_PROBE_3_LEFT_EXTR};
-static float y_probe_left_extr[3] = {Y_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_2_LEFT_EXTR, Y_SIGMA_PROBE_3_LEFT_EXTR};
+static float x_probe_left_extr[4] = {X_SIGMA_PROBE_1_LEFT_EXTR, X_SIGMA_PROBE_2_LEFT_EXTR, X_SIGMA_PROBE_3_LEFT_EXTR, X_SIGMA_PROBE_CENTER_LEFT_EXTR};
+static float y_probe_left_extr[4] = {Y_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_2_LEFT_EXTR, Y_SIGMA_PROBE_3_LEFT_EXTR, Y_SIGMA_PROBE_CENTER_LEFT_EXTR};
 static float x_probe_right_extr[3] = {X_SIGMA_PROBE_1_RIGHT_EXTR, X_SIGMA_PROBE_2_RIGHT_EXTR, X_SIGMA_PROBE_3_RIGHT_EXTR};
 static float y_probe_right_extr[3] = {Y_SIGMA_PROBE_1_RIGHT_EXTR, Y_SIGMA_PROBE_2_RIGHT_EXTR, Y_SIGMA_PROBE_3_RIGHT_EXTR};
 
@@ -8661,7 +8661,7 @@ inline void gcode_G294(){//BCN3D Bed leveling
 	SERIAL_PROTOCOLLN(current_position[Z_AXIS]);
 
 	setup_for_endstop_or_probe_move();
-	float z_at_pt_1 = probe_pt(210,y_probe_left_extr[0], PROBE_PT_RAISE, 3);
+	float z_at_pt_1 = probe_pt(x_probe_left_extr[3],y_probe_left_extr[3], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
 
 	feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
