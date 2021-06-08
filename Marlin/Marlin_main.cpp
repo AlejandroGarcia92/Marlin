@@ -8644,7 +8644,7 @@ inline void gcode_G294(){//BCN3D Bed leveling
 // Left probing
 //
 //  +--------------------------+
-//  |  1                       |
+//  |            1             |
 //  |                          |
 //  |                          |
 //  |                          |
@@ -8661,7 +8661,7 @@ inline void gcode_G294(){//BCN3D Bed leveling
 	SERIAL_PROTOCOLLN(current_position[Z_AXIS]);
 
 	setup_for_endstop_or_probe_move();
-	float z_at_pt_1 = probe_pt(x_probe_left_extr[0],y_probe_left_extr[0], PROBE_PT_RAISE, 3);
+	float z_at_pt_1 = probe_pt(210,y_probe_left_extr[0], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
 
 	feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
@@ -8685,56 +8685,9 @@ inline void gcode_G294(){//BCN3D Bed leveling
 
 	planner.synchronize();
 
-	//Now the right extruder joins the party!
-
-	active_extruder=1;
-	set_axis_is_at_home(X_AXIS); //Redoes the Max Min calculus for the right extruder
-	current_position[X_AXIS]-=x_gap_avoid_collision_r;
-	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]);
-
-
-// Right probing
-//
-//  +--------------------------+
-//  |                       1  |
-//  |                          |
-//  |                          |
-//  |                          |
-//  |                          |
-//  |                          |
-//  |  3                    2  |
-//  +--------------------------+
-
-	//Probe at 3 arbitrary points
-	//probe right extruder
-	setup_for_endstop_or_probe_move();
-	float z2_at_pt_3 = probe_pt(x_probe_right_extr[2], y_probe_right_extr[2], PROBE_PT_RAISE, 3);
-	clean_up_after_endstop_or_probe_move();
-
-	feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
-
-	setup_for_endstop_or_probe_move();
-	float z2_at_pt_2 = probe_pt(x_probe_right_extr[1], y_probe_right_extr[1], PROBE_PT_RAISE, 3);
-	clean_up_after_endstop_or_probe_move();
-
-	// Move the probe to the starting X
-	current_position[X_AXIS] = x_probe_right_extr[0] - xSecondProbeOffset;
-	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(4000), 1);
-
-	setup_for_endstop_or_probe_move();
-	float z2_at_pt_1 = probe_pt(x_probe_right_extr[0], y_probe_right_extr[0], PROBE_PT_RAISE, 3);
-	clean_up_after_endstop_or_probe_move();
-
-	current_position[Z_AXIS] = Z_AFTER_PROBING;
-	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(480), 1);
-
-	current_position[X_AXIS]=x_home_pos(active_extruder)-10;
-	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 1);
-
-	planner.synchronize();
-
+	
 	home_axis_from_code(true, true, false);
-	tool_change(0);
+
 
 	matrix_3x3 plan_bed_level_matrix;
 
@@ -8751,39 +8704,14 @@ inline void gcode_G294(){//BCN3D Bed leveling
 	vector_3 from_2_to_3_0 = (pt3_0 - pt2_0);
 	vector_3 planeNormal_0 = vector_3::cross(from_2_to_1_0, from_2_to_3_0);
 
-	// Calculate normal vector of the first plane
-	planeNormal_0 = vector_3(planeNormal_0.x, planeNormal_0.y, planeNormal_0.z);
-
-	// Store 3 points from the second plane (obtained with the right extruder)
-	// Take into account the possible offset of the endstops.
-	// Because there are two common points, consider the variation as the mean between the two measurements.
-	float z_variation_endstops = ((z2_at_pt_3 - z_at_pt_2) + (z2_at_pt_2 - z_at_pt_3)) / 2.0;
-
-	// Store 3 points from the second plane (obtained with the right extruder)
-	vector_3 pt1_1 = vector_3(x_probe_right_extr[0], y_probe_right_extr[0], z2_at_pt_1 - z_variation_endstops);
-	vector_3 pt2_1 = vector_3(x_probe_right_extr[1], y_probe_right_extr[1], z2_at_pt_2 - z_variation_endstops);
-	vector_3 pt3_1 = vector_3(x_probe_right_extr[2], y_probe_right_extr[2], z2_at_pt_3 - z_variation_endstops);
-
-	// Calculate 2 vectors of the second plane
-	vector_3 from_3_to_1_1 = (pt1_1 - pt3_1);
-	vector_3 from_3_to_2_1 = (pt2_1 - pt3_1);
-	vector_3 planeNormal_1 = vector_3::cross(from_3_to_1_1, from_3_to_2_1); // Point 3 is 2 on the left
-
-	// Calculate normal vector of the second plane
-	planeNormal_1 = vector_3(planeNormal_1.x, planeNormal_1.y, planeNormal_1.z);
-
-	// Obtain the mean vector
-	// TODO In case the variance is too much, we should consider send a message indicating the surface is not flat enough
-	vector_3 planeMean = vector_3((planeNormal_0.x + planeNormal_1.x) / 2.0, (planeNormal_0.y + planeNormal_1.y) / 2.0, (planeNormal_0.z + planeNormal_1.z) / 2.0);
-
 	// Calculate base point (Z=0) of this plane by considering that the Z axis starts at the exact point where the fixed knob is located
-	float planeMean_base_point = -(planeMean.x * x_screw_bed_calib_1 + planeMean.y * y_screw_bed_calib_1);
+	float planeNormal_0_base_point = -(planeNormal_0.x * x_screw_bed_calib_1 + planeNormal_0.y * y_screw_bed_calib_1);
 
 	// We get the height in the fixed knob and the left and right knobs
-	float Z_knob_back = -(planeMean.x * x_screw_bed_calib_1 + planeMean.y * y_screw_bed_calib_1 + planeMean_base_point) / planeMean.z; // we already know it's Z = 0 because is the base point
+	float Z_knob_back = -(planeNormal_0.x * x_screw_bed_calib_1 + planeNormal_0.y * y_screw_bed_calib_1 + planeNormal_0_base_point) / planeNormal_0.z; // we already know it's Z = 0 because is the base point
 	//assert (Z_knob_back == 0);
-	float Z_knob_left = -(planeMean.x * x_screw_bed_calib_2 + planeMean.y * y_screw_bed_calib_2 + planeMean_base_point) / planeMean.z;
-	float Z_knob_right = -(planeMean.x * x_screw_bed_calib_3 + planeMean.y * y_screw_bed_calib_3 + planeMean_base_point) / planeMean.z;
+	float Z_knob_left = -(planeNormal_0.x * x_screw_bed_calib_2 + planeNormal_0.y * y_screw_bed_calib_2 + planeNormal_0_base_point) / planeNormal_0.z;
+	float Z_knob_right = -(planeNormal_0.x * x_screw_bed_calib_3 + planeNormal_0.y * y_screw_bed_calib_3 + planeNormal_0_base_point) / planeNormal_0.z;
 
 	SERIAL_PROTOCOLPGM("planeNormal_0.x: ");
 	SERIAL_PROTOCOLLN(planeNormal_0.x);
@@ -8792,21 +8720,7 @@ inline void gcode_G294(){//BCN3D Bed leveling
 	SERIAL_PROTOCOLPGM("planeNormal_0.z: ");
 	SERIAL_PROTOCOLLN(planeNormal_0.z);
 
-	SERIAL_PROTOCOLPGM("planeNormal_1.x: ");
-	SERIAL_PROTOCOLLN(planeNormal_1.x);
-	SERIAL_PROTOCOLPGM("planeNormal_1.y: ");
-	SERIAL_PROTOCOLLN(planeNormal_1.y);
-	SERIAL_PROTOCOLPGM("planeNormal_1.z: ");
-	SERIAL_PROTOCOLLN(planeNormal_1.z);
-
-	SERIAL_PROTOCOLPGM("planeMean.x: ");
-	SERIAL_PROTOCOLLN(planeMean.x);
-	SERIAL_PROTOCOLPGM("planeMean.y: ");
-	SERIAL_PROTOCOLLN(planeMean.y);
-	SERIAL_PROTOCOLPGM("planeMean.z: ");
-	SERIAL_PROTOCOLLN(planeMean.z);
-
-    //Message below its what the embedded needs to parse with a Regex
+  //Message below its what the embedded needs to parse with a Regex
 
 	SERIAL_PROTOCOLPGM("ScrewBed0: ");
 	MYSERIAL0.print(Z_knob_left-Z_knob_back, 6);
