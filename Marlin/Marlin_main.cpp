@@ -8602,6 +8602,219 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
 	SERIAL_EOL();
 }
 
+inline void gcode_G294(){//BCN3D Bed leveling
+
+	#ifdef BCN3D_PRINT_SIMULATION
+	dwell(4000); // 4 seconds delays
+	SERIAL_PROTOCOLPGM("ScrewBed0: ");
+	MYSERIAL0.print(0, 6);
+	SERIAL_PROTOCOLPGM(" ScrewBed1: ");
+	MYSERIAL0.print(0, 6);
+	SERIAL_EOL();
+	return;
+	#endif
+
+	//We have to save the active extruder.
+
+	SYNC_PLAN_POSITION_KINEMATIC();
+
+
+	//MOVING THE EXTRUDERS TO AVOID HITTING THE CASE WHEN PROBING-------------------------
+	current_position[X_AXIS] += x_gap_avoid_collision_l;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
+	///////planner.synchronize();
+	//current_position[X_AXIS] = x_home_pos(RIGHT_EXTRUDER);
+
+	active_extruder=1;
+	set_axis_is_at_home(X_AXIS); //Redoes the Max Min calculus for the Right extruder
+	SERIAL_PROTOCOLLN(current_position[X_AXIS]);
+	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]);
+	current_position[X_AXIS]-=x_gap_avoid_collision_r;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 1);
+
+	//*********************************************************************
+	//Now we can proceed to probe the first 3 points with the left extruder
+	active_extruder=0;
+	set_axis_is_at_home(X_AXIS);
+	current_position[X_AXIS]+=x_gap_avoid_collision_l;
+	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]); // We are now at position
+	planner.synchronize();
+
+
+// Left probing
+//
+//  +--------------------------+
+//  |  1                       |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |  2                    3  |
+//  +--------------------------+
+
+
+	// Probe at 3 arbitrary points
+	// probe left extruder
+
+	SERIAL_PROTOCOLPGM("Zvalue after home: ");
+	SERIAL_PROTOCOLLN(current_position[Z_AXIS]);
+
+	setup_for_endstop_or_probe_move();
+	float z_at_pt_1 = probe_pt(x_probe_left_extr[0],y_probe_left_extr[0], PROBE_PT_RAISE, 3);
+	clean_up_after_endstop_or_probe_move();
+
+	feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+
+	// Move the probe to the starting Y
+	current_position[Y_AXIS] = y_probe_left_extr[2] - yProbeOffset;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], XY_PROBE_FEEDRATE_MM_S, 1);
+
+	setup_for_endstop_or_probe_move();
+	float z_at_pt_2 = probe_pt(x_probe_left_extr[1],y_probe_left_extr[1], PROBE_PT_RAISE, 3);
+	clean_up_after_endstop_or_probe_move();
+	setup_for_endstop_or_probe_move();
+	float z_at_pt_3 = probe_pt(x_probe_left_extr[2],y_probe_left_extr[2], PROBE_PT_RAISE, 3);
+	clean_up_after_endstop_or_probe_move();
+
+	current_position[Z_AXIS] += Z_RAISE_BET_PROBINGS;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(600), 0);
+
+	current_position[X_AXIS]=x_home_pos(active_extruder)+x_gap_avoid_collision_l;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
+
+	planner.synchronize();
+
+	//Now the right extruder joins the party!
+
+	active_extruder=1;
+	set_axis_is_at_home(X_AXIS); //Redoes the Max Min calculus for the right extruder
+	current_position[X_AXIS]-=x_gap_avoid_collision_r;
+	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]);
+
+
+// Right probing
+//
+//  +--------------------------+
+//  |                       1  |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |  3                    2  |
+//  +--------------------------+
+
+	//Probe at 3 arbitrary points
+	//probe right extruder
+	setup_for_endstop_or_probe_move();
+	float z2_at_pt_3 = probe_pt(x_probe_right_extr[2], y_probe_right_extr[2], PROBE_PT_RAISE, 3);
+	clean_up_after_endstop_or_probe_move();
+
+	feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+
+	setup_for_endstop_or_probe_move();
+	float z2_at_pt_2 = probe_pt(x_probe_right_extr[1], y_probe_right_extr[1], PROBE_PT_RAISE, 3);
+	clean_up_after_endstop_or_probe_move();
+
+	// Move the probe to the starting X
+	current_position[X_AXIS] = x_probe_right_extr[0] - xSecondProbeOffset;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(4000), 1);
+
+	setup_for_endstop_or_probe_move();
+	float z2_at_pt_1 = probe_pt(x_probe_right_extr[0], y_probe_right_extr[0], PROBE_PT_RAISE, 3);
+	clean_up_after_endstop_or_probe_move();
+
+	current_position[Z_AXIS] = Z_AFTER_PROBING;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(480), 1);
+
+	current_position[X_AXIS]=x_home_pos(active_extruder)-10;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 1);
+
+	planner.synchronize();
+
+	home_axis_from_code(true, true, false);
+	tool_change(0);
+
+	matrix_3x3 plan_bed_level_matrix;
+
+	plan_bed_level_matrix.set_to_identity();
+
+	// *************** CALCULATE PLANES ***************
+	// Store 3 points from the first plane (obtained with the left extruder)
+	vector_3 pt1_0 = vector_3(x_probe_left_extr[0], y_probe_left_extr[0], z_at_pt_1);
+	vector_3 pt2_0 = vector_3(x_probe_left_extr[1], y_probe_left_extr[1], z_at_pt_2);
+	vector_3 pt3_0 = vector_3(x_probe_left_extr[2], y_probe_left_extr[2], z_at_pt_3);
+
+	// Calculate 2 vectors of the first plane
+	vector_3 from_2_to_1_0 = (pt1_0 - pt2_0);
+	vector_3 from_2_to_3_0 = (pt3_0 - pt2_0);
+	vector_3 planeNormal_0 = vector_3::cross(from_2_to_1_0, from_2_to_3_0);
+
+	// Calculate normal vector of the first plane
+	planeNormal_0 = vector_3(planeNormal_0.x, planeNormal_0.y, planeNormal_0.z);
+
+	// Store 3 points from the second plane (obtained with the right extruder)
+	// Take into account the possible offset of the endstops.
+	// Because there are two common points, consider the variation as the mean between the two measurements.
+	float z_variation_endstops = ((z2_at_pt_3 - z_at_pt_2) + (z2_at_pt_2 - z_at_pt_3)) / 2.0;
+
+	// Store 3 points from the second plane (obtained with the right extruder)
+	vector_3 pt1_1 = vector_3(x_probe_right_extr[0], y_probe_right_extr[0], z2_at_pt_1 - z_variation_endstops);
+	vector_3 pt2_1 = vector_3(x_probe_right_extr[1], y_probe_right_extr[1], z2_at_pt_2 - z_variation_endstops);
+	vector_3 pt3_1 = vector_3(x_probe_right_extr[2], y_probe_right_extr[2], z2_at_pt_3 - z_variation_endstops);
+
+	// Calculate 2 vectors of the second plane
+	vector_3 from_3_to_1_1 = (pt1_1 - pt3_1);
+	vector_3 from_3_to_2_1 = (pt2_1 - pt3_1);
+	vector_3 planeNormal_1 = vector_3::cross(from_3_to_1_1, from_3_to_2_1); // Point 3 is 2 on the left
+
+	// Calculate normal vector of the second plane
+	planeNormal_1 = vector_3(planeNormal_1.x, planeNormal_1.y, planeNormal_1.z);
+
+	// Obtain the mean vector
+	// TODO In case the variance is too much, we should consider send a message indicating the surface is not flat enough
+	vector_3 planeMean = vector_3((planeNormal_0.x + planeNormal_1.x) / 2.0, (planeNormal_0.y + planeNormal_1.y) / 2.0, (planeNormal_0.z + planeNormal_1.z) / 2.0);
+
+	// Calculate base point (Z=0) of this plane by considering that the Z axis starts at the exact point where the fixed knob is located
+	float planeMean_base_point = -(planeMean.x * x_screw_bed_calib_1 + planeMean.y * y_screw_bed_calib_1);
+
+	// We get the height in the fixed knob and the left and right knobs
+	float Z_knob_back = -(planeMean.x * x_screw_bed_calib_1 + planeMean.y * y_screw_bed_calib_1 + planeMean_base_point) / planeMean.z; // we already know it's Z = 0 because is the base point
+	//assert (Z_knob_back == 0);
+	float Z_knob_left = -(planeMean.x * x_screw_bed_calib_2 + planeMean.y * y_screw_bed_calib_2 + planeMean_base_point) / planeMean.z;
+	float Z_knob_right = -(planeMean.x * x_screw_bed_calib_3 + planeMean.y * y_screw_bed_calib_3 + planeMean_base_point) / planeMean.z;
+
+	SERIAL_PROTOCOLPGM("planeNormal_0.x: ");
+	SERIAL_PROTOCOLLN(planeNormal_0.x);
+	SERIAL_PROTOCOLPGM("planeNormal_0.y: ");
+	SERIAL_PROTOCOLLN(planeNormal_0.y);
+	SERIAL_PROTOCOLPGM("planeNormal_0.z: ");
+	SERIAL_PROTOCOLLN(planeNormal_0.z);
+
+	SERIAL_PROTOCOLPGM("planeNormal_1.x: ");
+	SERIAL_PROTOCOLLN(planeNormal_1.x);
+	SERIAL_PROTOCOLPGM("planeNormal_1.y: ");
+	SERIAL_PROTOCOLLN(planeNormal_1.y);
+	SERIAL_PROTOCOLPGM("planeNormal_1.z: ");
+	SERIAL_PROTOCOLLN(planeNormal_1.z);
+
+	SERIAL_PROTOCOLPGM("planeMean.x: ");
+	SERIAL_PROTOCOLLN(planeMean.x);
+	SERIAL_PROTOCOLPGM("planeMean.y: ");
+	SERIAL_PROTOCOLLN(planeMean.y);
+	SERIAL_PROTOCOLPGM("planeMean.z: ");
+	SERIAL_PROTOCOLLN(planeMean.z);
+
+    //Message below its what the embedded needs to parse with a Regex
+
+	SERIAL_PROTOCOLPGM("ScrewBed0: ");
+	MYSERIAL0.print(Z_knob_left-Z_knob_back, 6);
+	SERIAL_PROTOCOLPGM(" ScrewBed1: ");
+	MYSERIAL0.print(Z_knob_right-Z_knob_back, 6);
+	SERIAL_EOL();
+}
+
 inline void gcode_M668() {
 	planner.synchronize();
 
@@ -15740,6 +15953,7 @@ void process_parsed_command() {
         case 291: gcode_G291(); break;                            // G291: BCN3D Mesh Bed leveling auto
         case 292: gcode_G292(); break;                            // G292: BCN3D Mesh Bed leveling probe endstop
         case 293: gcode_G293(); break;                            // G293: BCN3D Mesh Bed leveling piezo
+        case 294: gcode_G294(); break;                            // G294: BCN3D Bed leveling piezo
         case 715: gcode_G715(); break;                            // G715: Start New layer
       #endif
 
