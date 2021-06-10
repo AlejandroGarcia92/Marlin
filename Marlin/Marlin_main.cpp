@@ -12718,6 +12718,12 @@ inline void gcode_M226() {
 	   SERIAL_ECHO_START();
 	   SERIAL_ECHOLNPAIR("Chamber fan: ", fan_pin);
    }
+      /*
+	* M289: Inverts the logic of the Z endstop pins if the machine has piezo
+	*/
+   inline void gcode_M289() {
+	   
+   }
    /*
 	* M305: P#heater or B bed X#IDsensor
    */
@@ -15977,6 +15983,7 @@ void process_parsed_command() {
         case 286: gcode_M286(); break;                            // M286: Collision avoidance bed leveling
         case 287: gcode_M287(); break;                            // M287: Set printing settings
         case 288: gcode_M288(); break;							              // M288: Set Chamber fan On/Off
+        case 289: gcode_M289(); break;                            // M282: Z Endstop pin inversion
       #endif
 
       #if ENABLED(BABYSTEPPING)
