@@ -12486,6 +12486,15 @@ inline void gcode_M226() {
 
 #ifdef BCN3D_MOD
   /*
+	* M279: Inverts the logic of the Z endstop pins if the machine has piezo
+	*/
+   inline void gcode_M279() {
+	   if (parser.seen('P')) {
+        bool hasPiezo = parser.boolval('P');
+        SERIAL_ECHOLNPAIR("Machine has piezo: ", hasPiezo);
+     }
+   }
+  /*
 	* M281: Set axis max travel. (X/Y/Z) S<0 maximum (default) or 1 maximum>
 	*/
    inline void gcode_M281() {
@@ -12717,12 +12726,6 @@ inline void gcode_M226() {
 	   }
 	   SERIAL_ECHO_START();
 	   SERIAL_ECHOLNPAIR("Chamber fan: ", fan_pin);
-   }
-      /*
-	* M289: Inverts the logic of the Z endstop pins if the machine has piezo
-	*/
-   inline void gcode_M279() {
-	   
    }
    /*
 	* M305: P#heater or B bed X#IDsensor
