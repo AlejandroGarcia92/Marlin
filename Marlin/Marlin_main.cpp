@@ -13054,7 +13054,7 @@ inline void gcode_M226() {
    }
 
       /*
-	* M291: Set piezo X sense offset
+	* M291: Set piezo Y sense offset
 	*/
    inline void gcode_M292() {
 	   const float offset = parser.floatval('S');
