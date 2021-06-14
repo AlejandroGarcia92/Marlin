@@ -654,6 +654,10 @@ static float retract_printer_factor = RETRACT_PRINTER_FACTOR;
 static float retract_print_test_factor = RETRACT_PRINT_TEST_FACTOR;
 static float purge_printer_factor = PURGE_PRINTER_FACTOR;
 
+//Piezo offset calibration sense
+static float piezoXoffset = 0;
+static float piezoYoffset = 0;
+
 #endif
 
 #if HAS_BED_PROBE
@@ -8179,11 +8183,11 @@ inline void gcode_G243() {//BCN3D Piezo Offset Calib pattern for X axis
 	planner.synchronize();
 
 
-	for (int j=0; j<(NUM_LINES);j++) //N times		//////////////////////////CONTINUAR CON EL PATRON
+	for (int j=0; j<(NUM_LINES);j++) //N times		
 	{
 
 		if (j != 0){
-			draw_print_line_scrirt(X_AXIS, 8.0 - hotend_size_setup[active_extruder] + 0.1, hotend_size_setup[1]);
+			draw_print_line_scrirt(X_AXIS, 8.0 - hotend_size_setup[active_extruder] + 0.05, hotend_size_setup[1]);
 		}
 
 		draw_print_line(X_AXIS, 37.5,LINES_LAYER_HEIGHT_XY, hotend_size_setup[1]);
@@ -8345,7 +8349,7 @@ inline void gcode_G244(){//BCN3D Piezo Offset Calib pattern for Y axis
 		draw_print_line(Y_AXIS,-39,LINES_LAYER_HEIGHT_XY, hotend_size_setup[1]);
 
 		if(j!=9){
-			draw_print_line_scrirt(Y_AXIS, -8.0+hotend_size_setup[active_extruder]-0.1, hotend_size_setup[1]);
+			draw_print_line_scrirt(Y_AXIS, -8.0+hotend_size_setup[active_extruder]-0.05, hotend_size_setup[1]);
 		}
 
 	}
@@ -9264,8 +9268,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
       yLeft = yPos - (points[2] + points[3]) / 2;
       yRight = yPos - (points[6] + points[7]) / 2;
       yOffset = yRight - yLeft;
-      hotend_offset[X_AXIS][1] += xOffset;
-      hotend_offset[Y_AXIS][1] += yOffset;
+      hotend_offset[X_AXIS][1] += xOffset + piezoXoffset;
+      hotend_offset[Y_AXIS][1] += yOffset + piezoYoffset;
       SERIAL_ECHOLNPAIR("T1 offset X: ", hotend_offset[X_AXIS][1]);
       SERIAL_ECHOLNPAIR("T1 offset Y: ", hotend_offset[Y_AXIS][1]);
       SERIAL_ECHOLN("XY autocalibration finished");
@@ -13038,6 +13042,27 @@ inline void gcode_M226() {
 	   SERIAL_ECHO_START();
 	   SERIAL_ECHOLNPAIR("Chamber fan: ", fan_pin);
    }
+
+      /*
+	* M291: Set piezo X sense offset
+	*/
+   inline void gcode_M291() {
+	   const float offset = parser.floatval('S');
+     piezoOffsetX = offset;
+	   SERIAL_ECHO_START();
+	   SERIAL_ECHOLNPAIR("X piezo offset sense updated: ", offset);
+   }
+
+      /*
+	* M291: Set piezo X sense offset
+	*/
+   inline void gcode_M292() {
+	   const float offset = parser.floatval('S');
+     piezoOffsetY = offset;
+	   SERIAL_ECHO_START();
+	   SERIAL_ECHOLNPAIR("Y piezo offset sense updated: ", offset);
+   }
+
    /*
 	* M305: P#heater or B bed X#IDsensor
    */
@@ -16303,6 +16328,11 @@ void process_parsed_command() {
 
       #if ENABLED(BABYSTEPPING)
         case 290: gcode_M290(); break;                            // M290: Babystepping
+      #endif
+
+      #ifdef BCN3D_MOD
+        case 291: gcode_M291(); break;                            // M291: Set Piezo Sense Offset X
+        case 292: gcode_M292(); break;                            // M292: Set Piezo Sense Offset Y
       #endif
 
       #if HAS_BUZZER
