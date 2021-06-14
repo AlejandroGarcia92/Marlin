@@ -13048,7 +13048,7 @@ inline void gcode_M226() {
 	*/
    inline void gcode_M291() {
 	   const float offset = parser.floatval('S');
-     piezoOffsetX = offset;
+     piezoYoffset = offset;
 	   SERIAL_ECHO_START();
 	   SERIAL_ECHOLNPAIR("X piezo offset sense updated: ", offset);
    }
@@ -13058,7 +13058,7 @@ inline void gcode_M226() {
 	*/
    inline void gcode_M292() {
 	   const float offset = parser.floatval('S');
-     piezoOffsetY = offset;
+     piezoYoffset = offset;
 	   SERIAL_ECHO_START();
 	   SERIAL_ECHOLNPAIR("Y piezo offset sense updated: ", offset);
    }
