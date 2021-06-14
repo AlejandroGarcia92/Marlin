@@ -16056,8 +16056,8 @@ void process_parsed_command() {
         case 240: gcode_G240(); break;                            // G240: BCN3D Calib Z
         case 241: gcode_G241(); break;                            // G241: BCN3D Calib X
         case 242: gcode_G242(); break;                            // G242: BCN3D Calib Y
-        case 241: gcode_G243(); break;                            // G243: BCN3D Piezo Offset Calib X
-        case 242: gcode_G244(); break;                            // G244: BCN3D Piezo Offset Calib Y
+        case 243: gcode_G243(); break;                            // G243: BCN3D Piezo Offset Calib X
+        case 244: gcode_G244(); break;                            // G244: BCN3D Piezo Offset Calib Y
         case 290: gcode_G290(); break;                            // G290: BCN3D Bed leveling
         case 291: gcode_G291(); break;                            // G291: BCN3D Mesh Bed leveling auto
         case 292: gcode_G292(); break;                            // G292: BCN3D Mesh Bed leveling probe endstop
