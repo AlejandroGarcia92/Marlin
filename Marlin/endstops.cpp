@@ -394,7 +394,7 @@ void _O2 Endstops::M119() {
 
 // Check endstops - Could be called from Temperature ISR!
 void Endstops::update() {
-
+  
   #if DISABLED(ENDSTOP_NOISE_FILTER)
     if (!abort_enabled()) return;
   #endif
@@ -500,7 +500,19 @@ void Endstops::update() {
     #elif ENABLED(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
       UPDATE_ENDSTOP_BIT(Z, MIN);
 	  #if HAS_Z2_MIN && defined(BCN3D_MOD)
-	  UPDATE_ENDSTOP_BIT(Z2, MIN);
+	  //UPDATE_ENDSTOP_BIT(Z2, MIN);
+      
+      SERIAL_PROTOCOLLNPGM("hola");
+
+      do
+      { 
+        if ((READ(_ENDSTOP_PIN(Z2, MIN)) != _ENDSTOP_INVERTING(Z2, MIN))) {
+          SBI(live_state,_ENDSTOP(Z2, MIN)); 
+        } else {
+          live_state &= ~(1 << (ENDSTOP(Z2, MIN);
+      }while(0)
+
+
 	  #else
 	  COPY_LIVE_STATE(Z_MIN, Z2_MIN);
 	  #endif
