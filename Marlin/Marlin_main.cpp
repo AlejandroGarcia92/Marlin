@@ -8176,7 +8176,7 @@ inline void gcode_G243() {//BCN3D Piezo Offset Calib pattern for X axis
 
 	draw_print_line_scrirt(Y_AXIS, hotend_size_setup[active_extruder], hotend_size_setup[1]);
 
-	draw_print_line_scrirt(X_AXIS, 8.0-hotend_size_setup[active_extruder] - 0.5, hotend_size_setup[1]);
+	draw_print_line_scrirt(X_AXIS, 8.0-hotend_size_setup[active_extruder] - 0.25, hotend_size_setup[1]);
 
 	draw_print_line_scrirt(Y_AXIS, 4.0-hotend_size_setup[active_extruder], hotend_size_setup[1]);
 
@@ -8338,7 +8338,7 @@ inline void gcode_G244(){//BCN3D Piezo Offset Calib pattern for Y axis
 			draw_print_line_scrirt(X_AXIS, -hotend_size_setup[active_extruder], hotend_size_setup[1]);
 
 
-			draw_print_line_scrirt(Y_AXIS, -4.0+hotend_size_setup[active_extruder]+0.5, hotend_size_setup[1]);
+			draw_print_line_scrirt(Y_AXIS, -4.0+hotend_size_setup[active_extruder]+0.25, hotend_size_setup[1]);
 
 
 			draw_print_line_scrirt(X_AXIS, -4.0, hotend_size_setup[1]);
