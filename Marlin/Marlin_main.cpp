@@ -8835,56 +8835,36 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
 
 inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
 
-	//We have to save the active extruder.
 
 	SYNC_PLAN_POSITION_KINEMATIC();
 
   const float start_x = x_probe_left_extr[1];
-  const float shift_x = (xBedSize-start_x*2)/2; //Matrix 4x3
+  const float shift_x = (xBedSize-start_x*2)/2; 
   
   const float start_y = y_probe_left_extr[1];
-  const float shift_y = (yBedSize-start_y*2)/2; //Matrix 4x3
+  const float shift_y = (yBedSize-start_y*2)/2; 
 
   const float x_probe_mesh_points[3] = {start_x, start_x + shift_x, start_x + shift_x*2};
   const float y_probe_mesh_points[3] = {start_y, start_y + shift_y, start_y + shift_y*2};
 
-	//MOVING THE EXTRUDERS TO AVOID HITTING THE CASE WHEN PROBING-------------------------
+
 	current_position[X_AXIS] += x_gap_avoid_collision_l;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
-	///////planner.synchronize();
-	//current_position[X_AXIS] = x_home_pos(RIGHT_EXTRUDER);
+
 
 	active_extruder=1;
-	set_axis_is_at_home(X_AXIS); //Redoes the Max Min calculus for the Right extruder
+	set_axis_is_at_home(X_AXIS); 
 	SERIAL_PROTOCOLLN(current_position[X_AXIS]);
 	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]);
 	current_position[X_AXIS]-=x_gap_avoid_collision_r;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 1);
 
-	//*********************************************************************
-	//Now we can proceed to probe the first 3 points with the left extruder
 	active_extruder=0;
 	set_axis_is_at_home(X_AXIS);
 	current_position[X_AXIS]+=x_gap_avoid_collision_l;
 	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]); // We are now at position
 	planner.synchronize();
 
-
-// Left probing
-//
-//  +--------------------------+
-//  |  31                      |
-//  |                          |
-//  |                          |
-//  |  21                      |
-//  |                          |
-//  |                          |
-//  |  11       12          12 |
-//  +--------------------------+
-
-
-	// Probe at 3 arbitrary points
-	// probe left extruder
 
 	SERIAL_PROTOCOLPGM("Zvalue after home: ");
 	SERIAL_PROTOCOLLN(current_position[Z_AXIS]);
