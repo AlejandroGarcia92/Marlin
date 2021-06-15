@@ -9230,7 +9230,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
         current_position[Y_AXIS] = yPos;
         current_position[Z_AXIS] = -1;
         
-        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(1200),active_extruder);
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
       }
       destination[X_AXIS] = xPos;
