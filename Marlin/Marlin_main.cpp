@@ -634,8 +634,8 @@ static float x_screw_bed_calib_3 = SCREW_BED_3_X;
 static float y_screw_bed_calib_3 = SCREW_BED_3_Y;
 
 //Probe positions
-static float x_probe_left_extr[6] = {X_SIGMA_PROBE_1_LEFT_EXTR, X_SIGMA_PROBE_2_LEFT_EXTR, X_SIGMA_PROBE_3_LEFT_EXTR, X_SIGMA_PROBE_PIEZO_1_LEFT_EXTR, X_SIGMA_PROBE_PIEZO_2_LEFT_EXTR, X_SIGMA_PROBE_PIEZO_3_LEFT_EXTR};
-static float y_probe_left_extr[6] = {Y_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_2_LEFT_EXTR, Y_SIGMA_PROBE_3_LEFT_EXTR, Y_SIGMA_PROBE_PIEZO_1_LEFT_EXTR, Y_SIGMA_PROBE_PIEZO_2_LEFT_EXTR, Y_SIGMA_PROBE_PIEZO_3_LEFT_EXTR};
+static float x_probe_left_extr[3] = {X_SIGMA_PROBE_1_LEFT_EXTR, X_SIGMA_PROBE_2_LEFT_EXTR, X_SIGMA_PROBE_3_LEFT_EXTR};
+static float y_probe_left_extr[3] = {Y_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_2_LEFT_EXTR, Y_SIGMA_PROBE_3_LEFT_EXTR};
 static float x_probe_right_extr[3] = {X_SIGMA_PROBE_1_RIGHT_EXTR, X_SIGMA_PROBE_2_RIGHT_EXTR, X_SIGMA_PROBE_3_RIGHT_EXTR};
 static float y_probe_right_extr[3] = {Y_SIGMA_PROBE_1_RIGHT_EXTR, Y_SIGMA_PROBE_2_RIGHT_EXTR, Y_SIGMA_PROBE_3_RIGHT_EXTR};
 
@@ -8620,7 +8620,8 @@ inline void gcode_G294(){//BCN3D Bed leveling
 
 
 	//MOVING THE EXTRUDERS TO AVOID HITTING THE CASE WHEN PROBING-------------------------
-	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
+  current_position[X_AXIS] += x_gap_avoid_collision_l;
+  planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
 	///////planner.synchronize();
 	//current_position[X_AXIS] = x_home_pos(RIGHT_EXTRUDER);
 
@@ -8628,14 +8629,14 @@ inline void gcode_G294(){//BCN3D Bed leveling
 	set_axis_is_at_home(X_AXIS); //Redoes the Max Min calculus for the Right extruder
 	SERIAL_PROTOCOLLN(current_position[X_AXIS]);
 	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]);
-	//current_position[X_AXIS]-=x_gap_avoid_collision_r;
+	current_position[X_AXIS]-=x_gap_avoid_collision_r;
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 1);
 
 	//*********************************************************************
 	//Now we can proceed to probe the first 3 points with the left extruder
 	active_extruder=0;
 	set_axis_is_at_home(X_AXIS);
-	//current_position[X_AXIS]+=x_gap_avoid_collision_l;
+	current_position[X_AXIS]+=x_gap_avoid_collision_l;
 	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]); // We are now at position
 	planner.synchronize();
 
@@ -8659,8 +8660,20 @@ inline void gcode_G294(){//BCN3D Bed leveling
 	SERIAL_PROTOCOLPGM("Zvalue after home: ");
 	SERIAL_PROTOCOLLN(current_position[Z_AXIS]);
 
+  // Set the same coordinates as the Mesh Leveling:
+
+  const float start_x = x_probe_left_extr[1];
+  const float shift_x = (xBedSize-start_x*2)/2;
+  
+  const float start_y = y_probe_left_extr[1];
+  const float shift_y = (yBedSize-start_y*2)/2;
+
+  const float x_probe_bed_points[3] = {start_x, start_x + shift_x, start_x + shift_x*2};
+  const float y_probe_bed_points[2] = {start_y, start_y + shift_y*2};
+
+  //  Probe the first point at the X center and Y top of the build plate
 	setup_for_endstop_or_probe_move();
-	float z_at_pt_1 = probe_pt(x_probe_left_extr[3],y_probe_left_extr[3], PROBE_PT_RAISE, 3);
+	float z_at_pt_1 = probe_pt(x_probe_bed_points[1], y_probe_bed_points[1], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
 
 	feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
@@ -8670,10 +8683,10 @@ inline void gcode_G294(){//BCN3D Bed leveling
 	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], XY_PROBE_FEEDRATE_MM_S, 1);
 
 	setup_for_endstop_or_probe_move();
-	float z_at_pt_2 = probe_pt(x_probe_left_extr[4],y_probe_left_extr[4], PROBE_PT_RAISE, 3);
+	float z_at_pt_2 = probe_pt(x_probe_bed_points[0], y_probe_bed_points[0], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
 	setup_for_endstop_or_probe_move();
-	float z_at_pt_3 = probe_pt(x_probe_left_extr[5],y_probe_left_extr[5], PROBE_PT_RAISE, 3);
+	float z_at_pt_3 = probe_pt(x_probe_bed_points[2], y_probe_bed_points[0], PROBE_PT_RAISE, 3);
 	clean_up_after_endstop_or_probe_move();
 
 	current_position[Z_AXIS] += Z_RAISE_BET_PROBINGS;
