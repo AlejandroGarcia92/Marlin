@@ -400,6 +400,8 @@ void Endstops::update() {
   #endif
 
   #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT_TO(live_state, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != _ENDSTOP_INVERTING(AXIS, MINMAX)))
+  #define UPDATE_ENDSTOP_BIT_ENDSTOP(AXIS, MINMAX) SET_BIT_TO(live_state, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != true))
+  #define UPDATE_ENDSTOP_BIT_PIEZO(AXIS, MINMAX) SET_BIT_TO(live_state, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != false))
   #define COPY_LIVE_STATE(SRC_BIT, DST_BIT) SET_BIT_TO(live_state, DST_BIT, TEST(live_state, SRC_BIT))
 
   #if ENABLED(G38_PROBE_TARGET) && PIN_EXISTS(Z_MIN_PROBE) && !(CORE_IS_XY || CORE_IS_XZ)
@@ -491,28 +493,45 @@ void Endstops::update() {
 
   #if HAS_Z_MIN
     #if ENABLED(Z_DUAL_ENDSTOPS)
-      UPDATE_ENDSTOP_BIT(Z, MIN);
-      #if HAS_Z2_MIN
-        UPDATE_ENDSTOP_BIT(Z2, MIN);
+      #if defined(BCN3D_MOD)
+      if (hasPiezo) {
+        UPDATE_ENDSTOP_BIT_PIEZO(Z, MIN);
+      } else {
+        UPDATE_ENDSTOP_BIT_ENDSTOP(Z, MIN);
+      }
+        #if HAS_Z2_MIN
+        if (hasPiezo) {
+          UPDATE_ENDSTOP_BIT_PIEZO(Z2, MIN);
+        } else {
+          UPDATE_ENDSTOP_BIT_ENDSTOP(Z2, MIN);
+        }
+        #else
+          COPY_LIVE_STATE(Z_MIN, Z2_MIN);
+        #endif
       #else
-        COPY_LIVE_STATE(Z_MIN, Z2_MIN);
+        UPDATE_ENDSTOP_BIT(Z, MIN);
+        #if HAS_Z2_MIN
+          UPDATE_ENDSTOP_BIT(Z2, MIN);
+        #else
+          COPY_LIVE_STATE(Z_MIN, Z2_MIN);
+        #endif
       #endif
     #elif ENABLED(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
-      UPDATE_ENDSTOP_BIT(Z, MIN);
+      #if defined(BCN3D_MOD)
+        if (hasPiezo) {
+        UPDATE_ENDSTOP_BIT_PIEZO(Z, MIN);
+      } else {
+        UPDATE_ENDSTOP_BIT_ENDSTOP(Z, MIN);
+      }
+      #else
+        UPDATE_ENDSTOP_BIT(Z, MIN);
+      #endif
 	  #if HAS_Z2_MIN && defined(BCN3D_MOD)
-	  //UPDATE_ENDSTOP_BIT(Z2, MIN);
-      
-      SERIAL_PROTOCOLLNPGM("hola");
-
-      do
-      { 
-        if ((READ(_ENDSTOP_PIN(Z2, MIN)) != _ENDSTOP_INVERTING(Z2, MIN))) {
-          SBI(live_state,_ENDSTOP(Z2, MIN)); 
-        } else {
-          live_state &= ~(1 << (ENDSTOP(Z2, MIN);
-      }while(0)
-
-
+      if (hasPiezo) {
+        UPDATE_ENDSTOP_BIT_PIEZO(Z2, MIN);
+      } else {
+        UPDATE_ENDSTOP_BIT_ENDSTOP(Z2, MIN);
+      }
 	  #else
 	  COPY_LIVE_STATE(Z_MIN, Z2_MIN);
 	  #endif
@@ -523,7 +542,15 @@ void Endstops::update() {
 
   // When closing the gap check the enabled probe
   #if ENABLED(Z_MIN_PROBE_ENDSTOP)
-    UPDATE_ENDSTOP_BIT(Z, MIN_PROBE);
+    #if defined(BCN3D_MOD)
+      if (hasPiezo) {
+        UPDATE_ENDSTOP_BIT_PIEZO(Z, MIN_PROBE);
+      } else {
+        UPDATE_ENDSTOP_BIT_ENDSTOP(Z, MIN_PROBE);
+      }
+    #else
+      UPDATE_ENDSTOP_BIT(Z, MIN_PROBE);
+    #endif
   #endif
 
   #if HAS_Z_MAX

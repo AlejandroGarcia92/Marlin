@@ -654,6 +654,9 @@ static float retract_printer_factor = RETRACT_PRINTER_FACTOR;
 static float retract_print_test_factor = RETRACT_PRINT_TEST_FACTOR;
 static float purge_printer_factor = PURGE_PRINTER_FACTOR;
 
+//Piezo endstop
+static bool hasPiezo = false;
+
 #endif
 
 #if HAS_BED_PROBE
@@ -12490,7 +12493,7 @@ inline void gcode_M226() {
 	*/
    inline void gcode_M279() {
 	   if (parser.seen('P')) {
-        bool hasPiezo = parser.boolval('P');
+        hasPiezo = parser.boolval('P');
         SERIAL_ECHOLNPAIR("Machine has piezo: ", hasPiezo);
 
      }
