@@ -318,6 +318,8 @@ static void print_es_state(const bool is_hit, const char * const label=NULL) {
 void _O2 Endstops::M119() {
   SERIAL_PROTOCOLLNPGM(MSG_M119_REPORT);
   #define ES_REPORT(S) print_es_state(READ(S##_PIN) != S##_ENDSTOP_INVERTING, PSTR(MSG_##S))
+  #define ES_REPORT_Z(S) print_es_state(READ(S##_PIN) == hasPiezo, PSTR(MSG_##S))
+
   #if HAS_X_MIN
     ES_REPORT(X_MIN);
   #endif
@@ -343,16 +345,16 @@ void _O2 Endstops::M119() {
     ES_REPORT(Y2_MAX);
   #endif
   #if HAS_Z_MIN
-    ES_REPORT(Z_MIN);
+    ES_REPORT_Z(Z_MIN);
   #endif
   #if HAS_Z2_MIN
-    ES_REPORT(Z2_MIN);
+    ES_REPORT_Z(Z2_MIN);
   #endif
   #if HAS_Z_MAX
-    ES_REPORT(Z_MAX);
+    ES_REPORT_Z(Z_MAX);
   #endif
   #if HAS_Z2_MAX
-    ES_REPORT(Z2_MAX);
+    ES_REPORT_Z(Z2_MAX);
   #endif
   #if ENABLED(Z_MIN_PROBE_ENDSTOP)
     print_es_state(READ(Z_MIN_PROBE_PIN) != Z_MIN_PROBE_ENDSTOP_INVERTING, PSTR(MSG_Z_PROBE));
