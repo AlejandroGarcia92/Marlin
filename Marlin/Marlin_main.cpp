@@ -6311,6 +6311,7 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
     #if defined(BCN3D_MOD)
     if (parser.boolval('S', true)) {
       if (!isnan(measured_z)) {
+        tool_change(0);
         hotend_offset[Z_AXIS][active_extruder] = -measured_z;
         SERIAL_PROTOCOLLNPAIR_F("T1 offset Z: ", hotend_offset[Z_AXIS][active_extruder]);
       }
@@ -6322,7 +6323,6 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
     #ifdef Z_AFTER_PROBING
       if (raise_after == PROBE_PT_STOW) move_z_after_probing();
     #endif
-
     report_current_position();
   }
 
@@ -9355,6 +9355,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
       }
       clean_up_after_endstop_or_probe_move();
     }
+    //Left the process with the left extruder
+    tool_change(0);
 
     //Calc of offsets
     //TODO: improve "magic numbers" below
@@ -9378,7 +9380,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
       SERIAL_ERROR_START();
       SERIAL_ERRORLNPGM("Failed XY autocalibration");
     }
-
   }
 
 
