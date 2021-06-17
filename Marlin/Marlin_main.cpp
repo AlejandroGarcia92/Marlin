@@ -654,6 +654,9 @@ static float retract_printer_factor = RETRACT_PRINTER_FACTOR;
 static float retract_print_test_factor = RETRACT_PRINT_TEST_FACTOR;
 static float purge_printer_factor = PURGE_PRINTER_FACTOR;
 
+//Piezo endstop
+static bool hasPiezo = false;
+
 //Piezo offset calibration sense
 static float piezoXoffset = 0;
 static float piezoYoffset = 0;
@@ -12790,6 +12793,16 @@ inline void gcode_M226() {
 
 #ifdef BCN3D_MOD
   /*
+	* M279: Inverts the logic of the Z endstop pins if the machine has piezo
+	*/
+   inline void gcode_M279() {
+	   if (parser.seen('P')) {
+        hasPiezo = parser.boolval('P');
+        SERIAL_ECHOLNPAIR("Machine has piezo: ", hasPiezo);
+
+     }
+   }
+  /*
 	* M281: Set axis max travel. (X/Y/Z) S<0 maximum (default) or 1 maximum>
 	*/
    inline void gcode_M281() {
@@ -16296,6 +16309,7 @@ void process_parsed_command() {
       #endif
 
       #ifdef BCN3D_MOD
+        case 279: gcode_M279(); break;                            // M279: Z Endstop pin inversion
         case 281: gcode_M281(); break;                            // M281: Set Axis Maximum Travel
         case 282: gcode_M282(); break;                            // M282: Set bed size
         case 283: gcode_M283(); break;                            // M283: Set home safe point

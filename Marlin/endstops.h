@@ -31,6 +31,10 @@
 
 //#define VALIDATE_HOMING_ENDSTOPS
 
+
+extern bool hasPiezo;
+
+
 enum EndstopEnum : char {
   X_MIN,
   Y_MIN,
