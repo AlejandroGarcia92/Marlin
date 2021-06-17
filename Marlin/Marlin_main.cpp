@@ -655,7 +655,7 @@ static float retract_print_test_factor = RETRACT_PRINT_TEST_FACTOR;
 static float purge_printer_factor = PURGE_PRINTER_FACTOR;
 
 //Piezo endstop
-static bool hasPiezo = false;
+bool hasPiezo = false;
 
 //Piezo offset calibration sense
 static float piezoXoffset = 0;
