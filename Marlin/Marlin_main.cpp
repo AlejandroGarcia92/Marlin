@@ -8910,7 +8910,7 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
 	SERIAL_EOL();
 }
 
-inline void gcode_G294(){//BCN3D Bed leveling
+inline void gcode_G294(){//BCN3D Piezo Bed leveling
 
 	#ifdef BCN3D_PRINT_SIMULATION
 	dwell(4000); // 4 seconds delays
@@ -8981,20 +8981,18 @@ inline void gcode_G294(){//BCN3D Bed leveling
 
   //  Probe the first point at the X center and Y top of the build plate
 	setup_for_endstop_or_probe_move();
-	float z_at_pt_1 = probe_pt(x_probe_bed_points[1], y_probe_bed_points[1], PROBE_PT_RAISE, 3);
+	float z_at_pt_1 = probe_pt(x_probe_bed_points[1], y_probe_bed_points[1], PROBE_PT_RAISE, 3, true, 750);
 	clean_up_after_endstop_or_probe_move();
 
 	feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
 
 	// Move the probe to the starting Y
-	current_position[Y_AXIS] = y_probe_left_extr[2] - yProbeOffset;
-	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], XY_PROBE_FEEDRATE_MM_S, 1);
 
 	setup_for_endstop_or_probe_move();
-	float z_at_pt_2 = probe_pt(x_probe_bed_points[0], y_probe_bed_points[0], PROBE_PT_RAISE, 3);
+	float z_at_pt_2 = probe_pt(x_probe_bed_points[0], y_probe_bed_points[0], PROBE_PT_RAISE, 3, true, 750);
 	clean_up_after_endstop_or_probe_move();
 	setup_for_endstop_or_probe_move();
-	float z_at_pt_3 = probe_pt(x_probe_bed_points[2], y_probe_bed_points[0], PROBE_PT_RAISE, 3);
+	float z_at_pt_3 = probe_pt(x_probe_bed_points[2], y_probe_bed_points[0], PROBE_PT_RAISE, 3, true, 750);
 	clean_up_after_endstop_or_probe_move();
 
 	current_position[Z_AXIS] += Z_RAISE_BET_PROBINGS;
@@ -9013,32 +9011,11 @@ inline void gcode_G294(){//BCN3D Bed leveling
 
 	plan_bed_level_matrix.set_to_identity();
 
-	// *************** CALCULATE PLANES ***************
-	// Store 3 points from the first plane (obtained with the left extruder)
-	vector_3 pt1_0 = vector_3(x_probe_left_extr[0], y_probe_left_extr[0], z_at_pt_1);
-	vector_3 pt2_0 = vector_3(x_probe_left_extr[1], y_probe_left_extr[1], z_at_pt_2);
-	vector_3 pt3_0 = vector_3(x_probe_left_extr[2], y_probe_left_extr[2], z_at_pt_3);
+  //Actually, the maths behind this are not this simple, but, by iteration of this process, we achieve the perfect calibration
 
-	// Calculate 2 vectors of the first plane
-	vector_3 from_2_to_1_0 = (pt1_0 - pt2_0);
-	vector_3 from_2_to_3_0 = (pt3_0 - pt2_0);
-	vector_3 planeNormal_0 = vector_3::cross(from_2_to_1_0, from_2_to_3_0);
-
-	// Calculate base point (Z=0) of this plane by considering that the Z axis starts at the exact point where the fixed knob is located
-	float planeNormal_0_base_point = -(planeNormal_0.x * x_screw_bed_calib_1 + planeNormal_0.y * y_screw_bed_calib_1);
-
-	// We get the height in the fixed knob and the left and right knobs
-	float Z_knob_back = -(planeNormal_0.x * x_screw_bed_calib_1 + planeNormal_0.y * y_screw_bed_calib_1 + planeNormal_0_base_point) / planeNormal_0.z; // we already know it's Z = 0 because is the base point
-	//assert (Z_knob_back == 0);
-	float Z_knob_left = -(planeNormal_0.x * x_screw_bed_calib_2 + planeNormal_0.y * y_screw_bed_calib_2 + planeNormal_0_base_point) / planeNormal_0.z;
-	float Z_knob_right = -(planeNormal_0.x * x_screw_bed_calib_3 + planeNormal_0.y * y_screw_bed_calib_3 + planeNormal_0_base_point) / planeNormal_0.z;
-
-	SERIAL_PROTOCOLPGM("planeNormal_0.x: ");
-	SERIAL_PROTOCOLLN(planeNormal_0.x);
-	SERIAL_PROTOCOLPGM("planeNormal_0.y: ");
-	SERIAL_PROTOCOLLN(planeNormal_0.y);
-	SERIAL_PROTOCOLPGM("planeNormal_0.z: ");
-	SERIAL_PROTOCOLLN(planeNormal_0.z);
+	float Z_knob_back = z_at_pt_1;
+  float Z_knob_left = z_at_pt_2;
+  float Z_knob_right = z_at_pt_3;
 
   //Message below its what the embedded needs to parse with a Regex
 
