@@ -8910,6 +8910,145 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
 	SERIAL_EOL();
 }
 
+inline void gcode_G294(){//BCN3D Bed leveling
+
+	#ifdef BCN3D_PRINT_SIMULATION
+	dwell(4000); // 4 seconds delays
+	SERIAL_PROTOCOLPGM("ScrewBed0: ");
+	MYSERIAL0.print(0, 6);
+	SERIAL_PROTOCOLPGM(" ScrewBed1: ");
+	MYSERIAL0.print(0, 6);
+	SERIAL_EOL();
+	return;
+	#endif
+
+	//We have to save the active extruder.
+
+	SYNC_PLAN_POSITION_KINEMATIC();
+
+
+	//MOVING THE EXTRUDERS TO AVOID HITTING THE CASE WHEN PROBING-------------------------
+  current_position[X_AXIS] += x_gap_avoid_collision_l;
+  planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
+	///////planner.synchronize();
+	//current_position[X_AXIS] = x_home_pos(RIGHT_EXTRUDER);
+
+	active_extruder=1;
+	set_axis_is_at_home(X_AXIS); //Redoes the Max Min calculus for the Right extruder
+	SERIAL_PROTOCOLLN(current_position[X_AXIS]);
+	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]);
+	current_position[X_AXIS]-=x_gap_avoid_collision_r;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 1);
+
+	//*********************************************************************
+	//Now we can proceed to probe the first 3 points with the left extruder
+	active_extruder=0;
+	set_axis_is_at_home(X_AXIS);
+	current_position[X_AXIS]+=x_gap_avoid_collision_l;
+	planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS],current_position[E_AXIS]); // We are now at position
+	planner.synchronize();
+
+
+// Left probing
+//
+//  +--------------------------+
+//  |            1             |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |                          |
+//  |  2                    3  |
+//  +--------------------------+
+
+
+	// Probe at 3 arbitrary points
+	// probe left extruder
+
+	SERIAL_PROTOCOLPGM("Zvalue after home: ");
+	SERIAL_PROTOCOLLN(current_position[Z_AXIS]);
+
+  // Set the same coordinates as the Mesh Leveling:
+
+  const float start_x = x_probe_left_extr[1];
+  const float shift_x = (xBedSize-start_x*2)/2;
+  
+  const float start_y = y_probe_left_extr[1];
+  const float shift_y = (yBedSize-start_y*2)/2;
+
+  const float x_probe_bed_points[3] = {start_x, start_x + shift_x, start_x + shift_x*2};
+  const float y_probe_bed_points[2] = {start_y, start_y + shift_y*2};
+
+  //  Probe the first point at the X center and Y top of the build plate
+	setup_for_endstop_or_probe_move();
+	float z_at_pt_1 = probe_pt(x_probe_bed_points[1], y_probe_bed_points[1], PROBE_PT_RAISE, 3);
+	clean_up_after_endstop_or_probe_move();
+
+	feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+
+	// Move the probe to the starting Y
+	current_position[Y_AXIS] = y_probe_left_extr[2] - yProbeOffset;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], XY_PROBE_FEEDRATE_MM_S, 1);
+
+	setup_for_endstop_or_probe_move();
+	float z_at_pt_2 = probe_pt(x_probe_bed_points[0], y_probe_bed_points[0], PROBE_PT_RAISE, 3);
+	clean_up_after_endstop_or_probe_move();
+	setup_for_endstop_or_probe_move();
+	float z_at_pt_3 = probe_pt(x_probe_bed_points[2], y_probe_bed_points[0], PROBE_PT_RAISE, 3);
+	clean_up_after_endstop_or_probe_move();
+
+	current_position[Z_AXIS] += Z_RAISE_BET_PROBINGS;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(600), 0);
+
+	current_position[X_AXIS]=x_home_pos(active_extruder)+x_gap_avoid_collision_l;
+	planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(9000), 0);
+
+	planner.synchronize();
+
+	
+	home_axis_from_code(true, true, false);
+
+
+	matrix_3x3 plan_bed_level_matrix;
+
+	plan_bed_level_matrix.set_to_identity();
+
+	// *************** CALCULATE PLANES ***************
+	// Store 3 points from the first plane (obtained with the left extruder)
+	vector_3 pt1_0 = vector_3(x_probe_left_extr[0], y_probe_left_extr[0], z_at_pt_1);
+	vector_3 pt2_0 = vector_3(x_probe_left_extr[1], y_probe_left_extr[1], z_at_pt_2);
+	vector_3 pt3_0 = vector_3(x_probe_left_extr[2], y_probe_left_extr[2], z_at_pt_3);
+
+	// Calculate 2 vectors of the first plane
+	vector_3 from_2_to_1_0 = (pt1_0 - pt2_0);
+	vector_3 from_2_to_3_0 = (pt3_0 - pt2_0);
+	vector_3 planeNormal_0 = vector_3::cross(from_2_to_1_0, from_2_to_3_0);
+
+	// Calculate base point (Z=0) of this plane by considering that the Z axis starts at the exact point where the fixed knob is located
+	float planeNormal_0_base_point = -(planeNormal_0.x * x_screw_bed_calib_1 + planeNormal_0.y * y_screw_bed_calib_1);
+
+	// We get the height in the fixed knob and the left and right knobs
+	float Z_knob_back = -(planeNormal_0.x * x_screw_bed_calib_1 + planeNormal_0.y * y_screw_bed_calib_1 + planeNormal_0_base_point) / planeNormal_0.z; // we already know it's Z = 0 because is the base point
+	//assert (Z_knob_back == 0);
+	float Z_knob_left = -(planeNormal_0.x * x_screw_bed_calib_2 + planeNormal_0.y * y_screw_bed_calib_2 + planeNormal_0_base_point) / planeNormal_0.z;
+	float Z_knob_right = -(planeNormal_0.x * x_screw_bed_calib_3 + planeNormal_0.y * y_screw_bed_calib_3 + planeNormal_0_base_point) / planeNormal_0.z;
+
+	SERIAL_PROTOCOLPGM("planeNormal_0.x: ");
+	SERIAL_PROTOCOLLN(planeNormal_0.x);
+	SERIAL_PROTOCOLPGM("planeNormal_0.y: ");
+	SERIAL_PROTOCOLLN(planeNormal_0.y);
+	SERIAL_PROTOCOLPGM("planeNormal_0.z: ");
+	SERIAL_PROTOCOLLN(planeNormal_0.z);
+
+  //Message below its what the embedded needs to parse with a Regex
+
+	SERIAL_PROTOCOLPGM("ScrewBed0: ");
+	MYSERIAL0.print(Z_knob_left-Z_knob_back, 6);
+	SERIAL_PROTOCOLPGM(" ScrewBed1: ");
+	MYSERIAL0.print(Z_knob_right-Z_knob_back, 6);
+	SERIAL_EOL();
+}
+
 inline void gcode_M668() {
 	planner.synchronize();
 
@@ -16081,6 +16220,7 @@ void process_parsed_command() {
         case 291: gcode_G291(); break;                            // G291: BCN3D Mesh Bed leveling auto
         case 292: gcode_G292(); break;                            // G292: BCN3D Mesh Bed leveling probe endstop
         case 293: gcode_G293(); break;                            // G293: BCN3D Mesh Bed leveling piezo
+        case 294: gcode_G294(); break;                            // G294: BCN3D Bed leveling piezo
         case 715: gcode_G715(); break;                            // G715: Start New layer
       #endif
 
