@@ -9343,8 +9343,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
         destination[currentAxis] -= 7.5;  
       }
 
-
-
       setup_for_endstop_or_probe_move();
 
       // If G40 fails throw an error
@@ -9355,8 +9353,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
       }
       clean_up_after_endstop_or_probe_move();
     }
-    //Left the process with the left extruder
-    tool_change(0);
 
     //Calc of offsets
     //TODO: improve "magic numbers" below
