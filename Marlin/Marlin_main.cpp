@@ -369,7 +369,9 @@
 
 #if defined(BCN3D_MOD)
   bool G40_move = false,
-       G40_endstop_hit = false;
+       G40_endstop_hit = false,
+       G40_raisingBedSafely = false,
+       G40_raisingBedFailed = false;
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -9304,14 +9306,32 @@ inline void gcode_G37() { //BCN3D G37 pattern
     tool_change(0);
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
     planner.synchronize();
+    
+    endstops.enable(true);
+    SERIAL_ERRORLNPGM("subiendo cama");
+    G40_raisingBedSafely = true;
+
     current_position[Z_AXIS] = -1;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
     planner.synchronize();
     destination[Z_AXIS] = -1;
 
+    if (G40_raisingBedFailed == true) {
+      SERIAL_ERRORLNPGM("XY Calibration failed because bed colaplsed"); 
+      current_position[Z_AXIS] = 1; //Subir cama
+      //home XY
+      G40_raisingBedSafely = false; //desactivar 
+      return;
+    }
+
+    SERIAL_ERRORLNPGM("qieto cama");
+    G40_raisingBedSafely = false;
+
+
     for (uint8_t i = 0; i < 8; i++) {
     
       if (i == 4) {
+        SERIAL_ERRORLNPGM("-----i=4-----");
         current_position[Z_AXIS] = 5;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
@@ -9330,6 +9350,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
       } else {
+        SERIAL_ERRORLNPGM("bajando cama");
+
         current_position[X_AXIS] = xPos;
         current_position[Y_AXIS] = yPos;
         current_position[Z_AXIS] = -1;
@@ -12915,7 +12937,8 @@ inline void gcode_M226() {
 	*/
    inline void gcode_M279() {
 	   if (parser.seen('P')) {
-        hasPiezo = parser.boolval('P');
+        //hasPiezo = parser.boolval('P');
+        hasPiezo = false;
 
         SERIAL_ECHOLNPAIR("Machine has piezo: ", hasPiezo);
 
