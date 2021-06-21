@@ -8877,7 +8877,7 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
   for (int x = 0; x < 3; x++) {
     for (int y = 0; y < 3; y++) {
       	setup_for_endstop_or_probe_move();
-        mesh_z_points[x][y] = probe_pt(x_probe_mesh_points[x], y_probe_mesh_points[y], PROBE_PT_RAISE, 3, true, 750);
+        mesh_z_points[x][y] = probe_pt(x_probe_mesh_points[x], y_probe_mesh_points[y], PROBE_PT_RAISE, 3, true, 1000);
         clean_up_after_endstop_or_probe_move();
 
         feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
@@ -8981,7 +8981,7 @@ inline void gcode_G294(){//BCN3D Piezo Bed leveling
 
   //  Probe the first point at the X center and Y top of the build plate
 	setup_for_endstop_or_probe_move();
-	float z_at_pt_1 = probe_pt(x_probe_bed_points[1], y_probe_bed_points[1], PROBE_PT_RAISE, 3, true, 750);
+	float z_at_pt_1 = probe_pt(x_probe_bed_points[1], y_probe_bed_points[1], PROBE_PT_RAISE, 3, true, 1000);
 	clean_up_after_endstop_or_probe_move();
 
 	feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
@@ -8989,10 +8989,10 @@ inline void gcode_G294(){//BCN3D Piezo Bed leveling
 	// Move the probe to the starting Y
 
 	setup_for_endstop_or_probe_move();
-	float z_at_pt_2 = probe_pt(x_probe_bed_points[0], y_probe_bed_points[0], PROBE_PT_RAISE, 3, true, 750);
+	float z_at_pt_2 = probe_pt(x_probe_bed_points[0], y_probe_bed_points[0], PROBE_PT_RAISE, 3, true, 1000);
 	clean_up_after_endstop_or_probe_move();
 	setup_for_endstop_or_probe_move();
-	float z_at_pt_3 = probe_pt(x_probe_bed_points[2], y_probe_bed_points[0], PROBE_PT_RAISE, 3, true, 750);
+	float z_at_pt_3 = probe_pt(x_probe_bed_points[2], y_probe_bed_points[0], PROBE_PT_RAISE, 3, true, 1000);
 	clean_up_after_endstop_or_probe_move();
 
 	current_position[Z_AXIS] += Z_RAISE_BET_PROBINGS;
@@ -9295,6 +9295,10 @@ inline void gcode_G37() { //BCN3D G37 pattern
     float yPos = parser.floatval('Y');
     feedrate_mm_s = 5;
     AxisEnum currentAxis = X_AXIS;
+    current_position[E_AXIS]-=retract_printer_factor;
+    planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST), 0);//Retract
+    current_position[E_AXIS]-=retract_printer_factor;
+    planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST), 1);//Retract
     current_position[X_AXIS] = xPos;
     current_position[Y_AXIS] = yPos;
     tool_change(0);
@@ -9343,8 +9347,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
         destination[currentAxis] -= 7.5;  
       }
 
-
-
       setup_for_endstop_or_probe_move();
 
       // If G40 fails throw an error
@@ -9355,8 +9357,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
       }
       clean_up_after_endstop_or_probe_move();
     }
-    //Left the process with the left extruder
-    tool_change(0);
 
     //Calc of offsets
     //TODO: improve "magic numbers" below
