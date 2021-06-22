@@ -653,7 +653,7 @@ void Endstops::update() {
 
     if (G40_raisingBedSafely) {
       if (TEST_ENDSTOP(_ENDSTOP(Z, MIN)) || TEST_ENDSTOP(_ENDSTOP(Z2, MIN))) {
-        if (stepper.axis_is_moving(Z_AXIS)) { _ENDSTOP_HIT(Z, MIN); planner.endstop_triggered(Z_AXIS); SERIAL_ERRORLNPGM("Valiste verga man"); G40_raisingBedFailed = true; }
+        if (stepper.axis_is_moving(Z_AXIS)) { _ENDSTOP_HIT(Z, MIN); planner.endstop_triggered(Z_AXIS); G40_raisingBedFailed = true; }
       }
     }
   #endif
