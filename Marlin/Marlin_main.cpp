@@ -6312,7 +6312,7 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
     if (parser.boolval('S', true)) {
       if (!isnan(measured_z)) {
         //tool_change(0);
-        hotend_offset[Z_AXIS][active_extruder] = hotend_offset[Z_AXIS][active_extruder] - measured_z;
+        hotend_offset[Z_AXIS][active_extruder] = - measured_z;
         SERIAL_PROTOCOLLNPAIR_F("T1 offset Z: ", hotend_offset[Z_AXIS][active_extruder]);
       }
     }
@@ -12916,9 +12916,7 @@ inline void gcode_M226() {
    inline void gcode_M279() {
 	   if (parser.seen('P')) {
         hasPiezo = parser.boolval('P');
-
         SERIAL_ECHOLNPAIR("Machine has piezo: ", hasPiezo);
-
      }
    }
   /*
