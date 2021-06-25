@@ -9280,34 +9280,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
     return G40_pass_fail;
   }
 
-  void G40_rise_bed_safely()
-  {
-    //Bed is going to rise against T1, enable endstops for safety
-    SERIAL_ERRORLNPGM("rising bed");
-    endstops.enable(true);
-    G40_raisingBedSafely = true;
-
-    current_position[Z_AXIS] = -1;
-    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-    planner.synchronize();
-    destination[Z_AXIS] = -1;
-
-    if (G40_raisingBedFailed == true) {
-      endstops.enable(false);
-      SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
-      current_position[Z_AXIS] = 1;
-      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-      planner.synchronize();
-      G40_raisingBedSafely = false;  
-      return;
-    }
-
-    //Bed stoped rising against T1
-    SERIAL_ERRORLNPGM("stopping bed");
-    endstops.enable(false);
-    G40_raisingBedSafely = false;
-  }
-
   /**
    * G38.2 - probe toward workpiece, stop on contact, signal error if failure
    * G38.3 - probe toward workpiece, stop on contact
@@ -9335,7 +9307,31 @@ inline void gcode_G37() { //BCN3D G37 pattern
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
     planner.synchronize();
     
-    G40_rise_bed_safely();
+    //Bed is going to rise against T0, enable endstops for safety
+    SERIAL_ERRORLNPGM("rising bed");
+    endstops.enable(true);
+    G40_raisingBedSafely = true;
+
+    current_position[Z_AXIS] = -1;
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+    planner.synchronize();
+    destination[Z_AXIS] = -1;
+
+    if (G40_raisingBedFailed == true) {
+      endstops.enable(false);
+      SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
+      current_position[Z_AXIS] = 1;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+      G40_raisingBedSafely = false; 
+      return;
+    }
+
+    //Bed stoped rising against T0
+    SERIAL_ERRORLNPGM("stopping bed");
+    endstops.enable(false);
+    G40_raisingBedSafely = false;
+
 
     for (uint8_t i = 0; i < 8; i++) {
     
@@ -9349,7 +9345,30 @@ inline void gcode_G37() { //BCN3D G37 pattern
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
 
-        G40_rise_bed_safely();
+        //Bed is going to rise against T1, enable endstops for safety
+        SERIAL_ERRORLNPGM("rising bed");
+        endstops.enable(true);
+        G40_raisingBedSafely = true;
+
+        current_position[Z_AXIS] = -1;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+        destination[Z_AXIS] = -1;
+
+        if (G40_raisingBedFailed == true) {
+          endstops.enable(false);
+          SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
+          current_position[Z_AXIS] = 1;
+          planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+          planner.synchronize();
+          G40_raisingBedSafely = false;  
+          return;
+        }
+
+        //Bed stoped rising against T1
+        SERIAL_ERRORLNPGM("stopping bed");
+        endstops.enable(false);
+        G40_raisingBedSafely = false;
 
         current_position[X_AXIS] = xPos;
         current_position[Y_AXIS] = yPos;
