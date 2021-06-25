@@ -9324,6 +9324,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
       planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
       planner.synchronize();
       G40_raisingBedSafely = false; 
+      G40_raisingBedFailed = false;
       return;
     }
 
@@ -9361,7 +9362,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
           current_position[Z_AXIS] = 1;
           planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
           planner.synchronize();
-          G40_raisingBedSafely = false;  
+          G40_raisingBedSafely = false; 
+          G40_raisingBedFailed = false; 
           return;
         }
 
