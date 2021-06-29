@@ -9306,7 +9306,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
     planner.synchronize();
     
+    
     //Bed is going to rise against T0, enable endstops for safety
+    safe_delay(1000);
     SERIAL_ERRORLNPGM("rising bed");
     endstops.enable(true);
     G40_raisingBedSafely = true;
@@ -9346,6 +9348,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
         planner.synchronize();
 
         //Bed is going to rise against T1, enable endstops for safety
+        safe_delay(1000);
         SERIAL_ERRORLNPGM("rising bed");
         endstops.enable(true);
         G40_raisingBedSafely = true;
@@ -9377,7 +9380,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
       } else {
-        SERIAL_ERRORLNPGM("bajando cama");
 
         current_position[X_AXIS] = xPos;
         current_position[Y_AXIS] = yPos;
@@ -12965,7 +12967,7 @@ inline void gcode_M226() {
 	*/
    inline void gcode_M279() {
 	   if (parser.seen('P')) {
-        hasPiezo = false; //parser.boolval('P');
+        hasPiezo = parser.boolval('P');
         SERIAL_ECHOLNPAIR("Machine has piezo: ", hasPiezo);
      }
    }
