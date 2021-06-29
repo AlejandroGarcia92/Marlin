@@ -9280,10 +9280,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
   }
 
   /**
-   * G38.2 - probe toward workpiece, stop on contact, signal error if failure
-   * G38.3 - probe toward workpiece, stop on contact
-   *
-   * Like G28 except uses Z min probe for all axes
+   * X-Y autocalibration
    */
   inline void gcode_G40() {
     //Go to prove coords.
@@ -9296,10 +9293,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
     float yPos = parser.floatval('Y');
     feedrate_mm_s = 5;
     AxisEnum currentAxis = X_AXIS;
-    current_position[E_AXIS]-=retract_printer_factor;
-    planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST), 0);//Retract
-    current_position[E_AXIS]-=retract_printer_factor;
-    planner.buffer_line(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS], MMM_TO_MMS(RETRACT_SPEED_PRINT_TEST), 1);//Retract
     current_position[X_AXIS] = xPos;
     current_position[Y_AXIS] = yPos;
     tool_change(0);
@@ -9307,9 +9300,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
     planner.synchronize();
     
     
-    //Bed is going to rise against T0, enable endstops for safety
+    /*Bed safety movement*/
     safe_delay(1000);
-    SERIAL_ERRORLNPGM("rising bed");
     endstops.enable(true);
     G40_raisingBedSafely = true;
 
@@ -9321,7 +9313,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
     if (G40_raisingBedFailed == true) {
       endstops.enable(false);
       SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
-      current_position[Z_AXIS] = 1;
+      current_position[Z_AXIS] = 0;
       planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
       planner.synchronize();
       G40_raisingBedSafely = false; 
@@ -9329,11 +9321,10 @@ inline void gcode_G37() { //BCN3D G37 pattern
       return;
     }
 
-    //Bed stoped rising against T0
-    SERIAL_ERRORLNPGM("stopping bed");
     endstops.enable(false);
     G40_raisingBedSafely = false;
 
+    /*Bed safety movement finish*/
 
     for (uint8_t i = 0; i < 8; i++) {
     
@@ -9347,7 +9338,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
 
-        //Bed is going to rise against T1, enable endstops for safety
+        /*Bed safety movement*/
         safe_delay(1000);
         SERIAL_ERRORLNPGM("rising bed");
         endstops.enable(true);
@@ -9361,7 +9352,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
         if (G40_raisingBedFailed == true) {
           endstops.enable(false);
           SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
-          current_position[Z_AXIS] = 1;
+          tool_change(active_extruder == 0 ? 1 : 0);
+          current_position[Z_AXIS] = 0;
           planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
           planner.synchronize();
           G40_raisingBedSafely = false; 
@@ -9369,10 +9361,10 @@ inline void gcode_G37() { //BCN3D G37 pattern
           return;
         }
 
-        //Bed stoped rising against T1
-        SERIAL_ERRORLNPGM("stopping bed");
         endstops.enable(false);
         G40_raisingBedSafely = false;
+
+        /*Bed safety movement finish*/
 
         current_position[X_AXIS] = xPos;
         current_position[Y_AXIS] = yPos;
@@ -9390,6 +9382,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
       }
       destination[X_AXIS] = xPos;
       destination[Y_AXIS] = yPos;
+
       //TODO: improve "magic numbers" below
       if (i % 2 == 0) {
         if (i != 0) currentAxis = currentAxis == X_AXIS ? Y_AXIS : X_AXIS;
@@ -9431,7 +9424,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
       SERIAL_ERROR_START();
       SERIAL_ERRORLNPGM("Failed XY autocalibration");
     }
-    G40_raisingBedSafely = false; //desactivar 
+    G40_raisingBedSafely = false;  
   }
 
 
