@@ -6313,7 +6313,6 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
       if (!isnan(measured_z)) {       
         hotend_offset[Z_AXIS][active_extruder] = hotend_offset[Z_AXIS][active_extruder] - measured_z;
         SERIAL_PROTOCOLLNPAIR_F("T1 offset Z: ", hotend_offset[Z_AXIS][active_extruder]);
-        tool_change(0);
       }
     }
     #endif
