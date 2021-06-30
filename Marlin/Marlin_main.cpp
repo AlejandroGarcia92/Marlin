@@ -9312,12 +9312,13 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
     if (G40_raisingBedFailed == true) {
       endstops.enable(false);
-      SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
       current_position[Z_AXIS] = 0;
       planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
       planner.synchronize();
       G40_raisingBedSafely = false; 
       G40_raisingBedFailed = false;
+      home_axis_from_code(false, false, true);
+      SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
       return;
     }
 
@@ -9351,13 +9352,14 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
         if (G40_raisingBedFailed == true) {
           endstops.enable(false);
-          SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
-          tool_change(active_extruder == 0 ? 1 : 0);
+          //tool_change(active_extruder == 0 ? 1 : 0);
           current_position[Z_AXIS] = 0;
           planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
           planner.synchronize();
           G40_raisingBedSafely = false; 
           G40_raisingBedFailed = false; 
+          home_axis_from_code(false, false, true);
+          SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
           return;
         }
 
