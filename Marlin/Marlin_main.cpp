@@ -372,7 +372,8 @@
        G40_endstop_hit = false,
        G40_raisingBedSafely = false,
        G40_raisingBedFailed = false,
-       G40_doHomeZ = false;
+       G40_doHomeZ = false,
+       G41_move = false;
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -9431,6 +9432,50 @@ inline void gcode_G37() { //BCN3D G37 pattern
     G40_raisingBedSafely = false;  
   }
 
+  inline void gcode_G41() {
+    tool_change(0);
+
+    for (int i = 0; i < 1; i++) {
+
+      //Go agains the right sensor
+      delay(2000);
+      G41_move = true;
+      endstops.enable(true);
+
+      current_position[X_AXIS] = 50;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+
+      G41_move = false;
+      endstops.enable(false);
+
+      //Recoil
+      delay(2000);
+      current_position[X_AXIS] = -1;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+
+      //Go agains the right sensor
+      delay(2000);
+      G41_move = true;
+      endstops.enable(true);
+
+      current_position[X_AXIS] = -50;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+
+      G41_move = false;
+      endstops.enable(false);
+
+      //Recoil
+      delay(2000);
+      current_position[X_AXIS] = 1;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+
+      //tool_change(active_extruder == 0 ? 1 : 0);
+    }
+  }
 
 inline void gcode_G715() {
 	SERIAL_PROTOCOLLNPGM("New layer");
@@ -16204,6 +16249,7 @@ void process_parsed_command() {
         case 36: gcode_G36(); break;                              // G36: BCN3D G36 implementation
         case 37: gcode_G37(); break;                              // G37: BCN3D G37 MBL pattern
         case 40: gcode_G40(); break;
+        case 41: gcode_G41(); break;
       #endif
 
       #if ENABLED(G38_PROBE_TARGET)
