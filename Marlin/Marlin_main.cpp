@@ -9431,7 +9431,10 @@ inline void gcode_G37() { //BCN3D G37 pattern
     }
     G40_raisingBedSafely = false; 
 
-    //Give some space between extruder and bed 
+    //If XY succeeded, give some space between extruder and bed 
+    current_position[Z_AXIS] = 10;
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+    planner.synchronize();
   }
 
 
