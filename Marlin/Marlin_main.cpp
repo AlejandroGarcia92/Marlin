@@ -371,7 +371,8 @@
   bool G40_move = false,
        G40_endstop_hit = false,
        G40_raisingBedSafely = false,
-       G40_raisingBedFailed = false;
+       G40_raisingBedFailed = false,
+       G40_doHomeZ = false;
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -9284,6 +9285,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
    */
   inline void gcode_G40() {
     //Go to prove coords.
+
+    if (G40_doHomeZ) home_axis_from_code(false, false, true);
     
     hotend_offset[X_AXIS][1] = xBedSize > 210 ? 469.5 : 256.6;
     hotend_offset[Y_AXIS][1] = 0;
@@ -9312,12 +9315,12 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
     if (G40_raisingBedFailed == true) {
       endstops.enable(false);
-      current_position[Z_AXIS] = 0;
+      current_position[Z_AXIS] = 40;
       planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
       planner.synchronize();
       G40_raisingBedSafely = false; 
       G40_raisingBedFailed = false;
-      home_axis_from_code(false, false, true);
+      G40_doHomeZ = true;
       SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
       return;
     }
@@ -9352,13 +9355,12 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
         if (G40_raisingBedFailed == true) {
           endstops.enable(false);
-          //tool_change(active_extruder == 0 ? 1 : 0);
-          current_position[Z_AXIS] = 0;
+          current_position[Z_AXIS] = 40;
           planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
           planner.synchronize();
           G40_raisingBedSafely = false; 
           G40_raisingBedFailed = false; 
-          home_axis_from_code(false, false, true);
+          G40_doHomeZ = true;
           SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
           return;
         }
@@ -12962,7 +12964,7 @@ inline void gcode_M226() {
 	*/
    inline void gcode_M279() {
 	   if (parser.seen('P')) {
-        hasPiezo = parser.boolval('P');
+        hasPiezo = false;//parser.boolval('P');
         SERIAL_ECHOLNPAIR("Machine has piezo: ", hasPiezo);
      }
    }
