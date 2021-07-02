@@ -31,6 +31,7 @@
 #include "stepper.h"
 #include "ultralcd.h"
 
+
 #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
   #include "endstop_interrupts.h"
 #endif
@@ -661,10 +662,38 @@ void Endstops::update() {
       if (TEST_ENDSTOP(_ENDSTOP(Z, MIN)) || TEST_ENDSTOP(_ENDSTOP(Z2, MIN))) {
         if (stepper.axis_is_moving(X_AXIS)) { _ENDSTOP_HIT(X, MIN); planner.endstop_triggered(X_AXIS); G40_raisingBedFailed = true; }
       }
-      if (sensor1.available) {
-        float maxForceRead = sensor1.read();
-        if (maxForceRead > forceRead) forceRead = maxForceRead;
+
+      switch (whichSensor)
+      {
+      case 1:
+        if (true) { //sensor1.available
+          long maxForceRead = sensor1.read();
+          if (maxForceRead > forceRead1) forceRead1 = maxForceRead;
+        }
+        break;
+      case 2:
+        if (true) { //sensor2.available
+          long maxForceRead = sensor2.read();
+          if (maxForceRead > forceRead2) forceRead2 = maxForceRead;
+        }
+        break;
+      case 3:
+        if (true) { //sensor3.available
+          long maxForceRead = sensor3.read();
+          if (maxForceRead > forceRead3) forceRead3 = maxForceRead;
+        }
+        break;
+      case 4:
+        if (true) { //sensor4.available
+          long maxForceRead = sensor4.read();
+          if (maxForceRead > forceRead4) forceRead4 = maxForceRead;
+        }
+        break;
+      
+      default:
+        break;
       }
+
 
     }
   #endif

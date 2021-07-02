@@ -271,16 +271,8 @@
 #include "duration_t.h"
 #include "types.h"
 #include "parser.h"
-#include "GyverHX711.h"
+//#include "GyverHX711.h"
 
-//HX711 Constructor
-uint8_t data1 = 0;
-uint8_t data2 = 0;
-uint8_t clk_pin = 0;
-GyverHX711 sensor1(data1, clk_pin, HX_GAIN128_A);
-GyverHX711 sensor2(data1, clk_pin, HX_GAIN32_B);
-GyverHX711 sensor3(data2, clk_pin, HX_GAIN128_A);
-GyverHX711 sensor4(data2, clk_pin, HX_GAIN32_B);
 
 #if ENABLED(AUTO_POWER_CONTROL)
   #include "power.h"
@@ -384,7 +376,21 @@ GyverHX711 sensor4(data2, clk_pin, HX_GAIN32_B);
        G40_raisingBedFailed = false,
        G40_doHomeZ = false,
        G41_move = false;
-  extern float forceRead = 0;
+  long forceRead1 = 0,
+       forceRead2 = 0,
+       forceRead3 = 0,
+       forceRead4 = 0;
+  uint8_t whichSensor = 0;
+
+  //HX711 Constructor
+  uint8_t data1 = 65;
+  uint8_t data2 = 65;
+  uint8_t clk_pin = 64;
+  GyverHX711 sensor1(data1, clk_pin, HX_GAIN128_A);
+  GyverHX711 sensor2(data1, clk_pin, HX_GAIN32_B);
+  GyverHX711 sensor3(data2, clk_pin, HX_GAIN128_A);
+  GyverHX711 sensor4(data2, clk_pin, HX_GAIN32_B);
+
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -9445,16 +9451,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
   inline void gcode_G41() {
 
-    MarlinSerial foreceSensorSerial1;
-    foreceSensorSerial1.begin(9600);
-    MarlinSerial foreceSensorSerial2;
-    foreceSensorSerial2.begin(9600);
-
-    sensor1.tare();
-    sensor2.tare();
-    sensor3.tare();
-    sensor4.tare();
-
     delay(1000);
 
     //relative_mode = false;
@@ -9465,10 +9461,11 @@ inline void gcode_G37() { //BCN3D G37 pattern
     for (int i = 0; i < 2; i++) {
       tool_change(i);
       active_extruder_parked = true;
-
+      //TO DO!!! go home X (X endstop conected to piezo)
       //Go agains the right sensor
       G41_move = true;
       endstops.enable(true);
+      whichSensor = 1 + 2*i;
 
       current_position[X_AXIS] = 50 + X2_offset;
       planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
@@ -9476,7 +9473,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
       G41_move = false;
       endstops.enable(false);
-      SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead);//Print sensor1 force
+      if (i == 0) SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1); 
+      else SERIAL_PROTOCOLPAIR("Sensor 3 read: ", forceRead3); 
 
       delay(700);
 
@@ -9486,6 +9484,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
       planner.synchronize();
 
       //Go agains the right sensor
+      whichSensor = 2 + 2*i;
       G41_move = true;
       endstops.enable(true);
 
@@ -9495,6 +9494,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
       G41_move = false;
       endstops.enable(false);
+      if (i == 0) SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2); 
+      else SERIAL_PROTOCOLPAIR("Sensor 4 read: ", forceRead4); 
+
       delay(700);
 
       //Recoil
@@ -9504,6 +9506,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
       X2_offset = 340;
     }
+    whichSensor = 0;
     planner.finish_and_disable(); //So the user can move the extruders
     //disable_e_steppers();
   }
@@ -19102,6 +19105,13 @@ void setup() {
 	// Manual Z error probe trigger
 	pinMode(SDA_PIN, OUTPUT);
 	digitalWrite(SDA_PIN, HIGH);
+
+  //HX711 serial
+  MarlinSerial foreceSensorSerial1;
+  foreceSensorSerial1.begin(9600);
+  MarlinSerial foreceSensorSerial2;
+  foreceSensorSerial2.begin(9600);
+  
   #endif
 
   setup_killpin();
