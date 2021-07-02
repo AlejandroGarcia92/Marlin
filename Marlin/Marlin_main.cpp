@@ -273,6 +273,15 @@
 #include "parser.h"
 #include "GyverHX711.h"
 
+//HX711 Constructor
+uint8_t data1 = 0;
+uint8_t data2 = 0;
+uint8_t clk_pin = 0;
+GyverHX711 sensor1(data1, clk_pin, HX_GAIN128_A);
+GyverHX711 sensor2(data1, clk_pin, HX_GAIN32_B);
+GyverHX711 sensor3(data2, clk_pin, HX_GAIN128_A);
+GyverHX711 sensor4(data2, clk_pin, HX_GAIN32_B);
+
 #if ENABLED(AUTO_POWER_CONTROL)
   #include "power.h"
 #endif
@@ -375,6 +384,7 @@
        G40_raisingBedFailed = false,
        G40_doHomeZ = false,
        G41_move = false;
+  extern float forceRead = 0;
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -9434,9 +9444,23 @@ inline void gcode_G37() { //BCN3D G37 pattern
   }
 
   inline void gcode_G41() {
+
+    MarlinSerial foreceSensorSerial1;
+    foreceSensorSerial1.begin(9600);
+    MarlinSerial foreceSensorSerial2;
+    foreceSensorSerial2.begin(9600);
+
+    sensor1.tare();
+    sensor2.tare();
+    sensor3.tare();
+    sensor4.tare();
+
+    delay(1000);
+
     //relative_mode = false;
     tool_change(0);
     uint16_t X2_offset = 0;
+
 
     for (int i = 0; i < 2; i++) {
       tool_change(i);
@@ -9452,6 +9476,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
       G41_move = false;
       endstops.enable(false);
+      SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead);//Print sensor1 force
+
       delay(700);
 
       //Recoil

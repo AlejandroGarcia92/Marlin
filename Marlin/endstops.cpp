@@ -661,6 +661,11 @@ void Endstops::update() {
       if (TEST_ENDSTOP(_ENDSTOP(Z, MIN)) || TEST_ENDSTOP(_ENDSTOP(Z2, MIN))) {
         if (stepper.axis_is_moving(X_AXIS)) { _ENDSTOP_HIT(X, MIN); planner.endstop_triggered(X_AXIS); G40_raisingBedFailed = true; }
       }
+      if (sensor1.available) {
+        float maxForceRead = sensor1.read();
+        if (maxForceRead > forceRead) forceRead = maxForceRead;
+      }
+
     }
   #endif
 
