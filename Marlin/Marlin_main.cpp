@@ -271,6 +271,7 @@
 #include "duration_t.h"
 #include "types.h"
 #include "parser.h"
+#include "GyverHX711.h"
 
 #if ENABLED(AUTO_POWER_CONTROL)
   #include "power.h"
@@ -9433,48 +9434,52 @@ inline void gcode_G37() { //BCN3D G37 pattern
   }
 
   inline void gcode_G41() {
+    //relative_mode = false;
     tool_change(0);
+    uint16_t X2_offset = 0;
 
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 2; i++) {
+      tool_change(i);
+      active_extruder_parked = true;
 
       //Go agains the right sensor
-      delay(2000);
       G41_move = true;
       endstops.enable(true);
 
-      current_position[X_AXIS] = 50;
+      current_position[X_AXIS] = 50 + X2_offset;
       planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
       planner.synchronize();
 
       G41_move = false;
       endstops.enable(false);
+      delay(700);
 
       //Recoil
-      delay(2000);
-      current_position[X_AXIS] = -1;
+      current_position[X_AXIS] = 47 + X2_offset;
       planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
       planner.synchronize();
 
       //Go agains the right sensor
-      delay(2000);
       G41_move = true;
       endstops.enable(true);
 
-      current_position[X_AXIS] = -50;
+      current_position[X_AXIS] = 0 + X2_offset;
       planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
       planner.synchronize();
 
       G41_move = false;
       endstops.enable(false);
+      delay(700);
 
       //Recoil
-      delay(2000);
-      current_position[X_AXIS] = 1;
+      current_position[X_AXIS] = 3 + X2_offset;
       planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
       planner.synchronize();
 
-      //tool_change(active_extruder == 0 ? 1 : 0);
+      X2_offset = 340;
     }
+    planner.finish_and_disable(); //So the user can move the extruders
+    //disable_e_steppers();
   }
 
 inline void gcode_G715() {
