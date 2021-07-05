@@ -9457,25 +9457,51 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
     home_axis_from_code(true, false, false);
 
-    //relative_mode = false;
+    delay(1000);
+
     tool_change(0);
+
+    current_position[X_AXIS] = -15;
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+    planner.synchronize();
+
+    /*tool_change(1);
+
+    delay(1000);
+
+    current_position[X_AXIS] = 390;
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+    planner.synchronize();
+
+    tool_change(0);*/
+
+    delay(1000);
+ 
+    //relative_mode = false;
     uint16_t X2_offset = 0;
 
     for (int i = 0; i < 2; i++) {
-      tool_change(i);
-      active_extruder_parked = true;
-      //TO DO!!! go home X (X endstop conected to piezo)
-      //Go agains the right sensor
+      //tool_change(i);
+      //active_extruder_parked = true;
+
+      //Go against the right sensor
       G41_move = true;
       endstops.enable(true);
       whichSensor = 1 + 2*i;
 
-      current_position[X_AXIS] = 100 + X2_offset;
+      current_position[X_AXIS] = 0 + X2_offset;
       planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
       planner.synchronize();
 
       G41_move = false;
       endstops.enable(false);
+
+      //Recoil
+      current_position[X_AXIS] = -15 + X2_offset;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+
+      //Print data
       if (i == 0) {
         SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
         SERIAL_ECHOLN(""); 
@@ -9483,15 +9509,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
         SERIAL_PROTOCOLPAIR("Sensor 3 read: ", forceRead3); 
         SERIAL_ECHOLN("");
       } 
-
-      delay(700);
-
-      //Recoil
-      current_position[X_AXIS] = 97 + X2_offset;
-      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-      planner.synchronize();
-
-      //Go agains the right sensor
+      return;
+      //Go against the right sensor
       whichSensor = 2 + 2*i;
       G41_move = true;
       endstops.enable(true);
@@ -9502,6 +9521,13 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
       G41_move = false;
       endstops.enable(false);
+
+      //Recoil
+      current_position[X_AXIS] = 3 + X2_offset;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+
+      //Print data
       if (i == 0) {
         SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2); 
         SERIAL_ECHOLN(""); 
@@ -9509,14 +9535,10 @@ inline void gcode_G37() { //BCN3D G37 pattern
         SERIAL_PROTOCOLPAIR("Sensor 4 read: ", forceRead4); 
         SERIAL_ECHOLN("");
       }
-      delay(700);
-
-      //Recoil
-      current_position[X_AXIS] = 3 + X2_offset;
-      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-      planner.synchronize();
 
       X2_offset = 340;
+      delay(500);
+
       return;
     }
     whichSensor = 0;
