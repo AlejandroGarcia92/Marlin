@@ -9452,7 +9452,6 @@ inline void gcode_G41() {
 
     hotend_offset[X_AXIS][1] = xBedSize > 210 ? 469.5 : 256.6;
     hotend_offset[Y_AXIS][1] = 0;
-    bool success = true;
     double points[8] = {0};
     double xLeft, xRight;
     double yLeft, yRight;
@@ -9565,11 +9564,19 @@ inline void gcode_G41() {
 
       // If G40 fails throw an error
       if (!G40_run_probe(xPos, yPos)) {
-        success = false;
         SERIAL_ERRORLNPGM("Failed XY loop piezo signal missed");
         return;
       } else {
         points[i] = current_position[currentAxis];
+      }
+      //Leave Y axis on the target position at the end, if not, a sync movement will be exectued at the next loop and it will conclude in a massive slow movement on X axis.
+      if (i == 7) {
+        current_position[Y_AXIS] = yPos;
+        current_position[Z_AXIS] = -1;
+        
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], feedrate_mm_s,active_extruder);
+        planner.synchronize();
+        destination[Y_AXIS] = yPos;
       }
       clean_up_after_endstop_or_probe_move();
     }
