@@ -9448,14 +9448,18 @@ inline void gcode_G37() { //BCN3D G37 pattern
   }
 
   inline void gcode_G41() {
-    G41_move = true;
+    hasPiezo = true;
+
+    sensor1.tare();
+    sensor2.tare();
+    sensor3.tare();
+    sensor4.tare();
 
     home_axis_from_code(true, false, false);
 
     //relative_mode = false;
     tool_change(0);
     uint16_t X2_offset = 0;
-
 
     for (int i = 0; i < 2; i++) {
       tool_change(i);
@@ -9472,8 +9476,13 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
       G41_move = false;
       endstops.enable(false);
-      if (i == 0) SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1); 
-      else SERIAL_PROTOCOLPAIR("Sensor 3 read: ", forceRead3); 
+      if (i == 0) {
+        SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
+        SERIAL_ECHOLN(""); 
+      } else {
+        SERIAL_PROTOCOLPAIR("Sensor 3 read: ", forceRead3); 
+        SERIAL_ECHOLN("");
+      } 
 
       delay(700);
 
@@ -9493,9 +9502,13 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
       G41_move = false;
       endstops.enable(false);
-      if (i == 0) SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2); 
-      else SERIAL_PROTOCOLPAIR("Sensor 4 read: ", forceRead4); 
-
+      if (i == 0) {
+        SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2); 
+        SERIAL_ECHOLN(""); 
+      } else {
+        SERIAL_PROTOCOLPAIR("Sensor 4 read: ", forceRead4); 
+        SERIAL_ECHOLN("");
+      }
       delay(700);
 
       //Recoil
@@ -13044,7 +13057,7 @@ inline void gcode_M226() {
 	*/
    inline void gcode_M279() {
 	   if (parser.seen('P')) {
-        hasPiezo = false;//parser.boolval('P');
+        hasPiezo = true;//parser.boolval('P');
         SERIAL_ECHOLNPAIR("Machine has piezo: ", hasPiezo);
      }
    }

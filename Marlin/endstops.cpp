@@ -679,8 +679,8 @@ void Endstops::update() {
           //SERIAL_PROTOCOLLNPGM("sensor available");
           long maxForceRead = sensor2.read();
           if (maxForceRead > forceRead2) forceRead2 = maxForceRead;
-          SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2);
-          SERIAL_ECHOLN("");
+          //SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2);
+          //SERIAL_ECHOLN("");
 
         }
         break;
@@ -688,8 +688,8 @@ void Endstops::update() {
         if (sensor3.available()) { 
           long maxForceRead = sensor3.read();
           if (maxForceRead > forceRead3) forceRead3 = maxForceRead;
-          SERIAL_PROTOCOLPAIR("Sensor 3 read: ", forceRead3);
-          SERIAL_ECHOLN("");
+          //SERIAL_PROTOCOLPAIR("Sensor 3 read: ", forceRead3);
+          //SERIAL_ECHOLN("");
 
         }
         break;
@@ -697,8 +697,8 @@ void Endstops::update() {
         if (sensor4.available()) { 
           long maxForceRead = sensor4.read();
           if (maxForceRead > forceRead4) forceRead4 = maxForceRead;
-          SERIAL_PROTOCOLPAIR("Sensor 4 read: ", forceRead4);
-          SERIAL_ECHOLN("");
+          //SERIAL_PROTOCOLPAIR("Sensor 4 read: ", forceRead4);
+          //SERIAL_ECHOLN("");
 
         }
         break;
