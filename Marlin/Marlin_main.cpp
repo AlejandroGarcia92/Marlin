@@ -9438,6 +9438,191 @@ inline void gcode_G37() { //BCN3D G37 pattern
   }
 
 
+//As G40 but three iteration loop to fine tune piezo sensor offsets
+
+inline void gcode_G41() {
+    //Go to prove coords.
+
+  if (G40_doHomeZ) home_axis_from_code(false, false, true); //If XY calibration failed cause bed collapsed, bed will be far down and a Z home will be needed
+  G40_doHomeZ = false;
+  double xOffset[3] = {0};
+  double yOffset[3] = {0};
+
+  for (uint8_t j = 0; j<3; j++) {
+
+    hotend_offset[X_AXIS][1] = xBedSize > 210 ? 469.5 : 256.6;
+    hotend_offset[Y_AXIS][1] = 0;
+    bool success = true;
+    double points[8] = {0};
+    double xLeft, xRight;
+    double yLeft, yRight;
+
+    float xPos = parser.floatval('X');
+    float yPos = parser.floatval('Y');
+    feedrate_mm_s = 5;
+    AxisEnum currentAxis = X_AXIS;
+    current_position[X_AXIS] = xPos;
+    current_position[Y_AXIS] = yPos;
+    tool_change(0);
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+    planner.synchronize();
+    
+    
+    /*Bed safety movement*/
+    safe_delay(1000);
+    endstops.enable(true);
+    G40_raisingBedSafely = true;
+
+    current_position[Z_AXIS] = -1;
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+    planner.synchronize();
+    destination[Z_AXIS] = -1;
+
+    if (G40_raisingBedFailed == true) {
+      endstops.enable(false);
+      current_position[Z_AXIS] = 45;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+      G40_raisingBedSafely = false; 
+      G40_raisingBedFailed = false;
+      G40_doHomeZ = true;
+      SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
+      return;
+    }
+
+    endstops.enable(false);
+    G40_raisingBedSafely = false;
+
+    /*Bed safety movement finish*/
+
+
+    for (uint8_t i = 0; i < 8; i++) {
+    
+      if (i == 4) {
+        current_position[Z_AXIS] = 5;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+        tool_change(active_extruder == 0 ? 1 : 0);
+        current_position[X_AXIS] = xPos;
+        current_position[Y_AXIS] = yPos;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+
+        /*Bed safety movement*/
+        safe_delay(1000);
+        SERIAL_ERRORLNPGM("rising bed");
+        endstops.enable(true);
+        G40_raisingBedSafely = true;
+
+        current_position[Z_AXIS] = -1;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+        destination[Z_AXIS] = -1;
+
+        if (G40_raisingBedFailed == true) {
+          endstops.enable(false);
+          current_position[Z_AXIS] = 45;
+          planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+          planner.synchronize();
+          G40_raisingBedSafely = false; 
+          G40_raisingBedFailed = false; 
+          G40_doHomeZ = true;
+          SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
+          return;
+        }
+
+        endstops.enable(false);
+        G40_raisingBedSafely = false;
+
+        /*Bed safety movement finish*/
+
+        current_position[X_AXIS] = xPos;
+        current_position[Y_AXIS] = yPos;
+        current_position[Z_AXIS] = -1;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+      } else {
+
+        current_position[X_AXIS] = xPos;
+        current_position[Y_AXIS] = yPos;
+        current_position[Z_AXIS] = -1;
+        
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], feedrate_mm_s,active_extruder);
+        planner.synchronize();
+      }
+      destination[X_AXIS] = xPos;
+      destination[Y_AXIS] = yPos;
+
+      //TODO: improve "magic numbers" below
+      if (i % 2 == 0) {
+        if (i != 0) currentAxis = currentAxis == X_AXIS ? Y_AXIS : X_AXIS;
+        destination[currentAxis] += 7.5;          
+      } else {
+        destination[currentAxis] -= 7.5;  
+      }
+
+      setup_for_endstop_or_probe_move();
+
+      // If G40 fails throw an error
+      if (!G40_run_probe(xPos, yPos)) {
+        success = false;
+        SERIAL_ERRORLNPGM("Failed XY loop piezo signal missed");
+        return;
+      } else {
+        points[i] = current_position[currentAxis];
+      }
+      clean_up_after_endstop_or_probe_move();
+    }
+
+
+    //Calc of offsets
+    //TODO: improve "magic numbers" below
+      
+    xLeft = xPos - (points[0] + points[1]) / 2;
+    xRight = xPos - (points[4] + points[5]) / 2;
+    xOffset[j] = xRight - xLeft;
+    
+    yLeft = yPos - (points[2] + points[3]) / 2;
+    yRight = yPos - (points[6] + points[7]) / 2;
+    yOffset[j] = yRight - yLeft;
+      
+    G40_raisingBedSafely = false; 
+
+  }
+
+  double xMeanOffset;
+  double yMeanOffset;
+
+  for (uint8_t i = 0; i < 3; i++) {
+    xMeanOffset += xOffset[i];
+    yMeanOffset += yOffset[i];
+    for (uint8_t j = 0; j < 3; j++) {
+      if (abs(xOffset[i] - xOffset[j]) > 0.2 || abs(yOffset[i] - yOffset[j]) > 0.2) {
+        SERIAL_ERRORLNPGM("Failed XY loop offset too big");
+        return;
+      }
+    }
+  }
+
+  //If we get here, do mean values and apply them
+  xMeanOffset /= 3;
+  yMeanOffset /= 3;
+
+
+  hotend_offset[X_AXIS][1] += xMeanOffset + piezoXoffset;
+  hotend_offset[Y_AXIS][1] += yMeanOffset + piezoYoffset;
+
+  SERIAL_ECHOLNPAIR("T1 offset X: ", hotend_offset[X_AXIS][1]);
+  SERIAL_ECHOLNPAIR("T1 offset Y: ", hotend_offset[Y_AXIS][1]);
+  SERIAL_ECHOLN("XY autocalibration finished");
+
+  //If XY succeeded, give some space between extruder and bed 
+  current_position[Z_AXIS] = 10;
+  planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+  planner.synchronize();
+}
+
+
 inline void gcode_G715() {
 	SERIAL_PROTOCOLLNPGM("New layer");
 	if(onFirstLayerExec) { 
@@ -16210,6 +16395,7 @@ void process_parsed_command() {
         case 36: gcode_G36(); break;                              // G36: BCN3D G36 implementation
         case 37: gcode_G37(); break;                              // G37: BCN3D G37 MBL pattern
         case 40: gcode_G40(); break;
+        case 41: gcode_G41(); break;
       #endif
 
       #if ENABLED(G38_PROBE_TARGET)
