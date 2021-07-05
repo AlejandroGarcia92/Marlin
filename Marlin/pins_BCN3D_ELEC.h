@@ -76,8 +76,8 @@
 #define Z_DIR_PIN		23
 #define Z_ENABLE_PIN	24
 
-#define SDA_PIN			20
-#define SAFE_STOP_PIN	21 // Conectar Safety Stop
+#define SDA_PIN			0
+#define SAFE_STOP_PIN	0 // Conectar Safety Stop
 
 //#define Z_MIN_PIN		34
 //#define Z_MAX_PIN		-1
@@ -109,11 +109,11 @@
 #define	CHAMBER_AUTO_FAN_PIN 66 // es A12
 //#define	CHAMBER_AUTO_FAN_PIN 6 // es A13
 //RGB LEDs
-#define GREEN			11
-#define	RED				12
-#define BLUE			13
+#define GREEN			0
+#define	RED				0
+#define BLUE			0
 //Power Supply Relay
-#define	RELAY			10
+#define	RELAY			0
 //HOTEND HEATERS
 #define	HEATER_0_PIN	44
 #define	HEATER_1_PIN	7

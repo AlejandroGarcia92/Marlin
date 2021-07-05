@@ -666,27 +666,40 @@ void Endstops::update() {
       switch (whichSensor)
       {
       case 1:
-        if (true) { //sensor1.available
+
+        if (sensor1.available()) { 
           long maxForceRead = sensor1.read();
           if (maxForceRead > forceRead1) forceRead1 = maxForceRead;
         }
         break;
       case 2:
-        if (true) { //sensor2.available
+        
+        //SERIAL_PROTOCOLLNPGM("Case 2");
+        if (sensor2.available()) { 
+          //SERIAL_PROTOCOLLNPGM("sensor available");
           long maxForceRead = sensor2.read();
           if (maxForceRead > forceRead2) forceRead2 = maxForceRead;
+          SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2);
+          SERIAL_ECHOLN("");
+
         }
         break;
       case 3:
-        if (true) { //sensor3.available
+        if (sensor3.available()) { 
           long maxForceRead = sensor3.read();
           if (maxForceRead > forceRead3) forceRead3 = maxForceRead;
+          SERIAL_PROTOCOLPAIR("Sensor 3 read: ", forceRead3);
+          SERIAL_ECHOLN("");
+
         }
         break;
       case 4:
-        if (true) { //sensor4.available
+        if (sensor4.available()) { 
           long maxForceRead = sensor4.read();
           if (maxForceRead > forceRead4) forceRead4 = maxForceRead;
+          SERIAL_PROTOCOLPAIR("Sensor 4 read: ", forceRead4);
+          SERIAL_ECHOLN("");
+
         }
         break;
       

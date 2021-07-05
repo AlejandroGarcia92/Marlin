@@ -383,13 +383,11 @@
   uint8_t whichSensor = 0;
 
   //HX711 Constructor
-  uint8_t data1 = 65;
-  uint8_t data2 = 65;
-  uint8_t clk_pin = 64;
-  GyverHX711 sensor1(data1, clk_pin, HX_GAIN128_A);
-  GyverHX711 sensor2(data1, clk_pin, HX_GAIN32_B);
-  GyverHX711 sensor3(data2, clk_pin, HX_GAIN128_A);
-  GyverHX711 sensor4(data2, clk_pin, HX_GAIN32_B);
+
+  GyverHX711 sensor1(66, 67, HX_GAIN128_A);
+  GyverHX711 sensor2(64, 65, HX_GAIN128_A);
+  GyverHX711 sensor3(19, 18, HX_GAIN128_A);
+  GyverHX711 sensor4(20, 21, HX_GAIN128_A);
 
 #endif
 
@@ -9450,8 +9448,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
   }
 
   inline void gcode_G41() {
+    G41_move = true;
 
-    delay(1000);
+    home_axis_from_code(true, false, false);
 
     //relative_mode = false;
     tool_change(0);
@@ -9467,7 +9466,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
       endstops.enable(true);
       whichSensor = 1 + 2*i;
 
-      current_position[X_AXIS] = 50 + X2_offset;
+      current_position[X_AXIS] = 100 + X2_offset;
       planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
       planner.synchronize();
 
@@ -9479,7 +9478,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
       delay(700);
 
       //Recoil
-      current_position[X_AXIS] = 47 + X2_offset;
+      current_position[X_AXIS] = 97 + X2_offset;
       planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
       planner.synchronize();
 
@@ -9505,10 +9504,12 @@ inline void gcode_G37() { //BCN3D G37 pattern
       planner.synchronize();
 
       X2_offset = 340;
+      return;
     }
     whichSensor = 0;
     planner.finish_and_disable(); //So the user can move the extruders
     //disable_e_steppers();
+    
   }
 
 inline void gcode_G715() {
@@ -19106,11 +19107,12 @@ void setup() {
 	pinMode(SDA_PIN, OUTPUT);
 	digitalWrite(SDA_PIN, HIGH);
 
-  //HX711 serial
-  MarlinSerial foreceSensorSerial1;
-  foreceSensorSerial1.begin(9600);
-  MarlinSerial foreceSensorSerial2;
-  foreceSensorSerial2.begin(9600);
+  //HX711 tare
+  sensor1.tare();
+  sensor2.tare();
+  sensor3.tare();
+  sensor4.tare();
+
   
   #endif
 
