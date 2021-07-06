@@ -44,6 +44,7 @@
 #include "utility.h"
 #include "serial.h"
 #include "GyverHX711.h"
+#include "HX711.h"
 
 void idle(
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -230,6 +231,7 @@ extern float ySecondProbeOffset;
                     sensor2,
                     sensor3,
                     sensor4;
+  extern HX711 loadcell1;
 #endif
 
 void enable_all_steppers();

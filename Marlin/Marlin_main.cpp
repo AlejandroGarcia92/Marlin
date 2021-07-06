@@ -271,7 +271,7 @@
 #include "duration_t.h"
 #include "types.h"
 #include "parser.h"
-//#include "GyverHX711.h"
+
 
 
 #if ENABLED(AUTO_POWER_CONTROL)
@@ -383,11 +383,14 @@
   uint8_t whichSensor = 0;
 
   //HX711 Constructor
-
-  GyverHX711 sensor1(66, 67, HX_GAIN128_A);
+  
+  //GyverHX711 sensor1(66, 67, HX_GAIN128_A);
   GyverHX711 sensor2(64, 65, HX_GAIN128_A);
   GyverHX711 sensor3(19, 18, HX_GAIN128_A);
   GyverHX711 sensor4(20, 21, HX_GAIN128_A);
+  
+  HX711 loadcell1;
+
 
 #endif
 
@@ -9461,7 +9464,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
     hasPiezo = true;
     delay (500);
     //Tare again
-    sensor1.tare();
+    //sensor1.tare();
     sensor2.tare();
     sensor3.tare();
     sensor4.tare();
@@ -9494,7 +9497,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
       //Go against the right sensor
       while (forceRead1 < 10) { //Almost like reading nothing, imposible!!
         delay(200);
-        sensor1.tare();
+        //sensor1.tare();
         delay(200);
         whichSensor = 1;
         G41_move = true;
@@ -9507,13 +9510,15 @@ inline void gcode_G37() { //BCN3D G37 pattern
         G41_move = false;
         endstops.enable(false);
 
+        //Detener el extrusor chocando con galga cuando se activa el piezo y hacer medida
+
         //Recoil
         current_position[X_AXIS] = 30;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
 
         delay(500);
-        sensor1.tare();
+        //sensor1.tare();
         delay(500);
 
         j += 1;
@@ -9587,7 +9592,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
       //Go against the right sensor
       while (forceRead1 < 10) { 
         delay(200);
-        sensor1.tare();
+        //sensor1.tare();
         delay(200);
         whichSensor = 1;
         G41_move = true;
@@ -9606,7 +9611,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
         planner.synchronize();
 
         delay(500);
-        sensor1.tare();
+        //sensor1.tare();
         delay(500);
 
         j += 1;
@@ -19262,11 +19267,15 @@ void setup() {
 	digitalWrite(SDA_PIN, HIGH);
 
   //HX711 tare
-  sensor1.tare();
+  //sensor1.tare();
   sensor2.tare();
   sensor3.tare();
   sensor4.tare();
 
+  loadcell1.begin(66, 67);
+  loadcell1.set_scale(102);
+  //loadcell1.set_offset(LOADCELL_OFFSET);
+  loadcell1.tare();
   
   #endif
 
