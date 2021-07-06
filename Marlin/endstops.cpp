@@ -668,19 +668,15 @@ void Endstops::update() {
       case 1:
         if (sensor1.available()) { 
           long maxForceRead = sensor1.read();
+          SERIAL_ECHOLN(maxForceRead);
           if (maxForceRead > forceRead1) forceRead1 = maxForceRead;
         }
         break;
       case 2:
-        
-        //SERIAL_PROTOCOLLNPGM("Case 2");
         if (sensor2.available()) { 
-          //SERIAL_PROTOCOLLNPGM("sensor available");
           long maxForceRead = sensor2.read();
+          SERIAL_ECHOLN(maxForceRead);
           if (maxForceRead > forceRead2) forceRead2 = maxForceRead;
-          //SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2);
-          //SERIAL_ECHOLN("");
-
         }
         break;
       case 3:

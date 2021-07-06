@@ -9493,6 +9493,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
       //Go against the right sensor
       while (forceRead1 < 10) { //Almost like reading nothing, imposible!!
+        delay(200);
+        sensor1.tare();
+        delay(200);
         whichSensor = 1;
         G41_move = true;
         endstops.enable(true);
@@ -9529,6 +9532,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
       //Go against the right sensor
       while (forceRead2 < 10) {
         whichSensor = 2;
+        delay(200);
+        sensor2.tare();
+        delay(200);
         G41_move = true;
         endstops.enable(true);
 
@@ -9566,7 +9572,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
       planner.set_position_mm(430, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
       planner.synchronize();
-      
+
       tool_change(1);
 
       /*current_position[X_AXIS] = 430;
@@ -9580,6 +9586,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
       //Go against the right sensor
       while (forceRead1 < 10) { 
+        delay(200);
+        sensor1.tare();
+        delay(200);
         whichSensor = 1;
         G41_move = true;
         endstops.enable(true);
@@ -9615,6 +9624,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
       //Go against the right sensor
       while (forceRead2 < 10) {
+        delay(200);
+        sensor2.tare();
+        delay(200);
         whichSensor = 2;
         G41_move = true;
         endstops.enable(true);
