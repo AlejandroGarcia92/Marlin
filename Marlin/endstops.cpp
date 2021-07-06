@@ -666,7 +666,6 @@ void Endstops::update() {
       switch (whichSensor)
       {
       case 1:
-
         if (sensor1.available()) { 
           long maxForceRead = sensor1.read();
           if (maxForceRead > forceRead1) forceRead1 = maxForceRead;

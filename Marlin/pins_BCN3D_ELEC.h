@@ -106,7 +106,7 @@
 #define PIN_A12  (66)
 #define PIN_A13  (67)
 */
-#define	CHAMBER_AUTO_FAN_PIN 66 // es A12
+#define	CHAMBER_AUTO_FAN_PIN 0 // es A12
 //#define	CHAMBER_AUTO_FAN_PIN 6 // es A13
 //RGB LEDs
 #define GREEN			0
