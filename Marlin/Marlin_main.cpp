@@ -9443,10 +9443,10 @@ inline void gcode_G37() { //BCN3D G37 pattern
 inline void gcode_G41() {
     //Go to prove coords.
 
-  if (G40_doHomeZ) home_axis_from_code(false, false, true); //If XY calibration failed cause bed collapsed, bed will be far down and a Z home will be needed
-  G40_doHomeZ = false;
   double xOffset[3] = {0};
   double yOffset[3] = {0};
+  float xPos = parser.floatval('X');
+  float yPos = parser.floatval('Y');
 
   for (uint8_t j = 0; j<3; j++) {
 
@@ -9456,15 +9456,27 @@ inline void gcode_G41() {
     double xLeft, xRight;
     double yLeft, yRight;
 
-    float xPos = parser.floatval('X');
-    float yPos = parser.floatval('Y');
+    
     feedrate_mm_s = 5;
     AxisEnum currentAxis = X_AXIS;
-    current_position[X_AXIS] = xPos;
-    current_position[Y_AXIS] = yPos;
-    tool_change(0);
-    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-    planner.synchronize();
+
+    if (j != 0) {
+      current_position[Z_AXIS] = 5;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+      tool_change(active_extruder == 0 ? 1 : 0);
+      current_position[X_AXIS] = xPos;
+      current_position[Y_AXIS] = yPos;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+    } else {
+      current_position[X_AXIS] = xPos;
+      current_position[Y_AXIS] = yPos;
+      tool_change(0);
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+    }
+
     
     
     /*Bed safety movement*/
@@ -9484,7 +9496,6 @@ inline void gcode_G41() {
       planner.synchronize();
       G40_raisingBedSafely = false; 
       G40_raisingBedFailed = false;
-      G40_doHomeZ = true;
       SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
       return;
     }
@@ -9565,18 +9576,12 @@ inline void gcode_G41() {
       // If G40 fails throw an error
       if (!G40_run_probe(xPos, yPos)) {
         SERIAL_ERRORLNPGM("Failed XY loop piezo signal missed");
+        current_position[Z_AXIS] = 10;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
         return;
       } else {
         points[i] = current_position[currentAxis];
-      }
-      //Leave Y axis on the target position at the end, if not, a sync movement will be exectued at the next loop and it will conclude in a massive slow movement on X axis.
-      if (i == 7) {
-        current_position[Y_AXIS] = yPos;
-        current_position[Z_AXIS] = -1;
-        
-        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], feedrate_mm_s,active_extruder);
-        planner.synchronize();
-        destination[Y_AXIS] = yPos;
       }
       clean_up_after_endstop_or_probe_move();
     }
@@ -9606,6 +9611,9 @@ inline void gcode_G41() {
     for (uint8_t j = 0; j < 3; j++) {
       if (abs(xOffset[i] - xOffset[j]) > 0.2 || abs(yOffset[i] - yOffset[j]) > 0.2) {
         SERIAL_ERRORLNPGM("Failed XY loop offset too big");
+        current_position[Z_AXIS] = 10;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
         return;
       }
     }
