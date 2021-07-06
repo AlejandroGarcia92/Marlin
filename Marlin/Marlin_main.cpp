@@ -9448,93 +9448,207 @@ inline void gcode_G37() { //BCN3D G37 pattern
   }
 
   inline void gcode_G41() {
-    hasPiezo = true;
+    int j = 0;
+    bool leftSensing = true;
+    if (parser.seen('L')) {
+		  SERIAL_ECHOLNPGM("Sensing Left extruder...");
+      leftSensing = true;
+    } else if (parser.seen('R')) {
+      SERIAL_ECHOLNPGM("Sensing Right extruder...");
+      leftSensing = false;
+    }
 
+    hasPiezo = true;
+    delay (500);
     //Tare again
     sensor1.tare();
     sensor2.tare();
     sensor3.tare();
     sensor4.tare();
+    delay (500);
 
     //Reset max value 
-  //  forceRead1 = 0;
-  //  forceRead2 = 0;
-  //  forceRead3 = 0;
-  //  forceRead4 = 0;
+    forceRead1 = 0;
+    forceRead2 = 0;
+    forceRead3 = 0;
+    forceRead4 = 0;
 
     //home_axis_from_code(true, false, false);
+    delay(500);
 
-    tool_change(0);
-
-    planner.set_position_mm(100, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
-    planner.synchronize();
- 
     //relative_mode = false;
-    uint16_t X2_offset = 0;
 
-    for (int i = 0; i < 2; i++) {
+    if (leftSensing) {
+      endstops.enable(true);
+      tool_change(0);
+
+      /*current_position[X_AXIS] = -20;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();*/
+
+      planner.set_position_mm(100, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
+      planner.synchronize();
       //tool_change(i);
       //active_extruder_parked = true;
 
       //Go against the right sensor
-      G41_move = true;
-      endstops.enable(true);
-      whichSensor = 1 + 2*i;
+      while (forceRead1 < 10) { //Almost like reading nothing, imposible!!
+        whichSensor = 1;
+        G41_move = true;
+        endstops.enable(true);
 
-      current_position[X_AXIS] = 0 + X2_offset;
-      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(500),active_extruder);
-      planner.synchronize();
+        current_position[X_AXIS] = 0;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(500),active_extruder);
+        planner.synchronize();
 
-      G41_move = false;
-      endstops.enable(false);
+        G41_move = false;
+        endstops.enable(false);
 
-      //Recoil
-      current_position[X_AXIS] = 30 + X2_offset;
-      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-      planner.synchronize();
+        //Recoil
+        current_position[X_AXIS] = 30;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+
+        delay(500);
+        sensor1.tare();
+        delay(500);
+
+        j += 1;
+        if (j == 4) {
+          SERIAL_ECHOLN("Process failed!"); 
+          planner.finish_and_disable();
+          return;
+        }
+      }
+      j = 0;
 
       //Print data
-      if (i == 0) {
-        SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
-        SERIAL_ECHOLN(""); 
-      } else {
-        SERIAL_PROTOCOLPAIR("Sensor 3 read: ", forceRead3); 
-        SERIAL_ECHOLN("");
-      } 
+      SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
+      SERIAL_ECHOLN(""); 
+      
+      //Go against the right sensor
+      while (forceRead2 < 10) {
+        whichSensor = 2;
+        G41_move = true;
+        endstops.enable(true);
+
+        current_position[X_AXIS] = 80;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(500),active_extruder);
+        planner.synchronize();
+
+        G41_move = false;
+        endstops.enable(false);
+
+        //Recoil
+        current_position[X_AXIS] = 50;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+
+        delay(500);
+        sensor2.tare();
+        delay(500);
+
+        j += 1;
+        if (j == 4) {
+          SERIAL_ECHOLN("Process failed!"); 
+          planner.finish_and_disable();
+          return;
+        }
+      }
+      j = 0;
+
+      //Print data
+      SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2); 
+      SERIAL_ECHOLN(""); 
+
+    } else { //Right extruder sensing
+      endstops.enable(true);
+
+      planner.set_position_mm(430, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
+      planner.synchronize();
+      
+      tool_change(1);
+
+      /*current_position[X_AXIS] = 430;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();*/
+
+      planner.set_position_mm(430, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
+      planner.synchronize();
+      //tool_change(i);
+      //active_extruder_parked = true;
 
       //Go against the right sensor
-      whichSensor = 2 + 2*i;
-      G41_move = true;
-      endstops.enable(true);
+      while (forceRead1 < 10) { 
+        whichSensor = 1;
+        G41_move = true;
+        endstops.enable(true);
 
-      current_position[X_AXIS] = 80 + X2_offset;
-      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(500),active_extruder);
-      planner.synchronize();
+        current_position[X_AXIS] = 330;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(500),active_extruder);
+        planner.synchronize();
 
-      G41_move = false;
-      endstops.enable(false);
+        G41_move = false;
+        endstops.enable(false);
 
-      //Recoil
-      current_position[X_AXIS] = 50 + X2_offset;
-      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-      planner.synchronize();
+        //Recoil
+        current_position[X_AXIS] = 360;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+
+        delay(500);
+        sensor1.tare();
+        delay(500);
+
+        j += 1;
+        if (j == 4) {
+          SERIAL_ECHOLN("Process failed!"); 
+          planner.finish_and_disable();
+          return;
+        }
+      }
+      j = 0;
 
       //Print data
-      if (i == 0) {
-        SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2); 
-        SERIAL_ECHOLN(""); 
-      } else {
-        SERIAL_PROTOCOLPAIR("Sensor 4 read: ", forceRead4); 
-        SERIAL_ECHOLN("");
+      SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
+      SERIAL_ECHOLN(""); 
+
+      //Go against the right sensor
+      while (forceRead2 < 10) {
+        whichSensor = 2;
+        G41_move = true;
+        endstops.enable(true);
+
+        current_position[X_AXIS] = 410;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(500),active_extruder);
+        planner.synchronize();
+
+        G41_move = false;
+        endstops.enable(false);
+
+        //Recoil
+        current_position[X_AXIS] = 380;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+
+        delay(500);
+        sensor2.tare();
+        delay(500);
+
+        j += 1;
+        if (j == 4) {
+          SERIAL_ECHOLN("Process failed!"); 
+          planner.finish_and_disable();
+          return;
+        }
       }
+      j= 0;
 
-      return;
-
-      X2_offset = 340;
-      delay(500);
+      //Print data
+      SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2); 
+      SERIAL_ECHOLN(""); 
 
     }
-    whichSensor = 0;
     planner.finish_and_disable(); //So the user can move the extruders
     //disable_e_steppers();
     
