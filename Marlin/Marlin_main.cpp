@@ -9447,11 +9447,11 @@ inline void gcode_G41() {
   double yOffset[3] = {0};
   float xPos = parser.floatval('X');
   float yPos = parser.floatval('Y');
+  hotend_offset[X_AXIS][1] = xBedSize > 210 ? 469.5 : 256.6;
+  hotend_offset[Y_AXIS][1] = 0;
 
   for (uint8_t j = 0; j<3; j++) {
-
-    hotend_offset[X_AXIS][1] = xBedSize > 210 ? 469.5 : 256.6;
-    hotend_offset[Y_AXIS][1] = 0;
+    
     double points[8] = {0};
     double xLeft, xRight;
     double yLeft, yRight;
