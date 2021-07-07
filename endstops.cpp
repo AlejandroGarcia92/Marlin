@@ -31,7 +31,6 @@
 #include "stepper.h"
 #include "ultralcd.h"
 
-
 #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
   #include "endstop_interrupts.h"
 #endif
@@ -656,56 +655,6 @@ void Endstops::update() {
       if (TEST_ENDSTOP(_ENDSTOP(Z, MIN)) || TEST_ENDSTOP(_ENDSTOP(Z2, MIN))) {
         if (stepper.axis_is_moving(Z_AXIS)) { _ENDSTOP_HIT(Z, MIN); planner.endstop_triggered(Z_AXIS); G40_raisingBedFailed = true; }
       }
-    }
-
-    if (G41_move) {
-      if (TEST_ENDSTOP(_ENDSTOP(Z, MIN)) || TEST_ENDSTOP(_ENDSTOP(Z2, MIN))) {
-          endstops.enable(false);_ENDSTOP_HIT(X, MIN); planner.endstop_triggered(X_AXIS);
-        //if (stepper.axis_is_moving(X_AXIS)) { _ENDSTOP_HIT(X, MIN); planner.endstop_triggered(X_AXIS); G40_raisingBedFailed = true; piezoActive = true;}
-      }
-
-      /*switch (whichSensor)
-      {
-      case 1:
-        if (piezoActive) {
-          long maxForceRead = loadcell1.read();
-          SERIAL_ECHOLN(maxForceRead);
-          if (maxForceRead > forceRead1) forceRead1 = maxForceRead;
-        } 
-        piezoActive = false;
-        break;
-      case 2:
-        if (sensor2.available()) { 
-          long maxForceRead = sensor2.read();
-          SERIAL_ECHOLN(maxForceRead);
-          if (maxForceRead > forceRead2) forceRead2 = maxForceRead;
-        }
-        break;
-      case 3:
-        if (sensor3.available()) { 
-          long maxForceRead = sensor3.read();
-          if (maxForceRead > forceRead3) forceRead3 = maxForceRead;
-          //SERIAL_PROTOCOLPAIR("Sensor 3 read: ", forceRead3);
-          //SERIAL_ECHOLN("");
-
-        }
-        break;
-      case 4:
-        if (sensor4.available()) { 
-          long maxForceRead = sensor4.read();
-          if (maxForceRead > forceRead4) forceRead4 = maxForceRead;
-          //SERIAL_PROTOCOLPAIR("Sensor 4 read: ", forceRead4);
-          //SERIAL_ECHOLN("");
-
-        }
-        break;
-      
-      default:
-        break;
-      }
-      */
-
-
     }
   #endif
 

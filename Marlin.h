@@ -43,8 +43,6 @@
 #include "fastio.h"
 #include "utility.h"
 #include "serial.h"
-#include "GyverHX711.h"
-#include "HX711.h"
 
 void idle(
   #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -220,19 +218,7 @@ extern float ySecondProbeOffset;
   extern bool G40_move,        // flag to tell the interrupt handler that a G38 command is being run
               G40_endstop_hit,
               G40_raisingBedSafely,
-              G40_raisingBedFailed,
-              G41_move,
-              fakeHome; // flag from the interrupt handler to indicate if the endstop went active
-  extern long forceRead1,
-              forceRead2,
-              forceRead3,
-              forceRead4;
-  extern uint8_t whichSensor;
-  extern GyverHX711 sensor1,  
-                    sensor2,
-                    sensor3,
-                    sensor4;
-  extern HX711 loadcell1;
+              G40_raisingBedFailed; // flag from the interrupt handler to indicate if the endstop went active
 #endif
 
 void enable_all_steppers();

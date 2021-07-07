@@ -272,8 +272,6 @@
 #include "types.h"
 #include "parser.h"
 
-
-
 #if ENABLED(AUTO_POWER_CONTROL)
   #include "power.h"
 #endif
@@ -374,26 +372,7 @@
        G40_endstop_hit = false,
        G40_raisingBedSafely = false,
        G40_raisingBedFailed = false,
-       G40_doHomeZ = false,
-       G41_move = false,
-       fakeHome = false;
-  long forceRead1 = 0,
-       forceRead2 = 0,
-       forceRead3 = 0,
-       forceRead4 = 0;
-  uint8_t whichSensor = 0;
-
-  //HX711 Constructor
-  
-  //GyverHX711 sensor1(66, 67, HX_GAIN128_A);
-  //GyverHX711 sensor2(64, 65, HX_GAIN128_A);
-  GyverHX711 sensor3(19, 18, HX_GAIN128_A);
-  GyverHX711 sensor4(20, 21, HX_GAIN128_A);
-  
-  HX711 loadcell1;
-  HX711 loadcell2;
-
-
+       G40_doHomeZ = false;
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -9307,7 +9286,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
   inline void gcode_G40() {
     //Go to prove coords.
 
-    if (G40_doHomeZ) home_axis_from_code(false, false, true);
+    if (G40_doHomeZ) home_axis_from_code(false, false, true); //If XY calibration failed cause bed collapsed, bed will be far down and a Z home will be needed
+    G40_doHomeZ = false;
     
     hotend_offset[X_AXIS][1] = xBedSize > 210 ? 469.5 : 256.6;
     hotend_offset[Y_AXIS][1] = 0;
@@ -9336,7 +9316,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
     if (G40_raisingBedFailed == true) {
       endstops.enable(false);
-      current_position[Z_AXIS] = 40;
+      current_position[Z_AXIS] = 45;
       planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
       planner.synchronize();
       G40_raisingBedSafely = false; 
@@ -9376,7 +9356,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
         if (G40_raisingBedFailed == true) {
           endstops.enable(false);
-          current_position[Z_AXIS] = 40;
+          current_position[Z_AXIS] = 45;
           planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
           planner.synchronize();
           G40_raisingBedSafely = false; 
@@ -9449,259 +9429,214 @@ inline void gcode_G37() { //BCN3D G37 pattern
       SERIAL_ERROR_START();
       SERIAL_ERRORLNPGM("Failed XY autocalibration");
     }
-    G40_raisingBedSafely = false;  
+    G40_raisingBedSafely = false; 
+
+    //If XY succeeded, give some space between extruder and bed 
+    current_position[Z_AXIS] = 10;
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+    planner.synchronize();
   }
 
-  inline void gcode_G41() {
-    bool leftSensing = true;
-    if (parser.seen('L')) {
-		  SERIAL_ECHOLNPGM("Sensing Left extruder...");
-      leftSensing = true;
-    } else if (parser.seen('R')) {
-      SERIAL_ECHOLNPGM("Sensing Right extruder...");
-      leftSensing = false;
-    }
 
-    hasPiezo = true;
+//As G40 but three iteration loop to fine tune piezo sensor offsets
 
-    //Reset max value 
-    forceRead1 = 0;
-    long forceRead1a = 0;
-    long forceRead1b = 0;
-    long forceRead1c = 0;
+inline void gcode_G41() {
+    //Go to prove coords.
 
-    forceRead2 = 0;
-    long forceRead2a = 0;
-    long forceRead2b = 0;
-    long forceRead2c = 0;
+  double xOffset[3] = {0};
+  double yOffset[3] = {0};
+  float xPos = parser.floatval('X');
+  float yPos = parser.floatval('Y');
 
-    forceRead3 = 0;
-    forceRead4 = 0;
+  for (uint8_t j = 0; j<3; j++) {
 
-    //Leer sensor al vacio
-    SERIAL_ECHOLN("");
-    SERIAL_ECHOLN("Reading sensors with no load...");
+    hotend_offset[X_AXIS][1] = xBedSize > 210 ? 469.5 : 256.6;
+    hotend_offset[Y_AXIS][1] = 0;
+    double points[8] = {0};
+    double xLeft, xRight;
+    double yLeft, yRight;
 
-    forceRead1 = loadcell1.get_units(10);
-    SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
-    SERIAL_ECHOLN(" gr\n");
-    forceRead2 = loadcell2.get_units(10);
-    SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2);
-    SERIAL_ECHOLN(" gr\n");
-
-
-    //home_axis_from_code(true, false, false);
-    //relative_mode = false;
-
-    if (leftSensing) {
-      endstops.enable(true);
-      tool_change(0);
-
-      /*current_position[X_AXIS] = -20;
-      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-      planner.synchronize();*/
-
-
-      //Go against the right sensor
-      for (uint8_t i = 0; i < 3; i++) {
-        planner.set_position_mm(100, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
-        planner.synchronize();
-
-        G41_move = true;
-        endstops.enable(true);
-
-        current_position[X_AXIS] = 0;
-        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(500),active_extruder);
-        planner.synchronize();
-
-        G41_move = false;
-        endstops.enable(false);
-
-        delay(1000);
-        //Leer sensor
-        if (i == 0) {
-          forceRead1a = loadcell1.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead1a);
-          SERIAL_ECHOLN(" gr");
-        } else if (i == 1) {
-          forceRead1b = loadcell1.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead1b);
-          SERIAL_ECHOLN(" gr");
-        } else {
-          forceRead1c = loadcell1.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead1c);
-          SERIAL_ECHOLN(" gr");
-        }
-        delay(200);
-
-        //Recoil
-        current_position[X_AXIS] = 30;
-        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-        planner.synchronize();
-      }
-      forceRead1 = (forceRead1a + forceRead1b + forceRead1c) / 3;
-      SERIAL_ECHOLN("_________________________________________");
-      SERIAL_PROTOCOLPAIR("Sensor 1 read mean: ", forceRead1);
-      SERIAL_ECHOLN(" gr");
-      SERIAL_ECHOLN("_________________________________________");
-      
-      //Go against the right sensor
-      for (uint8_t i = 0; i < 3; i++) {
-        planner.set_position_mm(0, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
-        planner.synchronize();
-
-        G41_move = true;
-        endstops.enable(true);
-
-        current_position[X_AXIS] = 80;
-        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(500),active_extruder);
-        planner.synchronize();
-
-        G41_move = false;
-        endstops.enable(false);
-
-        delay(1000);
-        //Leer sensor
-        if (i == 0) {
-          forceRead2a = loadcell2.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead2a);
-          SERIAL_ECHOLN(" gr");
-        } else if (i == 1) {
-          forceRead2b = loadcell2.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead2b);
-          SERIAL_ECHOLN(" gr");
-        } else {
-          forceRead2c = loadcell2.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead2c);
-          SERIAL_ECHOLN(" gr");
-        }
-        delay(200);
-
-        //Recoil
-        current_position[X_AXIS] = 50;
-        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-        planner.synchronize();
-      }
-      forceRead2 = (forceRead2a + forceRead2b + forceRead2c) / 3;
-      SERIAL_ECHOLN("_________________________________________");
-      SERIAL_PROTOCOLPAIR("Sensor 2 read mean: ", forceRead2);
-      SERIAL_ECHOLN(" gr");
-      SERIAL_ECHOLN("_________________________________________");
-
-    //Make the T0 think its homed
-    current_position[X_AXIS] = -53.50;
-    planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);    
-    planner.synchronize();
-
-    active_extruder_parked = true;
-
-    } else { //Right extruder sensing
-      endstops.enable(true);
-      tool_change(1);
-
-      planner.set_position_mm(400, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
-      planner.synchronize();
-
-      //planner.endstop_triggered(X_AXIS);
-
-      //tool_change(i);
-      //active_extruder_parked = true;
-
-      //Go against the left sensor
-      for (uint8_t i = 0; i < 3; i++) {
-        planner.set_position_mm(400, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
-        planner.synchronize();
-
-        G41_move = true;
-        endstops.enable(true);
-
-        current_position[X_AXIS] = 330;
-        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(500),active_extruder);
-        planner.synchronize();
-
-        G41_move = false;
-        endstops.enable(false);
-        
-        delay(1000);
-        //Leer sensor
-        if (i == 0) {
-          forceRead1a = loadcell1.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead1a);
-          SERIAL_ECHOLN(" gr");
-        } else if (i == 1) {
-          forceRead1b = loadcell1.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead1b);
-          SERIAL_ECHOLN(" gr");
-        } else {
-          forceRead1c = loadcell1.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead1c);
-          SERIAL_ECHOLN(" gr");
-        }
-        delay(200);
-
-        //Recoil
-        current_position[X_AXIS] = 360;
-        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-        planner.synchronize();
-      }
-      forceRead1 = (forceRead1a + forceRead1b + forceRead1c) / 3;
-      SERIAL_ECHOLN("_________________________________________");
-      SERIAL_PROTOCOLPAIR("Sensor 1 read mean: ", forceRead1);
-      SERIAL_ECHOLN(" gr");
-      SERIAL_ECHOLN("_________________________________________");
-
-      //Go against the right sensor
-      for (uint8_t i = 0; i < 3; i++) {
-        planner.set_position_mm(300, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
-        planner.synchronize();
-
-        G41_move = true;
-        endstops.enable(true);
-
-        current_position[X_AXIS] = 410;
-        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(500),active_extruder);
-        planner.synchronize();
-
-        G41_move = false;
-        endstops.enable(false);
-
-        delay(1000);
-        //Leer sensor
-        if (i == 0) {
-          forceRead2a = loadcell2.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead2a);
-          SERIAL_ECHOLN(" gr");
-        } else if (i == 1) {
-          forceRead2b = loadcell2.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead2b);
-          SERIAL_ECHOLN(" gr");
-        } else {
-          forceRead2c = loadcell2.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead2c);
-          SERIAL_ECHOLN(" gr");
-        }
-        delay(200);
-
-        //Recoil
-        current_position[X_AXIS] = 380;
-        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-        planner.synchronize();
-      }
-      forceRead2 = (forceRead2a + forceRead2b + forceRead2c) / 3;
-      SERIAL_ECHOLN("_________________________________________");
-      SERIAL_PROTOCOLPAIR("Sensor 2 read mean: ", forceRead2);
-      SERIAL_ECHOLN(" gr");
-      SERIAL_ECHOLN("_________________________________________");
-
-    //Make the T1 think its homed
-    planner.set_position_mm(469.50, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
-    planner.synchronize();
-    active_extruder_parked = true;
-    }
-    planner.finish_and_disable(); //So the user can move the extruders
-    //disable_e_steppers();
     
+    feedrate_mm_s = 5;
+    AxisEnum currentAxis = X_AXIS;
+
+    if (j != 0) {
+      current_position[Z_AXIS] = 5;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+      tool_change(active_extruder == 0 ? 1 : 0);
+      current_position[X_AXIS] = xPos;
+      current_position[Y_AXIS] = yPos;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+    } else {
+      current_position[X_AXIS] = xPos;
+      current_position[Y_AXIS] = yPos;
+      tool_change(0);
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+    }
+
+    
+    
+    /*Bed safety movement*/
+    safe_delay(1000);
+    endstops.enable(true);
+    G40_raisingBedSafely = true;
+
+    current_position[Z_AXIS] = -1;
+    planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+    planner.synchronize();
+    destination[Z_AXIS] = -1;
+
+    if (G40_raisingBedFailed == true) {
+      endstops.enable(false);
+      current_position[Z_AXIS] = 45;
+      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+      planner.synchronize();
+      G40_raisingBedSafely = false; 
+      G40_raisingBedFailed = false;
+      SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
+      return;
+    }
+
+    endstops.enable(false);
+    G40_raisingBedSafely = false;
+
+    /*Bed safety movement finish*/
+
+
+    for (uint8_t i = 0; i < 8; i++) {
+    
+      if (i == 4) {
+        current_position[Z_AXIS] = 5;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+        tool_change(active_extruder == 0 ? 1 : 0);
+        current_position[X_AXIS] = xPos;
+        current_position[Y_AXIS] = yPos;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+
+        /*Bed safety movement*/
+        safe_delay(1000);
+        SERIAL_ERRORLNPGM("rising bed");
+        endstops.enable(true);
+        G40_raisingBedSafely = true;
+
+        current_position[Z_AXIS] = -1;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+        destination[Z_AXIS] = -1;
+
+        if (G40_raisingBedFailed == true) {
+          endstops.enable(false);
+          current_position[Z_AXIS] = 45;
+          planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+          planner.synchronize();
+          G40_raisingBedSafely = false; 
+          G40_raisingBedFailed = false; 
+          G40_doHomeZ = true;
+          SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
+          return;
+        }
+
+        endstops.enable(false);
+        G40_raisingBedSafely = false;
+
+        /*Bed safety movement finish*/
+
+        current_position[X_AXIS] = xPos;
+        current_position[Y_AXIS] = yPos;
+        current_position[Z_AXIS] = -1;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+      } else {
+
+        current_position[X_AXIS] = xPos;
+        current_position[Y_AXIS] = yPos;
+        current_position[Z_AXIS] = -1;
+        
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], feedrate_mm_s,active_extruder);
+        planner.synchronize();
+      }
+      destination[X_AXIS] = xPos;
+      destination[Y_AXIS] = yPos;
+
+      //TODO: improve "magic numbers" below
+      if (i % 2 == 0) {
+        if (i != 0) currentAxis = currentAxis == X_AXIS ? Y_AXIS : X_AXIS;
+        destination[currentAxis] += 7.5;          
+      } else {
+        destination[currentAxis] -= 7.5;  
+      }
+
+      setup_for_endstop_or_probe_move();
+
+      // If G40 fails throw an error
+      if (!G40_run_probe(xPos, yPos)) {
+        SERIAL_ERRORLNPGM("Failed XY loop piezo signal missed");
+        current_position[Z_AXIS] = 10;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+        return;
+      } else {
+        points[i] = current_position[currentAxis];
+      }
+      clean_up_after_endstop_or_probe_move();
+    }
+
+
+    //Calc of offsets
+    //TODO: improve "magic numbers" below
+      
+    xLeft = xPos - (points[0] + points[1]) / 2;
+    xRight = xPos - (points[4] + points[5]) / 2;
+    xOffset[j] = xRight - xLeft;
+    
+    yLeft = yPos - (points[2] + points[3]) / 2;
+    yRight = yPos - (points[6] + points[7]) / 2;
+    yOffset[j] = yRight - yLeft;
+      
+    G40_raisingBedSafely = false; 
+
   }
+
+  double xMeanOffset;
+  double yMeanOffset;
+
+  for (uint8_t i = 0; i < 3; i++) {
+    xMeanOffset += xOffset[i];
+    yMeanOffset += yOffset[i];
+    for (uint8_t j = 0; j < 3; j++) {
+      if (abs(xOffset[i] - xOffset[j]) > 0.2 || abs(yOffset[i] - yOffset[j]) > 0.2) {
+        SERIAL_ERRORLNPGM("Failed XY loop offset too big");
+        current_position[Z_AXIS] = 10;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+        return;
+      }
+    }
+  }
+
+  //If we get here, do mean values and apply them
+  xMeanOffset /= 3;
+  yMeanOffset /= 3;
+
+
+  hotend_offset[X_AXIS][1] += xMeanOffset + piezoXoffset;
+  hotend_offset[Y_AXIS][1] += yMeanOffset + piezoYoffset;
+
+  SERIAL_ECHOLNPAIR("T1 offset X: ", hotend_offset[X_AXIS][1]);
+  SERIAL_ECHOLNPAIR("T1 offset Y: ", hotend_offset[Y_AXIS][1]);
+  SERIAL_ECHOLN("XY autocalibration finished");
+
+  //If XY succeeded, give some space between extruder and bed 
+  current_position[Z_AXIS] = 10;
+  planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+  planner.synchronize();
+}
+
 
 inline void gcode_G715() {
 	SERIAL_PROTOCOLLNPGM("New layer");
@@ -13131,7 +13066,6 @@ inline void gcode_M226() {
    *  M260 S1 ; Send the buffered data and reset the buffer
    *  M260 R1 ; Reset the buffer without sending data
    *
-   * 
    */
   inline void gcode_M260() {
     // Set the target address
@@ -13236,7 +13170,7 @@ inline void gcode_M226() {
 	*/
    inline void gcode_M279() {
 	   if (parser.seen('P')) {
-        hasPiezo = true;//parser.boolval('P');
+        hasPiezo = parser.boolval('P');
         SERIAL_ECHOLNPAIR("Machine has piezo: ", hasPiezo);
      }
    }
@@ -19298,23 +19232,6 @@ void setup() {
 	// Manual Z error probe trigger
 	pinMode(SDA_PIN, OUTPUT);
 	digitalWrite(SDA_PIN, HIGH);
-
-  //HX711 tare
-  //sensor1.tare();
-  //sensor2.tare();
-  sensor3.tare();
-  sensor4.tare();
-
-  loadcell1.begin(66, 67);
-  loadcell1.set_scale(2650); //2010 --> 336
-  //loadcell1.set_offset(LOADCELL_OFFSET);
-  loadcell1.tare();
-
-  loadcell2.begin(64, 65);
-  loadcell2.set_scale(3350); //13070 --> 53 // 3500-->192 //3400--> 197
-  //loadcell1.set_offset(LOADCELL_OFFSET);
-  loadcell2.tare();
-  
   #endif
 
   setup_killpin();
