@@ -9693,8 +9693,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
       SERIAL_ECHOLN(" gr");
       SERIAL_ECHOLN("_________________________________________");
 
-    //Make the T1 think its homed
-    planner.set_position_mm(469.50, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
+    //Make the T1 think its homed     
+    current_position[X_AXIS] = 469.50;
+    planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
     planner.synchronize();
     active_extruder_parked = true;
     }
