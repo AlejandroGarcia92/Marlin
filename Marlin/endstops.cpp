@@ -660,18 +660,19 @@ void Endstops::update() {
     bool piezoActive = false;
     if (G41_move) {
       if (TEST_ENDSTOP(_ENDSTOP(Z, MIN)) || TEST_ENDSTOP(_ENDSTOP(Z2, MIN))) {
-        if (stepper.axis_is_moving(X_AXIS)) { _ENDSTOP_HIT(X, MIN); planner.endstop_triggered(X_AXIS); G40_raisingBedFailed = true; piezoActive = true;}
+          endstops.enable(false);_ENDSTOP_HIT(X, MIN); planner.endstop_triggered(X_AXIS); piezoActive = true;
+        //if (stepper.axis_is_moving(X_AXIS)) { _ENDSTOP_HIT(X, MIN); planner.endstop_triggered(X_AXIS); G40_raisingBedFailed = true; piezoActive = true;}
       }
 
-      switch (whichSensor)
+      /*switch (whichSensor)
       {
       case 1:
-        /*if (piezoActive) {
+        if (piezoActive) {
           long maxForceRead = loadcell1.read();
           SERIAL_ECHOLN(maxForceRead);
           if (maxForceRead > forceRead1) forceRead1 = maxForceRead;
         } 
-        piezoActive = false;*/
+        piezoActive = false;
         break;
       case 2:
         if (sensor2.available()) { 
@@ -702,6 +703,7 @@ void Endstops::update() {
       default:
         break;
       }
+      */
 
 
     }

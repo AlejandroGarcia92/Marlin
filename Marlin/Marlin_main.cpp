@@ -385,11 +385,12 @@
   //HX711 Constructor
   
   //GyverHX711 sensor1(66, 67, HX_GAIN128_A);
-  GyverHX711 sensor2(64, 65, HX_GAIN128_A);
+  //GyverHX711 sensor2(64, 65, HX_GAIN128_A);
   GyverHX711 sensor3(19, 18, HX_GAIN128_A);
   GyverHX711 sensor4(20, 21, HX_GAIN128_A);
   
   HX711 loadcell1;
+  HX711 loadcell2;
 
 
 #endif
@@ -9462,23 +9463,30 @@ inline void gcode_G37() { //BCN3D G37 pattern
     }
 
     hasPiezo = true;
-    delay (500);
-    //Tare again
-    //sensor1.tare();
-    sensor2.tare();
-    sensor3.tare();
-    sensor4.tare();
-    delay (500);
 
     //Reset max value 
     forceRead1 = 0;
+    long forceRead1a = 0;
+    long forceRead1b = 0;
+    long forceRead1c = 0;
+
     forceRead2 = 0;
     forceRead3 = 0;
     forceRead4 = 0;
 
-    //home_axis_from_code(true, false, false);
-    delay(500);
+    //Leer sensor al vacio
+    SERIAL_ECHOLN("");
+    SERIAL_ECHOLN("Reading sensor with no load...");
 
+    forceRead1 = loadcell1.get_units(10);
+    SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
+    SERIAL_ECHOLN(" gr\n");
+    forceRead2 = loadcell2.get_units(10);
+    SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2);
+    SERIAL_ECHOLN(" gr\n");
+
+
+    //home_axis_from_code(true, false, false);
     //relative_mode = false;
 
     if (leftSensing) {
@@ -9495,11 +9503,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
       //active_extruder_parked = true;
 
       //Go against the right sensor
-      while (forceRead1 < 10) { //Almost like reading nothing, imposible!!
-        delay(200);
-        //sensor1.tare();
-        delay(200);
-        whichSensor = 1;
+      //while (forceRead1 < 10) { //Almost like reading nothing, imposible!!
+      //while (j == 1) {
+      for (uint8_t i = 0; i < 3; i++) {
         G41_move = true;
         endstops.enable(true);
 
@@ -9509,6 +9515,23 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
         G41_move = false;
         endstops.enable(false);
+
+        delay(1000);
+        //Leer sensor
+        if (i == 0) {
+          forceRead1a = loadcell1.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead1a);
+          SERIAL_ECHOLN(" gr");
+        } else if (i == 1) {
+          forceRead1b = loadcell1.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead1b);
+          SERIAL_ECHOLN(" gr");
+        } else {
+          forceRead1c = loadcell1.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead1c);
+          SERIAL_ECHOLN(" gr");
+        }
+        delay(200);
 
         //Detener el extrusor chocando con galga cuando se activa el piezo y hacer medida
 
@@ -9521,25 +9544,24 @@ inline void gcode_G37() { //BCN3D G37 pattern
         //sensor1.tare();
         delay(500);
 
-        j += 1;
+        /*j += 1;
         if (j == 4) {
           SERIAL_ECHOLN("Process failed!"); 
           planner.finish_and_disable();
           return;
         }
       }
-      j = 0;
+      j = 0;*/
+      }
+      forceRead1 = (forceRead1a + forceRead1b + forceRead1c) / 3;
+      SERIAL_PROTOCOLPAIR("Sensor 1 read mean: ", forceRead1);
+      SERIAL_ECHOLN(" gr");
 
-      //Print data
-      SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
-      SERIAL_ECHOLN(""); 
       
       //Go against the right sensor
-      while (forceRead2 < 10) {
+      //while (forceRead2 < 10) {
         whichSensor = 2;
-        delay(200);
-        sensor2.tare();
-        delay(200);
+
         G41_move = true;
         endstops.enable(true);
 
@@ -9550,49 +9572,47 @@ inline void gcode_G37() { //BCN3D G37 pattern
         G41_move = false;
         endstops.enable(false);
 
+        delay(1000);
+        //Leer sensor
+        forceRead2 = loadcell2.get_units(10);
+        SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2);
+        SERIAL_ECHOLN(" gr");
+        delay(1000);
+
         //Recoil
         current_position[X_AXIS] = 50;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
 
-        delay(500);
-        sensor2.tare();
-        delay(500);
-
-        j += 1;
+        /*j += 1;
         if (j == 4) {
           SERIAL_ECHOLN("Process failed!"); 
           planner.finish_and_disable();
           return;
         }
       }
-      j = 0;
-
-      //Print data
-      SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2); 
-      SERIAL_ECHOLN(""); 
+      j = 0;*/
 
     } else { //Right extruder sensing
       endstops.enable(true);
 
-      planner.set_position_mm(430, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
+      planner.set_position_mm(400, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
       planner.synchronize();
+
+      planner.endstop_triggered(X_AXIS);
 
       tool_change(1);
 
-      /*current_position[X_AXIS] = 430;
-      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-      planner.synchronize();*/
-
-      planner.set_position_mm(430, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
+      planner.set_position_mm(400, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
       planner.synchronize();
+
+      planner.endstop_triggered(X_AXIS);
+
       //tool_change(i);
       //active_extruder_parked = true;
 
       //Go against the right sensor
-      while (forceRead1 < 10) { 
-        delay(200);
-        //sensor1.tare();
+      //while (forceRead1 < 10) { 
         delay(200);
         whichSensor = 1;
         G41_move = true;
@@ -9604,34 +9624,32 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
         G41_move = false;
         endstops.enable(false);
+        
+        delay(1000);
+        //Leer sensor
+        forceRead1 = loadcell1.get_units(10);
+        SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
+        SERIAL_ECHOLN(" gr");
+        delay(1000);
 
         //Recoil
         current_position[X_AXIS] = 360;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
 
-        delay(500);
-        //sensor1.tare();
-        delay(500);
-
-        j += 1;
+        /*j += 1;
         if (j == 4) {
           SERIAL_ECHOLN("Process failed!"); 
           planner.finish_and_disable();
           return;
         }
       }
-      j = 0;
+      j = 0;*/
 
-      //Print data
-      SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
-      SERIAL_ECHOLN(""); 
 
       //Go against the right sensor
-      while (forceRead2 < 10) {
-        delay(200);
-        sensor2.tare();
-        delay(200);
+      //while (forceRead2 < 10) {
+
         whichSensor = 2;
         G41_move = true;
         endstops.enable(true);
@@ -9643,27 +9661,26 @@ inline void gcode_G37() { //BCN3D G37 pattern
         G41_move = false;
         endstops.enable(false);
 
+        delay(1000);
+        //Leer sensor
+        forceRead2 = loadcell2.get_units(10);
+        SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2);
+        SERIAL_ECHOLN(" gr");
+        delay(1000);
+
         //Recoil
         current_position[X_AXIS] = 380;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
 
-        delay(500);
-        sensor2.tare();
-        delay(500);
-
-        j += 1;
+        /*j += 1;
         if (j == 4) {
           SERIAL_ECHOLN("Process failed!"); 
           planner.finish_and_disable();
           return;
         }
       }
-      j= 0;
-
-      //Print data
-      SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2); 
-      SERIAL_ECHOLN(""); 
+      j= 0;*/
 
     }
     planner.finish_and_disable(); //So the user can move the extruders
@@ -13099,6 +13116,7 @@ inline void gcode_M226() {
    *  M260 S1 ; Send the buffered data and reset the buffer
    *  M260 R1 ; Reset the buffer without sending data
    *
+   * 
    */
   inline void gcode_M260() {
     // Set the target address
@@ -19268,14 +19286,19 @@ void setup() {
 
   //HX711 tare
   //sensor1.tare();
-  sensor2.tare();
+  //sensor2.tare();
   sensor3.tare();
   sensor4.tare();
 
   loadcell1.begin(66, 67);
-  loadcell1.set_scale(102);
+  loadcell1.set_scale(2650); //2010 --> 336
   //loadcell1.set_offset(LOADCELL_OFFSET);
   loadcell1.tare();
+
+  loadcell2.begin(64, 65);
+  loadcell2.set_scale(3350); //13070 --> 53 // 3500-->192 //3400--> 197
+  //loadcell1.set_offset(LOADCELL_OFFSET);
+  loadcell2.tare();
   
   #endif
 
