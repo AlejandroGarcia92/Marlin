@@ -9479,12 +9479,15 @@ inline void gcode_G37() { //BCN3D G37 pattern
     //forceRead4 = 0;
 
     //Leer sensor al vacio
+      //loadcell1.tare();
+      //loadcell2.tare();
+      //delay(1000); //to catch a diference between tare and force read, so changes in force while the sensor is inicialized will be catched 
     SERIAL_ECHOLN("");
     //SERIAL_ECHOLN("Reading sensors with no load...");
     forceRead1 = loadcell1.get_units(10);
     SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
     SERIAL_ECHOLN(" gr\n");
-    if (forceRead1 > 2) {
+    if (forceRead1 > 2 || forceRead1 < -2) {
       SERIAL_ECHOLN("TARE ERROR! Repeat the process.\n"); 
       delay(10);
       return;
@@ -9492,7 +9495,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
     forceRead2 = loadcell2.get_units(10);
     SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2);
     SERIAL_ECHOLN(" gr\n");
-    if (forceRead2 > 2) {
+    if (forceRead2 > 2 || forceRead2 < -2) {
       SERIAL_ECHOLN("TARE ERROR! Repeat the process.\n"); 
       delay(10);
       return;
@@ -19376,12 +19379,12 @@ void setup() {
   sensor4.tare();
 
   loadcell1.begin(66, 67);
-  loadcell1.set_scale(2650); //2010 --> 336
+  loadcell1.set_scale(3120); //2010 --> 336
   //loadcell1.set_offset(LOADCELL_OFFSET);
   loadcell1.tare();
 
   loadcell2.begin(64, 65);
-  loadcell2.set_scale(3350); //13070 --> 53 // 3500-->192 //3400--> 197
+  loadcell2.set_scale(-2950); //13070 --> 53 // 3500-->192 //3400--> 197
   //loadcell1.set_offset(LOADCELL_OFFSET);
   loadcell2.tare();
   
