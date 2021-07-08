@@ -8182,7 +8182,7 @@ inline void gcode_G243() {//BCN3D Piezo Offset Calib pattern for X axis
 
 	draw_print_line_scrirt(Y_AXIS, hotend_size_setup[active_extruder], hotend_size_setup[1]);
 
-	draw_print_line_scrirt(X_AXIS, 8.0-hotend_size_setup[active_extruder] - 0.25, hotend_size_setup[1]);
+	draw_print_line_scrirt(X_AXIS, 8.0-hotend_size_setup[active_extruder] - 0.2, hotend_size_setup[1]);
 
 	draw_print_line_scrirt(Y_AXIS, 4.0-hotend_size_setup[active_extruder], hotend_size_setup[1]);
 
@@ -8342,7 +8342,7 @@ inline void gcode_G244(){//BCN3D Piezo Offset Calib pattern for Y axis
 			draw_print_line_scrirt(X_AXIS, -hotend_size_setup[active_extruder], hotend_size_setup[1]);
 
 
-			draw_print_line_scrirt(Y_AXIS, -4.0+hotend_size_setup[active_extruder]+0.25, hotend_size_setup[1]);
+			draw_print_line_scrirt(Y_AXIS, -4.0+hotend_size_setup[active_extruder]+0.2, hotend_size_setup[1]);
 
 
 			draw_print_line_scrirt(X_AXIS, -4.0, hotend_size_setup[1]);
@@ -9441,8 +9441,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
 inline void gcode_G41() {
     //Go to prove coords.
     #ifdef BCN3D_PRINT_SIMULATION
-    hotend_offset[X_AXIS][1] = 470;
-    hotend_offset[Y_AXIS][1] = 0.5;
+    hotend_offset[X_AXIS][1] = 470 + piezoXoffset;
+    hotend_offset[Y_AXIS][1] = 0.5 + piezoYoffset;
     SERIAL_ECHOLNPAIR("T1 offset X: ", hotend_offset[X_AXIS][1]);
     SERIAL_ECHOLNPAIR("T1 offset Y: ", hotend_offset[Y_AXIS][1]);
     SERIAL_ECHOLN("XY autocalibration finished");
