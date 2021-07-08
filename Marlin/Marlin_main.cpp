@@ -9442,6 +9442,13 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
 inline void gcode_G41() {
     //Go to prove coords.
+    #ifdef BCN3D_PRINT_SIMULATION
+    hotend_offset[X_AXIS][1] = 470;
+    hotend_offset[Y_AXIS][1] = 0.5;
+    SERIAL_ECHOLNPAIR("T1 offset X: ", hotend_offset[X_AXIS][1]);
+    SERIAL_ECHOLNPAIR("T1 offset Y: ", hotend_offset[Y_AXIS][1]);
+    SERIAL_ECHOLN("XY autocalibration finished");
+    #else
 
   double xOffset[3] = {0};
   double yOffset[3] = {0};
@@ -9453,8 +9460,8 @@ inline void gcode_G41() {
   for (uint8_t j = 0; j<3; j++) {
     
     double points[8] = {0};
-    double xLeft, xRight;
-    double yLeft, yRight;
+    double xLeft = 0, xRight = 0;
+    double yLeft = 0, yRight = 0;
 
     
     feedrate_mm_s = 5;
@@ -9599,6 +9606,7 @@ inline void gcode_G41() {
     yOffset[j] = yRight - yLeft;
       
     G40_raisingBedSafely = false; 
+    
 
   }
 
@@ -9635,6 +9643,7 @@ inline void gcode_G41() {
   current_position[Z_AXIS] = 10;
   planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
   planner.synchronize();
+  #endif
 }
 
 
@@ -13413,7 +13422,7 @@ inline void gcode_M226() {
 	*/
    inline void gcode_M291() {
 	   const float offset = parser.floatval('S');
-     piezoYoffset = offset;
+     piezoXoffset = offset;
 	   SERIAL_ECHO_START();
 	   SERIAL_ECHOLNPAIR("X piezo offset sense updated: ", offset);
    }
