@@ -9482,16 +9482,16 @@ inline void gcode_G37() { //BCN3D G37 pattern
     SERIAL_ECHOLN("");
     //SERIAL_ECHOLN("Reading sensors with no load...");
     forceRead1 = loadcell1.get_units(10);
-    /*SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
-    SERIAL_ECHOLN(" gr\n");*/
+    SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
+    SERIAL_ECHOLN(" gr\n");
     if (forceRead1 > 2) {
       SERIAL_ECHOLN("TARE ERROR! Repeat the process.\n"); 
       delay(10);
       return;
     }
     forceRead2 = loadcell2.get_units(10);
-    /*SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2);
-    SERIAL_ECHOLN(" gr\n");*/
+    SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2);
+    SERIAL_ECHOLN(" gr\n");
     if (forceRead2 > 2) {
       SERIAL_ECHOLN("TARE ERROR! Repeat the process.\n"); 
       delay(10);
@@ -9522,34 +9522,34 @@ inline void gcode_G37() { //BCN3D G37 pattern
         //Leer sensor
         if (i == 0) {
           forceRead1a = loadcell1.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead1a);
+          SERIAL_ECHOLN(" gr");
           if (forceRead1a < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
           }
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead1a);
-          SERIAL_ECHOLN(" gr");
         } else if (i == 1) {
           forceRead1b = loadcell1.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead1b);
+          SERIAL_ECHOLN(" gr");
           if (forceRead1b < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
           }
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead1b);
-          SERIAL_ECHOLN(" gr");
         } else {
           forceRead1c = loadcell1.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead1c);
+          SERIAL_ECHOLN(" gr");
           if (forceRead1c < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
           }
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead1c);
-          SERIAL_ECHOLN(" gr");
         }
         delay(200);
 
@@ -9584,34 +9584,34 @@ inline void gcode_G37() { //BCN3D G37 pattern
         //Leer sensor
         if (i == 0) {
           forceRead2a = loadcell2.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead2a);
+          SERIAL_ECHOLN(" gr");
           if (forceRead2a < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
           }
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead2a);
-          SERIAL_ECHOLN(" gr");
         } else if (i == 1) {
           forceRead2b = loadcell2.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead2b);
+          SERIAL_ECHOLN(" gr");
           if (forceRead2b < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
           }
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead2b);
-          SERIAL_ECHOLN(" gr");
         } else {
           forceRead2c = loadcell2.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead2c);
+          SERIAL_ECHOLN(" gr");
           if (forceRead2c < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
           }
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead2c);
-          SERIAL_ECHOLN(" gr");
         }
         delay(200);
 
@@ -9660,34 +9660,34 @@ inline void gcode_G37() { //BCN3D G37 pattern
         //Leer sensor
         if (i == 0) {
           forceRead1a = loadcell1.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead1a);
+          SERIAL_ECHOLN(" gr");
           if (forceRead1a < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
           }
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead1a);
-          SERIAL_ECHOLN(" gr");
         } else if (i == 1) {
           forceRead1b = loadcell1.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead1b);
+          SERIAL_ECHOLN(" gr");
           if (forceRead1b < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
           }
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead1b);
-          SERIAL_ECHOLN(" gr");
         } else {
           forceRead1c = loadcell1.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead1c);
+          SERIAL_ECHOLN(" gr");
           if (forceRead1c < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
           }
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead1c);
-          SERIAL_ECHOLN(" gr");
         }
         delay(200);
 
@@ -9721,34 +9721,34 @@ inline void gcode_G37() { //BCN3D G37 pattern
         //Leer sensor
         if (i == 0) {
           forceRead2a = loadcell2.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead2a);
+          SERIAL_ECHOLN(" gr");
           if (forceRead2a < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
           }
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead2a);
-          SERIAL_ECHOLN(" gr");
         } else if (i == 1) {
           forceRead2b = loadcell2.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead2b);
+          SERIAL_ECHOLN(" gr");
           if (forceRead2b < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
           }
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead2b);
-          SERIAL_ECHOLN(" gr");
         } else {
           forceRead2c = loadcell2.get_units(10);
+          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead2c);
+          SERIAL_ECHOLN(" gr");
           if (forceRead2c < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
           }
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead2c);
-          SERIAL_ECHOLN(" gr");
         }
         delay(200);
 
