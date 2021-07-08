@@ -9602,8 +9602,8 @@ inline void gcode_G41() {
 
   }
 
-  double xMeanOffset;
-  double yMeanOffset;
+  double xMeanOffset = 0;
+  double yMeanOffset = 0;
 
   for (uint8_t i = 0; i < 3; i++) {
     xMeanOffset += xOffset[i];
