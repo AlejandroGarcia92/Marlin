@@ -9479,9 +9479,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
     //forceRead4 = 0;
 
     //Leer sensor al vacio
-      //loadcell1.tare();
-      //loadcell2.tare();
-      //delay(1000); //to catch a diference between tare and force read, so changes in force while the sensor is inicialized will be catched 
+      loadcell1.tare();
+      loadcell2.tare();
+      delay(1000); //to catch a diference between tare and force read, so changes in force while the sensor is inicialized will be catched 
     SERIAL_ECHOLN("");
     //SERIAL_ECHOLN("Reading sensors with no load...");
     forceRead1 = loadcell1.get_units(10);
