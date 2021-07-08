@@ -8212,8 +8212,6 @@ inline void gcode_G243() {//BCN3D Piezo Offset Calib pattern for X axis
 
 	tool_change(0);
 
-
-
 }
 
 inline void gcode_G244(){//BCN3D Piezo Offset Calib pattern for Y axis
