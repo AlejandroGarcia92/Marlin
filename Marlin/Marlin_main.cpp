@@ -9475,32 +9475,33 @@ inline void gcode_G37() { //BCN3D G37 pattern
     long forceRead2b = 0;
     long forceRead2c = 0;
 
-    forceRead3 = 0;
-    forceRead4 = 0;
+    //forceRead3 = 0;
+    //forceRead4 = 0;
 
     //Leer sensor al vacio
     SERIAL_ECHOLN("");
     SERIAL_ECHOLN("Reading sensors with no load...");
-
     forceRead1 = loadcell1.get_units(10);
-    SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
-    SERIAL_ECHOLN(" gr\n");
+    /*SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
+    SERIAL_ECHOLN(" gr\n");*/
+    if (forceRead1 > 2) {
+      SERIAL_ECHOLN("TARE ERROR! Repeat the process.\n"); 
+      delay(10);
+      return;
+    }
     forceRead2 = loadcell2.get_units(10);
-    SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2);
-    SERIAL_ECHOLN(" gr\n");
-
-
-    //home_axis_from_code(true, false, false);
-    //relative_mode = false;
+    /*SERIAL_PROTOCOLPAIR("Sensor 2 read: ", forceRead2);
+    SERIAL_ECHOLN(" gr\n");*/
+    if (forceRead2 > 2) {
+      SERIAL_ECHOLN("TARE ERROR! Repeat the process.\n"); 
+      delay(10);
+      return;
+    }
+    
 
     if (leftSensing) {
       endstops.enable(true);
       tool_change(0);
-
-      /*current_position[X_AXIS] = -20;
-      planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
-      planner.synchronize();*/
-
 
       //Go against the right sensor
       for (uint8_t i = 0; i < 3; i++) {
@@ -9521,14 +9522,32 @@ inline void gcode_G37() { //BCN3D G37 pattern
         //Leer sensor
         if (i == 0) {
           forceRead1a = loadcell1.get_units(10);
+          if (forceRead1a < 5) {
+            SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
+            planner.finish_and_disable(); 
+            delay(10);
+            return;
+          }
           SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead1a);
           SERIAL_ECHOLN(" gr");
         } else if (i == 1) {
           forceRead1b = loadcell1.get_units(10);
+          if (forceRead1b < 5) {
+            SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
+            planner.finish_and_disable(); 
+            delay(10);
+            return;
+          }
           SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead1b);
           SERIAL_ECHOLN(" gr");
         } else {
           forceRead1c = loadcell1.get_units(10);
+          if (forceRead1c < 5) {
+            SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
+            planner.finish_and_disable(); 
+            delay(10);
+            return;
+          }
           SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead1c);
           SERIAL_ECHOLN(" gr");
         }
@@ -9561,17 +9580,36 @@ inline void gcode_G37() { //BCN3D G37 pattern
         endstops.enable(false);
 
         delay(1000);
+
         //Leer sensor
         if (i == 0) {
           forceRead2a = loadcell2.get_units(10);
+          if (forceRead2a < 5) {
+            SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
+            planner.finish_and_disable(); 
+            delay(10);
+            return;
+          }
           SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead2a);
           SERIAL_ECHOLN(" gr");
         } else if (i == 1) {
           forceRead2b = loadcell2.get_units(10);
+          if (forceRead2b < 5) {
+            SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
+            planner.finish_and_disable(); 
+            delay(10);
+            return;
+          }
           SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead2b);
           SERIAL_ECHOLN(" gr");
         } else {
           forceRead2c = loadcell2.get_units(10);
+          if (forceRead2c < 5) {
+            SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
+            planner.finish_and_disable(); 
+            delay(10);
+            return;
+          }
           SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead2c);
           SERIAL_ECHOLN(" gr");
         }
@@ -9588,12 +9626,12 @@ inline void gcode_G37() { //BCN3D G37 pattern
       SERIAL_ECHOLN(" gr");
       SERIAL_ECHOLN("_________________________________________");
 
-    //Make the T0 think its homed
-    current_position[X_AXIS] = -53.50;
-    planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);    
-    planner.synchronize();
+      //Make the T0 think its homed
+      current_position[X_AXIS] = -53.50;
+      planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);    
+      planner.synchronize();
 
-    active_extruder_parked = true;
+      active_extruder_parked = true;
 
     } else { //Right extruder sensing
       endstops.enable(true);
@@ -9601,11 +9639,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
       planner.set_position_mm(400, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
       planner.synchronize();
-
-      //planner.endstop_triggered(X_AXIS);
-
-      //tool_change(i);
-      //active_extruder_parked = true;
 
       //Go against the left sensor
       for (uint8_t i = 0; i < 3; i++) {
@@ -9623,17 +9656,36 @@ inline void gcode_G37() { //BCN3D G37 pattern
         endstops.enable(false);
         
         delay(1000);
+
         //Leer sensor
         if (i == 0) {
           forceRead1a = loadcell1.get_units(10);
+          if (forceRead1a < 5) {
+            SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
+            planner.finish_and_disable(); 
+            delay(10);
+            return;
+          }
           SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead1a);
           SERIAL_ECHOLN(" gr");
         } else if (i == 1) {
           forceRead1b = loadcell1.get_units(10);
+          if (forceRead1b < 5) {
+            SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
+            planner.finish_and_disable(); 
+            delay(10);
+            return;
+          }
           SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead1b);
           SERIAL_ECHOLN(" gr");
         } else {
           forceRead1c = loadcell1.get_units(10);
+          if (forceRead1c < 5) {
+            SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
+            planner.finish_and_disable(); 
+            delay(10);
+            return;
+          }
           SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead1c);
           SERIAL_ECHOLN(" gr");
         }
@@ -9669,14 +9721,32 @@ inline void gcode_G37() { //BCN3D G37 pattern
         //Leer sensor
         if (i == 0) {
           forceRead2a = loadcell2.get_units(10);
+          if (forceRead2a < 5) {
+            SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
+            planner.finish_and_disable(); 
+            delay(10);
+            return;
+          }
           SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead2a);
           SERIAL_ECHOLN(" gr");
         } else if (i == 1) {
           forceRead2b = loadcell2.get_units(10);
+          if (forceRead2b < 5) {
+            SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
+            planner.finish_and_disable(); 
+            delay(10);
+            return;
+          }
           SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead2b);
           SERIAL_ECHOLN(" gr");
         } else {
           forceRead2c = loadcell2.get_units(10);
+          if (forceRead2c < 5) {
+            SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
+            planner.finish_and_disable(); 
+            delay(10);
+            return;
+          }
           SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead2c);
           SERIAL_ECHOLN(" gr");
         }
@@ -9693,14 +9763,13 @@ inline void gcode_G37() { //BCN3D G37 pattern
       SERIAL_ECHOLN(" gr");
       SERIAL_ECHOLN("_________________________________________");
 
-    //Make the T1 think its homed     
-    current_position[X_AXIS] = 469.50;
-    planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
-    planner.synchronize();
-    active_extruder_parked = true;
+      //Make the T1 think its homed     
+      current_position[X_AXIS] = 469.50;
+      planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);        
+      planner.synchronize();
+      active_extruder_parked = true;
     }
     planner.finish_and_disable(); //So the user can move the extruders
-    //disable_e_steppers();
     
   }
 
