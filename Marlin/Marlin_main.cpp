@@ -9480,7 +9480,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
     //Leer sensor al vacio
     SERIAL_ECHOLN("");
-    SERIAL_ECHOLN("Reading sensors with no load...");
+    //SERIAL_ECHOLN("Reading sensors with no load...");
     forceRead1 = loadcell1.get_units(10);
     /*SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
     SERIAL_ECHOLN(" gr\n");*/
