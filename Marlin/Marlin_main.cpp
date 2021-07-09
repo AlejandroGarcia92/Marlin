@@ -13217,7 +13217,7 @@ inline void gcode_M226() {
 			   const float distanceAxisZ = parser.floatval('Z');
 			   if (setMinimumTravel){
 				   set_base_min_pos(Z_AXIS, distanceAxisZ);
-				   if(home_dir(Z_AXIS) == -1) set_base_home_pos(Z_AXIS, distanceAxisZ);
+				   if(home_dir(Z_AXIS) == -1) set_base_home_pos(Z_AXIS, 0);
 			   }
 			   else {
 				   set_base_max_pos(Z_AXIS, distanceAxisZ);
@@ -13236,7 +13236,7 @@ inline void gcode_M226() {
 			SERIAL_ECHOLNPAIR("Max Axis Travel Z: ", base_max_pos(Z_AXIS));
 			SERIAL_ECHOLNPAIR("Home POS X: ", base_home_pos(X_AXIS));
 			SERIAL_ECHOLNPAIR("Home POS Y: ", base_home_pos(Y_AXIS));
-			SERIAL_ECHOLNPAIR("Home POS X: ", base_home_pos(Z_AXIS));
+			SERIAL_ECHOLNPAIR("Home POS Z: ", base_home_pos(Z_AXIS));
 		}
    }
    /*
