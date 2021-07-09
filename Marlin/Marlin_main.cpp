@@ -9587,7 +9587,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
         //Leer sensor
         if (i == 0) {
           forceRead2a = loadcell2.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead2a);
+          SERIAL_PROTOCOLPAIR("Sensor 2 read 1: ", forceRead2a);
           SERIAL_ECHOLN(" gr");
           if (forceRead2a < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
@@ -9597,7 +9597,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
           }
         } else if (i == 1) {
           forceRead2b = loadcell2.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead2b);
+          SERIAL_PROTOCOLPAIR("Sensor 2 read 2: ", forceRead2b);
           SERIAL_ECHOLN(" gr");
           if (forceRead2b < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
@@ -9607,7 +9607,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
           }
         } else {
           forceRead2c = loadcell2.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead2c);
+          SERIAL_PROTOCOLPAIR("Sensor 2 read 3: ", forceRead2c);
           SERIAL_ECHOLN(" gr");
           if (forceRead2c < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
@@ -9724,7 +9724,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
         //Leer sensor
         if (i == 0) {
           forceRead2a = loadcell2.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 1: ", forceRead2a);
+          SERIAL_PROTOCOLPAIR("Sensor 2 read 1: ", forceRead2a);
           SERIAL_ECHOLN(" gr");
           if (forceRead2a < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
@@ -9734,7 +9734,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
           }
         } else if (i == 1) {
           forceRead2b = loadcell2.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 2: ", forceRead2b);
+          SERIAL_PROTOCOLPAIR("Sensor 2 read 2: ", forceRead2b);
           SERIAL_ECHOLN(" gr");
           if (forceRead2b < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
@@ -9744,7 +9744,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
           }
         } else {
           forceRead2c = loadcell2.get_units(10);
-          SERIAL_PROTOCOLPAIR("Sensor 1 read 3: ", forceRead2c);
+          SERIAL_PROTOCOLPAIR("Sensor 2 read 3: ", forceRead2c);
           SERIAL_ECHOLN(" gr");
           if (forceRead2c < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
