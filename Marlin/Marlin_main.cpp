@@ -2678,7 +2678,7 @@ void clean_up_after_endstop_or_probe_move() {
 
       // Do a first probe at the fast speed
       #if defined(BCN3D_MOD)
-      if (do_probe_move(z_probe_low_point, MMM_TO_MMS(150))) {
+      if (do_probe_move(z_probe_low_point, MMM_TO_MMS(480))) {
       #else
       if (do_probe_move(z_probe_low_point, MMM_TO_MMS(Z_PROBE_SPEED_FAST))) {
       #endif
@@ -2721,7 +2721,7 @@ void clean_up_after_endstop_or_probe_move() {
 
         // move down slowly to find bed
         #if defined(BCN3D_MOD)
-        if (do_probe_move(z_probe_low_point, MMM_TO_MMS(150))) {
+        if (do_probe_move(z_probe_low_point, MMM_TO_MMS(120))) {
         #else
         if (do_probe_move(z_probe_low_point, MMM_TO_MMS(Z_PROBE_SPEED_SLOW))) {
         #endif
