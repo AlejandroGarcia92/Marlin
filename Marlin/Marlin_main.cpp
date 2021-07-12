@@ -9314,7 +9314,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
     if (G40_raisingBedFailed == true) {
       endstops.enable(false);
-      current_position[Z_AXIS] = 45;
+      current_position[Z_AXIS] = 38;
       planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
       planner.synchronize();
       G40_raisingBedSafely = false; 
