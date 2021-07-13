@@ -9462,6 +9462,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
 inline void gcode_G41() {
     //Go to prove coords.
+    //asd
     #ifdef BCN3D_PRINT_SIMULATION
     hotend_offset[X_AXIS][1] = 470 + piezoXoffset;
     hotend_offset[Y_AXIS][1] = 0.5 + piezoYoffset;
