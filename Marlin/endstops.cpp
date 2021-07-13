@@ -656,6 +656,10 @@ void Endstops::update() {
         if (stepper.axis_is_moving(Z_AXIS)) { _ENDSTOP_HIT(Z, MIN); planner.endstop_triggered(Z_AXIS); G40_raisingBedFailed = true; }
       }
     }
+
+    if (G293_move) {
+      if (TEST_ENDSTOP(_ENDSTOP(Z, MIN))) G293_endstop_hit = true;
+    }
   #endif
 
   // Now, we must signal, after validation, if an endstop limit is pressed or not

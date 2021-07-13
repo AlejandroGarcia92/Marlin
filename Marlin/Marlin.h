@@ -216,9 +216,11 @@ extern float ySecondProbeOffset;
 #endif
 #if defined(BCN3D_MOD)
   extern bool G40_move,        // flag to tell the interrupt handler that a G38 command is being run
-              G40_endstop_hit,
+              G40_endstop_hit, // flag from the interrupt handler to indicate if the endstop went active
               G40_raisingBedSafely,
-              G40_raisingBedFailed; // flag from the interrupt handler to indicate if the endstop went active
+              G40_raisingBedFailed,
+              G293_move,
+              G293_endstop_hit; 
 #endif
 
 void enable_all_steppers();

@@ -372,7 +372,9 @@
        G40_endstop_hit = false,
        G40_raisingBedSafely = false,
        G40_raisingBedFailed = false,
-       G40_doHomeZ = false;
+       G40_doHomeZ = false,
+       G293_move = false,
+       G293_endstop_hit = false;
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
@@ -6315,7 +6317,7 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
     if (parser.boolval('S', true)) {
       if (!isnan(measured_z)) {       
         hotend_offset[Z_AXIS][active_extruder] =  -measured_z;
-        if (hotend_offset[Z_AXIS][active_extruder] < -2 || hotend_offset[Z_AXIS][active_extruder] > 2) SERIAL_ERRORLNPGM("Z Calibration failed because offset too big");   
+        if (hotend_offset[Z_AXIS][active_extruder] < -2 || hotend_offset[Z_AXIS][active_extruder] > 2) SERIAL_ERRORLNPGM("ZCalibration: offsetTooBig");   
         SERIAL_PROTOCOLLNPAIR_F("T1 offset Z: ", hotend_offset[Z_AXIS][active_extruder]);
       }
     }
@@ -6327,6 +6329,8 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
       if (raise_after == PROBE_PT_STOW) move_z_after_probing();
     #endif
     report_current_position();
+
+    SERIAL_ERRORLNPGM("ZCalibration: finished");
   }
 
   #if ENABLED(Z_PROBE_SLED)
@@ -8876,12 +8880,27 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
   float mesh_z_points[3][3];
 
   for (int x = 0; x < 3; x++) {
-    for (int y = 0; y < 3; y++) {
-      	setup_for_endstop_or_probe_move();
-        mesh_z_points[x][y] = probe_pt(x_probe_mesh_points[x], y_probe_mesh_points[y], PROBE_PT_RAISE, 3, true, 1000);
-        clean_up_after_endstop_or_probe_move();
+    for (int y = 0; y < 3; y++) { 
+      G293_endstop_hit = false;
+      setup_for_endstop_or_probe_move();
 
-        feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+      G293_move = true;
+      mesh_z_points[x][y] = probe_pt(x_probe_mesh_points[x], y_probe_mesh_points[y], PROBE_PT_RAISE, 3, true, 1000);
+      G293_move = false;
+
+      clean_up_after_endstop_or_probe_move();
+
+      feedrate_mm_s = XY_PROBE_FEEDRATE_MM_S;
+
+      //Possible errors
+      if (!G293_endstop_hit) {
+        SERIAL_ECHOLN("meshCalibration: missedSignal"); 
+        return;
+      }
+      if (mesh_z_points[x][y] < -2 || mesh_z_points[x][y] > 2) {
+        SERIAL_ECHOLN("meshCalibration: offsetTooBig"); 
+        return;
+      }
     }
   }
 
@@ -8909,6 +8928,8 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
   SERIAL_PROTOCOLPGM(" p33:");
   MYSERIAL0.print(mesh_z_points[2][2], 3);
 	SERIAL_EOL();
+  SERIAL_ECHOLN("meshCalibration: finished"); 
+
 }
 
 inline void gcode_G294(){//BCN3D Piezo Bed leveling
@@ -9272,7 +9293,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
         set_current_from_steppers_for_axis(ALL_AXES);
         SYNC_PLAN_POSITION_KINEMATIC();
       #endif
-    }
+    } 
 
     endstops.hit_on_purpose();
     endstops.not_homing();
@@ -9321,7 +9342,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
       G40_raisingBedSafely = false; 
       G40_raisingBedFailed = false;
       G40_doHomeZ = true;
-      SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
+      SERIAL_ERRORLNPGM("XYCalibration: bedCollapsed"); 
       return;
     }
 
@@ -9344,7 +9365,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
         /*Bed safety movement*/
         safe_delay(1000);
-        SERIAL_ERRORLNPGM("rising bed");
         endstops.enable(true);
         G40_raisingBedSafely = true;
 
@@ -9361,7 +9381,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
           G40_raisingBedSafely = false; 
           G40_raisingBedFailed = false; 
           G40_doHomeZ = true;
-          SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
+          SERIAL_ERRORLNPGM("XYCalibration: bedCollapsed"); 
           return;
         }
 
@@ -9422,12 +9442,12 @@ inline void gcode_G37() { //BCN3D G37 pattern
       hotend_offset[Y_AXIS][1] += yOffset + piezoYoffset;
       SERIAL_ECHOLNPAIR("T1 offset X: ", hotend_offset[X_AXIS][1]);
       SERIAL_ECHOLNPAIR("T1 offset Y: ", hotend_offset[Y_AXIS][1]);
-      //XYCalibration: Offset too big
-      SERIAL_ECHOLN("XY autocalibration finished");
-      
+      if (xOffset < -2 || xOffset > 2) SERIAL_ERRORLNPGM("XYCalibration: offsetTooBig");
+      if (yOffset < -2 || yOffset > 2) SERIAL_ERRORLNPGM("XYCalibration: offsetTooBig");
+      SERIAL_ERRORLNPGM("XYCalibration: finished");      
     } else {
       SERIAL_ERROR_START();
-      SERIAL_ERRORLNPGM("Failed XY autocalibration");
+      SERIAL_ERRORLNPGM("XYCalibration: missedSignal");
     }
     G40_raisingBedSafely = false; 
 
@@ -9511,7 +9531,6 @@ inline void gcode_G41() {
     G40_raisingBedSafely = false;
 
     /*Bed safety movement finish*/
-
 
     for (uint8_t i = 0; i < 8; i++) {
     
@@ -9607,7 +9626,6 @@ inline void gcode_G41() {
       
     G40_raisingBedSafely = false; 
     
-
   }
 
   double xMeanOffset = 0;
