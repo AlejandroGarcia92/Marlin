@@ -13177,7 +13177,7 @@ inline void gcode_M226() {
 	*/
    inline void gcode_M279() {
 	   if (parser.seen('P')) {
-        hasPiezo = parser.boolval('P');
+        hasPiezo = false;//parser.boolval('P');
         SERIAL_ECHOLNPAIR("Machine has piezo: ", hasPiezo);
      }
    }
