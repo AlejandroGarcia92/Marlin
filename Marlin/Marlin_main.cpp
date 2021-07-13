@@ -6315,6 +6315,7 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
     if (parser.boolval('S', true)) {
       if (!isnan(measured_z)) {       
         hotend_offset[Z_AXIS][active_extruder] =  -measured_z;
+        if (hotend_offset[Z_AXIS][active_extruder] < -2 || hotend_offset[Z_AXIS][active_extruder] > 2) SERIAL_ERRORLNPGM("Z Calibration failed because offset too big");   
         SERIAL_PROTOCOLLNPAIR_F("T1 offset Z: ", hotend_offset[Z_AXIS][active_extruder]);
       }
     }
@@ -9421,6 +9422,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
       hotend_offset[Y_AXIS][1] += yOffset + piezoYoffset;
       SERIAL_ECHOLNPAIR("T1 offset X: ", hotend_offset[X_AXIS][1]);
       SERIAL_ECHOLNPAIR("T1 offset Y: ", hotend_offset[Y_AXIS][1]);
+      //XYCalibration: Offset too big
       SERIAL_ECHOLN("XY autocalibration finished");
       
     } else {
@@ -13177,7 +13179,7 @@ inline void gcode_M226() {
 	*/
    inline void gcode_M279() {
 	   if (parser.seen('P')) {
-        hasPiezo = parser.boolval('P');
+        hasPiezo = false;//parser.boolval('P');
         SERIAL_ECHOLNPAIR("Machine has piezo: ", hasPiezo);
      }
    }
