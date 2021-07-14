@@ -28,14 +28,14 @@
   #include "Marlin.h"
   #include "serial.h"
 
-  mesh_bed_leveling mbl;
+  mesh_bed_leveling* mbl;
 
   float mesh_bed_leveling::z_offset,
-        mesh_bed_leveling::z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
-        mesh_bed_leveling::index_to_xpos[GRID_MAX_POINTS_X],
-        mesh_bed_leveling::index_to_ypos[GRID_MAX_POINTS_Y],
         mesh_bed_leveling::mesh_x_dist,
         mesh_bed_leveling::mesh_y_dist;
+
+  float ** mesh_bed_leveling::z_values = new float[meshPointsX][meshPointsY]; 
+
 
   mesh_bed_leveling::mesh_bed_leveling() {
     mesh_x_dist = MESH_X_DIST;

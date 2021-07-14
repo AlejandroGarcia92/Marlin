@@ -37,14 +37,18 @@ enum MeshLevelingState : char {
 #define MESH_X_DIST ((MESH_MAX_X - (MESH_MIN_X)) / (GRID_MAX_POINTS_X - 1))
 #define MESH_Y_DIST ((MESH_MAX_Y - (MESH_MIN_Y)) / (GRID_MAX_POINTS_Y - 1))
 
+extern uint8_t meshPointsX;
+extern uint8_t meshPointsY;
+
 class mesh_bed_leveling {
 public:
   static float z_offset,
-               z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
-               index_to_xpos[GRID_MAX_POINTS_X],
-               index_to_ypos[GRID_MAX_POINTS_Y],
                mesh_x_dist,
                mesh_y_dist;
+
+  static float ** z_values,
+                 index_to_xpos,
+                 index_to_ypos;
 
   mesh_bed_leveling();
 
@@ -119,6 +123,6 @@ public:
   }
 };
 
-extern mesh_bed_leveling mbl;
+extern mesh_bed_leveling* mbl;
 
 #endif // _MESH_BED_LEVELING_H_
