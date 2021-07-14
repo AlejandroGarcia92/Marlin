@@ -9504,8 +9504,6 @@ inline void gcode_G41() {
       planner.synchronize();
     }
 
-    
-    
     /*Bed safety movement*/
     safe_delay(1000);
     endstops.enable(true);
@@ -9523,7 +9521,7 @@ inline void gcode_G41() {
       planner.synchronize();
       G40_raisingBedSafely = false; 
       G40_raisingBedFailed = false;
-      SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
+      SERIAL_ERRORLNPGM("XYCalibration: bedCollapsed"); 
       return;
     }
 
@@ -9546,7 +9544,6 @@ inline void gcode_G41() {
 
         /*Bed safety movement*/
         safe_delay(1000);
-        SERIAL_ERRORLNPGM("rising bed");
         endstops.enable(true);
         G40_raisingBedSafely = true;
 
@@ -9563,7 +9560,7 @@ inline void gcode_G41() {
           G40_raisingBedSafely = false; 
           G40_raisingBedFailed = false; 
           G40_doHomeZ = true;
-          SERIAL_ERRORLNPGM("XY Calibration failed because bed collapsed"); 
+          SERIAL_ERRORLNPGM("XYCalibration: bedCollapsed"); 
           return;
         }
 
@@ -9601,7 +9598,7 @@ inline void gcode_G41() {
 
       // If G40 fails throw an error
       if (!G40_run_probe(xPos, yPos)) {
-        SERIAL_ERRORLNPGM("Failed XY loop piezo signal missed");
+        SERIAL_ERRORLNPGM("XYCalibration: missedSignal");
         current_position[Z_AXIS] = 10;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
