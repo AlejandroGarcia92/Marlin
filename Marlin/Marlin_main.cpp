@@ -9307,10 +9307,10 @@ inline void gcode_G37() { //BCN3D G37 pattern
     endstops.enable(true);
     G40_raisingBedSafely = true;
 
-    current_position[Z_AXIS] = -2;
+    current_position[Z_AXIS] = -1;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
     planner.synchronize();
-    destination[Z_AXIS] = -2;
+    destination[Z_AXIS] = -1;
 
     if (G40_raisingBedFailed == true) {
       endstops.enable(false);
@@ -9347,10 +9347,10 @@ inline void gcode_G37() { //BCN3D G37 pattern
         endstops.enable(true);
         G40_raisingBedSafely = true;
 
-        current_position[Z_AXIS] = -2;
+        current_position[Z_AXIS] = -1;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
-        destination[Z_AXIS] = -2;
+        destination[Z_AXIS] = -1;
 
         if (G40_raisingBedFailed == true) {
           endstops.enable(false);
@@ -9371,14 +9371,14 @@ inline void gcode_G37() { //BCN3D G37 pattern
 
         current_position[X_AXIS] = xPos;
         current_position[Y_AXIS] = yPos;
-        current_position[Z_AXIS] = -2;
+        current_position[Z_AXIS] = -1;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
       } else {
 
         current_position[X_AXIS] = xPos;
         current_position[Y_AXIS] = yPos;
-        current_position[Z_AXIS] = -2;
+        current_position[Z_AXIS] = -1;
         
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], feedrate_mm_s,active_extruder);
         planner.synchronize();
@@ -9489,10 +9489,10 @@ inline void gcode_G41() {
     endstops.enable(true);
     G40_raisingBedSafely = true;
 
-    current_position[Z_AXIS] = -2;
+    current_position[Z_AXIS] = -1;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
     planner.synchronize();
-    destination[Z_AXIS] = -2;
+    destination[Z_AXIS] = -1;
 
     if (G40_raisingBedFailed == true) {
       endstops.enable(false);
@@ -9529,10 +9529,10 @@ inline void gcode_G41() {
         endstops.enable(true);
         G40_raisingBedSafely = true;
 
-        current_position[Z_AXIS] = -2;
+        current_position[Z_AXIS] = -1;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
-        destination[Z_AXIS] = -2;
+        destination[Z_AXIS] = -1;
 
         if (G40_raisingBedFailed == true) {
           endstops.enable(false);
@@ -9553,14 +9553,14 @@ inline void gcode_G41() {
 
         current_position[X_AXIS] = xPos;
         current_position[Y_AXIS] = yPos;
-        current_position[Z_AXIS] = -2;
+        current_position[Z_AXIS] = -1;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
       } else {
 
         current_position[X_AXIS] = xPos;
         current_position[Y_AXIS] = yPos;
-        current_position[Z_AXIS] = -2;
+        current_position[Z_AXIS] = -1;
         
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], feedrate_mm_s,active_extruder);
         planner.synchronize();
