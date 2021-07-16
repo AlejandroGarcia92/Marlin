@@ -59,8 +59,8 @@
 #define X2_DIR_PIN		76//73
 #define X2_ENABLE_PIN	75//75
 
-#define X_MIN_PIN		34//77 //Minim endstop
-#define X_MAX_PIN		43//79 //Max endstop per 2n extrusor
+#define X_MIN_PIN		34//77 //Minim endstop           //34 Z
+#define X_MAX_PIN		43//79 //Max endstop per 2n extrusor //43 Z
 
 #define E0_STEP_PIN		29
 #define E0_DIR_PIN		27

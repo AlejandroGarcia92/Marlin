@@ -9481,9 +9481,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
     //Leer sensor al vacio
       loadcell1.tare();
       loadcell2.tare();
-      delay(1000); //to catch a diference between tare and force read, so changes in force while the sensor is inicialized will be catched 
+      delay(1000); //!!! to catch a diference between tare and force read, so changes in force while the sensor is inicialized will be catched 
     SERIAL_ECHOLN("");
-    //SERIAL_ECHOLN("Reading sensors with no load...");
+    SERIAL_ECHOLN("Reading sensors with no load...");
     forceRead1 = loadcell1.get_units(10);
     SERIAL_PROTOCOLPAIR("Sensor 1 read: ", forceRead1);
     SERIAL_ECHOLN(" gr\n");
@@ -9500,9 +9500,11 @@ inline void gcode_G37() { //BCN3D G37 pattern
       delay(10);
       return;
     }
-    
+
+    SERIAL_ECHOLN("Starting moves...");
 
     if (leftSensing) {
+
       endstops.enable(true);
       tool_change(0);
 
@@ -9531,6 +9533,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
+            current_position[X_AXIS] = -53.50;
+            planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);    
+            planner.synchronize();
             return;
           }
         } else if (i == 1) {
@@ -9589,32 +9594,32 @@ inline void gcode_G37() { //BCN3D G37 pattern
           forceRead2a = loadcell2.get_units(10);
           SERIAL_PROTOCOLPAIR("Sensor 2 read 1: ", forceRead2a);
           SERIAL_ECHOLN(" gr");
-          /*if (forceRead2a < 5) {
+          if (forceRead2a < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
-          }*/
+          }
         } else if (i == 1) {
           forceRead2b = loadcell2.get_units(10);
           SERIAL_PROTOCOLPAIR("Sensor 2 read 2: ", forceRead2b);
           SERIAL_ECHOLN(" gr");
-          /*if (forceRead2b < 5) {
+          if (forceRead2b < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
-          }*/
+          }
         } else {
           forceRead2c = loadcell2.get_units(10);
           SERIAL_PROTOCOLPAIR("Sensor 2 read 3: ", forceRead2c);
           SERIAL_ECHOLN(" gr");
-          /*if (forceRead2c < 5) {
+          if (forceRead2c < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
-          }*/
+          }
         }
         delay(200);
 
@@ -9637,6 +9642,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
       active_extruder_parked = true;
 
     } else { //Right extruder sensing
+
       endstops.enable(true);
       tool_change(1);
 
@@ -9669,6 +9675,9 @@ inline void gcode_G37() { //BCN3D G37 pattern
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
+            current_position[X_AXIS] = 469.50;
+            planner.set_position_mm(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_CART]);    
+            planner.synchronize();
             return;
           }
         } else if (i == 1) {
@@ -9726,32 +9735,32 @@ inline void gcode_G37() { //BCN3D G37 pattern
           forceRead2a = loadcell2.get_units(10);
           SERIAL_PROTOCOLPAIR("Sensor 2 read 1: ", forceRead2a);
           SERIAL_ECHOLN(" gr");
-          /*if (forceRead2a < 5) {
+          if (forceRead2a < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
-          }*/
+          }
         } else if (i == 1) {
           forceRead2b = loadcell2.get_units(10);
           SERIAL_PROTOCOLPAIR("Sensor 2 read 2: ", forceRead2b);
           SERIAL_ECHOLN(" gr");
-          /*if (forceRead2b < 5) {
+          if (forceRead2b < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
-          }*/
+          }
         } else {
           forceRead2c = loadcell2.get_units(10);
           SERIAL_PROTOCOLPAIR("Sensor 2 read 3: ", forceRead2c);
           SERIAL_ECHOLN(" gr");
-          /*if (forceRead2c < 5) {
+          if (forceRead2c < 5) {
             SERIAL_ECHOLN("READING ERROR! Repeat the process.\n"); 
             planner.finish_and_disable(); 
             delay(10);
             return;
-          }*/
+          }
         }
         delay(200);
 
@@ -19384,7 +19393,7 @@ void setup() {
   loadcell1.tare();
 
   loadcell2.begin(64, 65);
-  loadcell2.set_scale(1300); //13070 --> 53 // 3500-->192 //3400--> 197
+  loadcell2.set_scale(2650); //13070 --> 53 // 3500-->192 //3400--> 197
   //loadcell1.set_offset(LOADCELL_OFFSET);
   loadcell2.tare();
   
