@@ -497,10 +497,6 @@ void MarlinSettings::postprocess() {
 
     #if ENABLED(MESH_BED_LEVELING)
       // Compile time test that sizeof(mbl.z_values) is as expected
-      static_assert(
-        sizeof(mbl->z_values) == GRID_MAX_POINTS * sizeof(mbl->z_values[0][0]),
-        "MBL Z array is the wrong size."
-      );
       const uint8_t mesh_num_x = GRID_MAX_POINTS_X, mesh_num_y = GRID_MAX_POINTS_Y;
       EEPROM_WRITE(mbl->z_offset);
       EEPROM_WRITE(mesh_num_x);
@@ -2312,7 +2308,7 @@ void MarlinSettings::reset() {
               SERIAL_ECHOPAIR("  G29 S3 X", (int)px + 1);
               SERIAL_ECHOPAIR(" Y", (int)py + 1);
               SERIAL_ECHOPGM(" Z");
-              SERIAL_ECHO_F(LINEAR_UNIT(mbl->z_values[px][py]), 5);
+              //SERIAL_ECHO_F(LINEAR_UNIT(*(mbl->z_values+px)+py), 5);
               SERIAL_EOL();
             }
           }

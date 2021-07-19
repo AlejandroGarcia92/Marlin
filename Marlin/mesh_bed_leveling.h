@@ -46,9 +46,9 @@ public:
                mesh_x_dist,
                mesh_y_dist;
 
-  static float ** z_values,
-                 index_to_xpos,
-                 index_to_ypos;
+  static float * z_values;
+  static float *  index_to_xpos;
+  static float *  index_to_ypos;
 
   mesh_bed_leveling();
 
@@ -61,11 +61,11 @@ public:
   FORCE_INLINE static bool has_mesh() {
     for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
       for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-        if (z_values[x][y]) return true;
+        if (*((z_values+x)+y)) return true;
     return false;
   }
 
-  static void set_z(const int8_t px, const int8_t py, const float &z) { z_values[px][py] = z; }
+  static void set_z(const int8_t px, const int8_t py, const float &z) { *((z_values+px)+py) = z; }
 
   static inline void zigzag(const int8_t index, int8_t &px, int8_t &py) {
     px = index % (GRID_MAX_POINTS_X);
@@ -111,9 +111,9 @@ public:
     #endif
   ) {
     const int8_t cx = cell_index_x(x0), cy = cell_index_y(y0);
-    const float z1 = calc_z0(x0, index_to_xpos[cx], z_values[cx][cy], index_to_xpos[cx + 1], z_values[cx + 1][cy]),
-                z2 = calc_z0(x0, index_to_xpos[cx], z_values[cx][cy + 1], index_to_xpos[cx + 1], z_values[cx + 1][cy + 1]),
-                z0 = calc_z0(y0, index_to_ypos[cy], z1, index_to_ypos[cy + 1], z2);
+    const float z1 = calc_z0(x0, index_to_xpos[cx], *((z_values+cx)+cy), index_to_xpos[cx + 1], *((z_values+cx+1)+cy));
+    const float z2 = calc_z0(x0, index_to_xpos[cx], *((z_values+cx)+(cy+1)), index_to_xpos[cx + 1], *((z_values+cx+1)+(cy+1)));
+    const float z0 = calc_z0(y0, index_to_ypos[cy], z1, index_to_ypos[cy + 1], z2);
 
     return z_offset + z0
       #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)

@@ -34,12 +34,16 @@
         mesh_bed_leveling::mesh_x_dist,
         mesh_bed_leveling::mesh_y_dist;
 
-  float ** mesh_bed_leveling::z_values = new float[meshPointsX][meshPointsY]; 
+  float * mesh_bed_leveling::z_values = (float *)malloc(sizeof(float)*(meshPointsX+meshPointsY)); 
+
+  float * mesh_bed_leveling::index_to_xpos = (float *)malloc(sizeof(float)*(meshPointsX));
+  float * mesh_bed_leveling::index_to_ypos = (float *)malloc(sizeof(float)*(meshPointsY));
 
 
   mesh_bed_leveling::mesh_bed_leveling() {
     mesh_x_dist = MESH_X_DIST;
     mesh_y_dist = MESH_Y_DIST;
+
     for (uint8_t i = 0; i < GRID_MAX_POINTS_X; ++i)
       index_to_xpos[i] = MESH_MIN_X + i * (mesh_x_dist);
     for (uint8_t i = 0; i < GRID_MAX_POINTS_Y; ++i)
@@ -59,7 +63,7 @@
 
   void mesh_bed_leveling::reset() {
     z_offset = 0;
-    ZERO(z_values);
+    memset(z_values, 0, sizeof(float)*(meshPointsX+meshPointsY));
   }
 
   void mesh_bed_leveling::report_mesh() {
@@ -67,7 +71,7 @@
     SERIAL_PROTOCOLPGM("Z offset: "); SERIAL_PROTOCOL_F(z_offset, 5);
     SERIAL_PROTOCOLLNPGM("\nMeasured points:");
     print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 5,
-      [](const uint8_t ix, const uint8_t iy) { return z_values[ix][iy]; }
+      [](const uint8_t ix, const uint8_t iy) { return *((z_values+ix)+iy); }
     );
   }
 

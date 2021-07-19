@@ -665,8 +665,8 @@ static float piezoXoffset = 0;
 static float piezoYoffset = 0;
 
 //Mesh Matrix 
-static uint8_t meshPointsX = 4;
-static uint8_t meshPointsY = 4;
+uint8_t meshPointsX = 4;
+uint8_t meshPointsY = 4;
 
 #endif
 
@@ -5293,7 +5293,7 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
         }
 
         if (parser.seenval('Z'))
-          mbl->z_values[px][py] = parser.value_linear_units();
+          *((mbl->z_values + px) + py) = parser.value_linear_units();
         else {
           SERIAL_CHAR('Z'); echo_not_entered();
           return;
@@ -13420,6 +13420,20 @@ inline void gcode_M226() {
    }
 
       /*
+	* M289: Set mesh dim
+	*/
+   inline void gcode_M289() {
+	   meshPointsX = parser.intval('X');
+     meshPointsY = parser.intval('Y');
+     if (meshPointsX >= 3 && meshPointsY >= 3) {
+       delete mbl;
+       mbl = new mesh_bed_leveling();
+     } else {
+       mbl->reset();
+     }
+   }
+
+      /*
 	* M291: Set piezo X sense offset
 	*/
    inline void gcode_M291() {
@@ -14123,9 +14137,7 @@ void quickstop_stepper() {
 
     #if HAS_MESH
 
-      #if ENABLED(MESH_BED_LEVELING)
-        #define Z_VALUES(X,Y) mbl->z_values[X][Y]
-      #else
+      #if DISABLED(MESH_BED_LEVELING)
         #define Z_VALUES(X,Y) z_values[X][Y]
       #endif
 
@@ -14154,7 +14166,7 @@ void quickstop_stepper() {
             float lo_val = 100, hi_val = -100;
             for (uint8_t x = GRID_MAX_POINTS_X; x--;)
               for (uint8_t y = GRID_MAX_POINTS_Y; y--;) {
-                const float z = Z_VALUES(x, y);
+                const float z = *((mbl->z_values+x)+y);
                 NOMORE(lo_val, z);
                 NOLESS(hi_val, z);
               }
@@ -14169,7 +14181,7 @@ void quickstop_stepper() {
             // Subtract the mean from all values
             for (uint8_t x = GRID_MAX_POINTS_X; x--;)
               for (uint8_t y = GRID_MAX_POINTS_Y; y--;)
-                Z_VALUES(x, y) -= zmean;
+                *((mbl->z_values+x)+y) -= zmean;
             #if ENABLED(ABL_BILINEAR_SUBDIVISION)
               bed_level_virt_interpolate();
             #endif
@@ -14258,7 +14270,7 @@ void quickstop_stepper() {
       SERIAL_ERRORLNPGM(MSG_ERR_MESH_XY);
     }
     else
-      mbl->set_z(ix, iy, parser.value_linear_units() + (hasQ ? mbl->z_values[ix][iy] : 0));
+      mbl->set_z(ix, iy, parser.value_linear_units() + (hasQ ? *((mbl->z_values+ix)+iy) : 0));
   }
 
 #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -16710,6 +16722,7 @@ void process_parsed_command() {
         case 286: gcode_M286(); break;                            // M286: Collision avoidance bed leveling
         case 287: gcode_M287(); break;                            // M287: Set printing settings
         case 288: gcode_M288(); break;							              // M288: Set Chamber fan On/Off
+        case 289: gcode_M289(); break;                            // M289: Set Mesh Dim
       #endif
 
       #if ENABLED(BABYSTEPPING)
