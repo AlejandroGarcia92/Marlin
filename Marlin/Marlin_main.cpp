@@ -8904,6 +8904,7 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
       SERIAL_PROTOCOLPGM(" p");
       MYSERIAL0.print(i);
       MYSERIAL0.print(j);
+      MYSERIAL0.print(":");
       MYSERIAL0.print(mesh_z_points[i][j], 3);
     }
   }
