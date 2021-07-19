@@ -8847,13 +8847,18 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
 	SYNC_PLAN_POSITION_KINEMATIC();
 
   const float start_x = x_probe_left_extr[1];
-  const float shift_x = (xBedSize-start_x*2)/2; 
+  const float shift_x = (xBedSize-start_x*2)/meshPointsX; 
   
   const float start_y = y_probe_left_extr[1];
-  const float shift_y = (yBedSize-start_y*2)/2; 
+  const float shift_y = (yBedSize-start_y*2)/meshPointsY; 
 
-  const float x_probe_mesh_points[3] = {start_x, start_x + shift_x, start_x + shift_x*2};
-  const float y_probe_mesh_points[3] = {start_y, start_y + shift_y, start_y + shift_y*2};
+  float x_probe_mesh_points[meshPointsX] = {start_x, start_x + shift_x, start_x + shift_x*2};
+  float y_probe_mesh_points[meshPointsY] = {start_y, start_y + shift_y, start_y + shift_y*2};
+
+  for (int i = 0; i < meshPointsX; i++) {       //Premise X=Y
+    x_probe_mesh_points[i] = start_x + shift_x*i;
+    y_probe_mesh_points[i] = start_y + shift_y*i;
+  }
 
 
 	current_position[X_AXIS] += x_gap_avoid_collision_l;
@@ -8878,8 +8883,8 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
 	SERIAL_PROTOCOLLN(current_position[Z_AXIS]);
   float mesh_z_points[3][3];
 
-  for (int x = 0; x < 3; x++) {
-    for (int y = 0; y < 3; y++) {
+  for (int x = 0; x < meshPointsX; x++) {
+    for (int y = 0; y < meshPointsY; y++) {
       	setup_for_endstop_or_probe_move();
         mesh_z_points[x][y] = probe_pt(x_probe_mesh_points[x], y_probe_mesh_points[y], PROBE_PT_RAISE, 3, true, 1000);
         clean_up_after_endstop_or_probe_move();
@@ -8893,24 +8898,15 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
 	home_axis_from_code(true, true, false);
 	tool_change(0);
 
-  SERIAL_PROTOCOLPGM("Piezo Mesh Bed Leveling p11:");
-	MYSERIAL0.print(mesh_z_points[0][0], 3);
-	SERIAL_PROTOCOLPGM(" p12:");
-	MYSERIAL0.print(mesh_z_points[1][0], 3);
-  SERIAL_PROTOCOLPGM(" p13:");
-	MYSERIAL0.print(mesh_z_points[2][0], 3);
-  SERIAL_PROTOCOLPGM(" p21:");
-	MYSERIAL0.print(mesh_z_points[0][1], 3);
-  SERIAL_PROTOCOLPGM(" p22:");
-	MYSERIAL0.print(mesh_z_points[1][1], 3);
-  SERIAL_PROTOCOLPGM(" p23:");
-  MYSERIAL0.print(mesh_z_points[2][1], 3);
-  SERIAL_PROTOCOLPGM(" p31:");
-	MYSERIAL0.print(mesh_z_points[0][2], 3);
-  SERIAL_PROTOCOLPGM(" p32:");
-	MYSERIAL0.print(mesh_z_points[1][2], 3);
-  SERIAL_PROTOCOLPGM(" p33:");
-  MYSERIAL0.print(mesh_z_points[2][2], 3);
+  SERIAL_PROTOCOLPGM("Piezo Mesh Bed Leveling");
+  for (int i = 0; i < meshPointsX; i++) {       
+    for (int j = 0; j < meshPointsY; j++) { 
+      SERIAL_PROTOCOLPGM(" p");
+      MYSERIAL0.print(i);
+      MYSERIAL0.print(j);
+      MYSERIAL0.print(mesh_z_points[i][j], 3);
+    }
+  }
 	SERIAL_EOL();
 }
 
@@ -13420,20 +13416,6 @@ inline void gcode_M226() {
    }
 
       /*
-	* M289: Set mesh dim
-	*/
-   inline void gcode_M289() {
-	   meshPointsX = parser.intval('X');
-     meshPointsY = parser.intval('Y');
-     if (meshPointsX >= 3 && meshPointsY >= 3) {
-       delete mbl;
-       mbl = new mesh_bed_leveling();
-     } else {
-       mbl->reset();
-     }
-   }
-
-      /*
 	* M291: Set piezo X sense offset
 	*/
    inline void gcode_M291() {
@@ -13453,11 +13435,18 @@ inline void gcode_M226() {
 	   SERIAL_ECHOLNPAIR("Y piezo offset sense updated: ", offset);
    }
 
-         /*
-	* M295: Configure mesh dimensions
+     /*
+	* M295: Set mesh dim
 	*/
    inline void gcode_M295() {
-
+	   meshPointsX = parser.intval('X');
+     meshPointsY = parser.intval('Y');
+     if (meshPointsX >= 3 && meshPointsY >= 3) {
+       delete mbl;
+       mbl = new mesh_bed_leveling();
+     } else {
+       mbl->reset();
+     }
    }
 
    /*
@@ -16722,7 +16711,6 @@ void process_parsed_command() {
         case 286: gcode_M286(); break;                            // M286: Collision avoidance bed leveling
         case 287: gcode_M287(); break;                            // M287: Set printing settings
         case 288: gcode_M288(); break;							              // M288: Set Chamber fan On/Off
-        case 289: gcode_M289(); break;                            // M289: Set Mesh Dim
       #endif
 
       #if ENABLED(BABYSTEPPING)
@@ -16732,7 +16720,7 @@ void process_parsed_command() {
       #ifdef BCN3D_MOD
         case 291: gcode_M291(); break;                            // M291: Set Piezo Sense Offset X
         case 292: gcode_M292(); break;                            // M292: Set Piezo Sense Offset Y
-        case 295: gcode_M295(); break;                            // M295: Configure mesh dimensions
+        case 295: gcode_M295(); break;                            // M295: Set Mesh Dim
       #endif
 
       #if HAS_BUZZER
