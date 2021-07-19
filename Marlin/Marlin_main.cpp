@@ -8847,13 +8847,13 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
 	SYNC_PLAN_POSITION_KINEMATIC();
 
   const float start_x = x_probe_left_extr[1];
-  const float shift_x = (xBedSize-start_x*2)/meshPointsX; 
+  const float shift_x = (xBedSize-start_x*2)/(meshPointsX-1); 
   
   const float start_y = y_probe_left_extr[1];
-  const float shift_y = (yBedSize-start_y*2)/meshPointsY; 
+  const float shift_y = (yBedSize-start_y*2)/(meshPointsY-1); 
 
-  float x_probe_mesh_points[meshPointsX] = {start_x, start_x + shift_x, start_x + shift_x*2};
-  float y_probe_mesh_points[meshPointsY] = {start_y, start_y + shift_y, start_y + shift_y*2};
+  float x_probe_mesh_points[meshPointsX];
+  float y_probe_mesh_points[meshPointsY];
 
   for (int i = 0; i < meshPointsX; i++) {       //Premise X=Y
     x_probe_mesh_points[i] = start_x + shift_x*i;
@@ -13443,6 +13443,7 @@ inline void gcode_M226() {
 	   meshPointsX = parser.intval('X');
      meshPointsY = parser.intval('Y');
      if (meshPointsX >= 3 && meshPointsY >= 3) {
+       free(mbl->z_values);
        delete mbl;
        mbl = new mesh_bed_leveling();
      } else {
