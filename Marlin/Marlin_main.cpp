@@ -6282,7 +6282,7 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
    */
   inline void gcode_G30() {
     
-
+    SERIAL_ECHOLN("ZCalibration: noError"); 
     #if defined(BCN3D_MOD)
      
     const float xpos = parser.linearval('X', current_position[X_AXIS]),
@@ -6330,7 +6330,6 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
     #endif
     report_current_position();
 
-    SERIAL_ERRORLNPGM("ZCalibration: finished");
   }
 
   #if ENABLED(Z_PROBE_SLED)
@@ -8843,7 +8842,7 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
 }
 
 inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
-
+  SERIAL_ECHOLN("meshCalibration: noError"); 
 
 	SYNC_PLAN_POSITION_KINEMATIC();
 
@@ -8928,7 +8927,6 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
   SERIAL_PROTOCOLPGM(" p33:");
   MYSERIAL0.print(mesh_z_points[2][2], 3);
 	SERIAL_EOL();
-  SERIAL_ECHOLN("meshCalibration: finished"); 
 
 }
 
@@ -9304,7 +9302,8 @@ inline void gcode_G37() { //BCN3D G37 pattern
    * X-Y autocalibration
    */
   inline void gcode_G40() {
-    //Go to prove coords.
+    //Go to prove coords.    
+    SERIAL_ECHOLN("XYCalibration: noError"); 
 
     if (G40_doHomeZ) home_axis_from_code(false, false, true); //If XY calibration failed cause bed collapsed, bed will be far down and a Z home will be needed
     G40_doHomeZ = false;
@@ -9444,7 +9443,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
       SERIAL_ECHOLNPAIR("T1 offset Y: ", hotend_offset[Y_AXIS][1]);
       if (xOffset < -2 || xOffset > 2) SERIAL_ERRORLNPGM("XYCalibration: offsetTooBig");
       if (yOffset < -2 || yOffset > 2) SERIAL_ERRORLNPGM("XYCalibration: offsetTooBig");
-      SERIAL_ERRORLNPGM("XYCalibration: finished");      
     } else {
       SERIAL_ERROR_START();
       SERIAL_ERRORLNPGM("XYCalibration: missedSignal");
@@ -9633,7 +9631,7 @@ inline void gcode_G41() {
     yMeanOffset += yOffset[i];
     for (uint8_t j = 0; j < 3; j++) {
       if (abs(xOffset[i] - xOffset[j]) > 0.2 || abs(yOffset[i] - yOffset[j]) > 0.2) {
-        SERIAL_ERRORLNPGM("Failed XY loop offset too big");
+        SERIAL_ERRORLNPGM("XYCalibration: offsetTooBig");
         current_position[Z_AXIS] = 10;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
