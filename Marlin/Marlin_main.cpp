@@ -13443,7 +13443,6 @@ inline void gcode_M226() {
 	   meshPointsX = parser.intval('X');
      meshPointsY = parser.intval('Y');
      if (meshPointsX >= 3 && meshPointsY >= 3) {
-       free(mbl->z_values);
        delete mbl;
        mbl = new mesh_bed_leveling();
      } else {

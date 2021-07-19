@@ -51,6 +51,12 @@
     reset();
   }
 
+  mesh_bed_leveling::~mesh_bed_leveling() {
+    free (mesh_bed_leveling::z_values);
+    free (mesh_bed_leveling::index_to_xpos);
+    free (mesh_bed_leveling::index_to_ypos);
+  }
+
   void mesh_bed_leveling::update_mesh_bed_leveling(float max_x, float max_y) {
     mesh_x_dist = (max_x - MESH_MIN_X) / (GRID_MAX_POINTS_X - 1);
     mesh_y_dist = (max_y - MESH_MIN_Y) / (GRID_MAX_POINTS_Y - 1);

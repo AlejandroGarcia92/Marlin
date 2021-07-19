@@ -51,6 +51,7 @@ public:
   static float *  index_to_ypos;
 
   mesh_bed_leveling();
+  ~mesh_bed_leveling();
 
   static void report_mesh();
 
