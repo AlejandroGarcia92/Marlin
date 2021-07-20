@@ -47,8 +47,8 @@ public:
                mesh_y_dist;
 
   static float * z_values;
-  static float *  index_to_xpos;
-  static float *  index_to_ypos;
+  static float * index_to_xpos;
+  static float * index_to_ypos;
 
   mesh_bed_leveling();
   ~mesh_bed_leveling();
