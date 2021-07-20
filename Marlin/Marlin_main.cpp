@@ -6294,7 +6294,7 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
     if (!position_is_reachable_by_probe(xpos, ypos)) return;
     #endif
 
-
+    bool zFailed = false;
 
     // Disable leveling so the planner won't mess with us
     #if HAS_LEVELING
@@ -6316,7 +6316,10 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
     if (parser.boolval('S', true)) {
       if (!isnan(measured_z)) {       
         hotend_offset[Z_AXIS][active_extruder] =  -measured_z;
-        if (hotend_offset[Z_AXIS][active_extruder] < -2 || hotend_offset[Z_AXIS][active_extruder] > 2) SERIAL_ERRORLNPGM("ZCalibration: offsetTooBig");   
+        if (hotend_offset[Z_AXIS][active_extruder] < -2 || hotend_offset[Z_AXIS][active_extruder] > 2) {
+          SERIAL_ERRORLNPGM("ZCalibration: offsetTooBig");
+          zFailed = true;
+        }    
         SERIAL_PROTOCOLLNPAIR_F("T1 offset Z: ", hotend_offset[Z_AXIS][active_extruder]);
       }
     }
@@ -6329,7 +6332,7 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
     #endif
     report_current_position();
 
-    SERIAL_ECHOLN("ZCalibration: noError"); 
+    if (!zFailed) SERIAL_ECHOLN("ZCalibration: noError"); 
 
   }
 
