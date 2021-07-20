@@ -37,17 +37,16 @@
   float * mesh_bed_leveling::z_values = (float *)malloc(sizeof(float)*(meshPointsX+meshPointsY)); 
 
   float * mesh_bed_leveling::index_to_xpos = (float *)malloc(sizeof(float)*(meshPointsX));
-  float * mesh_bed_leveling::index_to_ypos = (float *)malloc(sizeof(float)*(meshPointsY));
-
+  float * mesh_bed_leveling::index_to_ypos = (float *)malloc(sizeof(float)*(meshPointsY)); 
 
   mesh_bed_leveling::mesh_bed_leveling() {
-    mesh_x_dist = MESH_X_DIST;
-    mesh_y_dist = MESH_Y_DIST;
+    mesh_x_dist = (xBedSize-x_probe_left_extr[1]*2)/(meshPointsX-1);
+    mesh_y_dist = (yBedSize-y_probe_left_extr[1]*2)/(meshPointsY-1);
 
-    for (uint8_t i = 0; i < GRID_MAX_POINTS_X; ++i)
-      index_to_xpos[i] = MESH_MIN_X + i * (mesh_x_dist);
-    for (uint8_t i = 0; i < GRID_MAX_POINTS_Y; ++i)
-      index_to_ypos[i] = MESH_MIN_Y + i * (mesh_y_dist);    
+    for (uint8_t i = 0; i < meshPointsX; ++i)
+      index_to_xpos[i] = x_probe_left_extr[1] + i * (mesh_x_dist);
+    for (uint8_t i = 0; i < meshPointsY; ++i)
+      index_to_ypos[i] = y_probe_left_extr[1] + i * (mesh_y_dist);    
     reset();
   }
 
@@ -58,25 +57,25 @@
   }
 
   void mesh_bed_leveling::update_mesh_bed_leveling(float max_x, float max_y) {
-    mesh_x_dist = (max_x - MESH_MIN_X) / (GRID_MAX_POINTS_X - 1);
-    mesh_y_dist = (max_y - MESH_MIN_Y) / (GRID_MAX_POINTS_Y - 1);
-    for (uint8_t i = 0; i < GRID_MAX_POINTS_X; ++i)
-      index_to_xpos[i] = MESH_MIN_X + i * (mesh_x_dist);
-    for (uint8_t i = 0; i < GRID_MAX_POINTS_Y; ++i)
-      index_to_ypos[i] = MESH_MIN_Y + i * (mesh_y_dist);
+    mesh_x_dist = (max_x - x_probe_left_extr[1]) / (meshPointsX - 1);
+    mesh_y_dist = (max_y - y_probe_left_extr[1]) / (meshPointsY - 1);
+    for (uint8_t i = 0; i < meshPointsX; ++i)
+      index_to_xpos[i] = x_probe_left_extr[1] + i * (mesh_x_dist);
+    for (uint8_t i = 0; i < meshPointsY; ++i)
+      index_to_ypos[i] = y_probe_left_extr[1] + i * (mesh_y_dist);
     reset();
   }
 
   void mesh_bed_leveling::reset() {
     z_offset = 0;
-    memset(z_values, 0, sizeof(float)*(meshPointsX+meshPointsY));
+    memset(z_values, 0, sizeof(float)*(meshPointsX*meshPointsY));
   }
 
   void mesh_bed_leveling::report_mesh() {
     SERIAL_PROTOCOLLNPGM("Num X,Y: " STRINGIFY(GRID_MAX_POINTS_X) "," STRINGIFY(GRID_MAX_POINTS_Y));
     SERIAL_PROTOCOLPGM("Z offset: "); SERIAL_PROTOCOL_F(z_offset, 5);
     SERIAL_PROTOCOLLNPGM("\nMeasured points:");
-    print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 5,
+    print_2d_array(meshPointsX, meshPointsY, 5,
       [](const uint8_t ix, const uint8_t iy) { return *((z_values+ix)+iy); }
     );
   }

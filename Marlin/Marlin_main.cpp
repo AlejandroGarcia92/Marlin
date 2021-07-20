@@ -619,8 +619,8 @@ static bool relative_mode_before_pause = false;
 #endif
 
 //Bed size
-static float xBedSize = X_BED_SIZE;
-static float yBedSize = Y_BED_SIZE;
+float xBedSize = X_BED_SIZE;
+float yBedSize = Y_BED_SIZE;
 
 //Probe offsets
 float xProbeOffset = X_PROBE_OFFSET_FROM_EXTRUDER;
@@ -637,10 +637,10 @@ static float x_screw_bed_calib_3 = SCREW_BED_3_X;
 static float y_screw_bed_calib_3 = SCREW_BED_3_Y;
 
 //Probe positions
-static float x_probe_left_extr[3] = {X_SIGMA_PROBE_1_LEFT_EXTR, X_SIGMA_PROBE_2_LEFT_EXTR, X_SIGMA_PROBE_3_LEFT_EXTR};
-static float y_probe_left_extr[3] = {Y_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_2_LEFT_EXTR, Y_SIGMA_PROBE_3_LEFT_EXTR};
-static float x_probe_right_extr[3] = {X_SIGMA_PROBE_1_RIGHT_EXTR, X_SIGMA_PROBE_2_RIGHT_EXTR, X_SIGMA_PROBE_3_RIGHT_EXTR};
-static float y_probe_right_extr[3] = {Y_SIGMA_PROBE_1_RIGHT_EXTR, Y_SIGMA_PROBE_2_RIGHT_EXTR, Y_SIGMA_PROBE_3_RIGHT_EXTR};
+float x_probe_left_extr[3] = {X_SIGMA_PROBE_1_LEFT_EXTR, X_SIGMA_PROBE_2_LEFT_EXTR, X_SIGMA_PROBE_3_LEFT_EXTR};
+float y_probe_left_extr[3] = {Y_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_2_LEFT_EXTR, Y_SIGMA_PROBE_3_LEFT_EXTR};
+float x_probe_right_extr[3] = {X_SIGMA_PROBE_1_RIGHT_EXTR, X_SIGMA_PROBE_2_RIGHT_EXTR, X_SIGMA_PROBE_3_RIGHT_EXTR};
+float y_probe_right_extr[3] = {Y_SIGMA_PROBE_1_RIGHT_EXTR, Y_SIGMA_PROBE_2_RIGHT_EXTR, Y_SIGMA_PROBE_3_RIGHT_EXTR};
 
 //Z safe homming points
 #if ENABLED(Z_SAFE_HOMING)
@@ -5270,8 +5270,8 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
       case MeshSet:
         if (parser.seenval('X')) {
           px = parser.value_int() - 1;
-          if (!WITHIN(px, 0, GRID_MAX_POINTS_X - 1)) {
-            SERIAL_PROTOCOLLNPGM("X out of range (1-" STRINGIFY(GRID_MAX_POINTS_X) ").");
+          if (!WITHIN(px, 0, meshPointsX - 1)) {
+            SERIAL_PROTOCOLLNPGM("X out of range (1-" STRINGIFY(meshPointsX) ").");
             return;
           }
         }
@@ -5282,8 +5282,8 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
 
         if (parser.seenval('Y')) {
           py = parser.value_int() - 1;
-          if (!WITHIN(py, 0, GRID_MAX_POINTS_Y - 1)) {
-            SERIAL_PROTOCOLLNPGM("Y out of range (1-" STRINGIFY(GRID_MAX_POINTS_Y) ").");
+          if (!WITHIN(py, 0, meshPointsY - 1)) {
+            SERIAL_PROTOCOLLNPGM("Y out of range (1-" STRINGIFY(meshPointsY) ").");
             return;
           }
         }

@@ -39,6 +39,10 @@ enum MeshLevelingState : char {
 
 extern uint8_t meshPointsX;
 extern uint8_t meshPointsY;
+extern float xBedSize;
+extern float yBedSize;
+extern float x_probe_left_extr[3];
+extern float y_probe_left_extr[3];
 
 class mesh_bed_leveling {
 public:
