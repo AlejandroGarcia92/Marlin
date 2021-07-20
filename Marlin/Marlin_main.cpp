@@ -9429,6 +9429,14 @@ inline void gcode_G37() { //BCN3D G37 pattern
       // If G40 fails throw an error
       if (!G40_run_probe(xPos, yPos)) {
         success = false;
+        endstops.enable(false);
+        current_position[Z_AXIS] = 38;
+        planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
+        planner.synchronize();
+        G40_doHomeZ = true;
+        SERIAL_ERROR_START();
+        SERIAL_ERRORLNPGM("XYCalibration: missedSignal");
+        return;
       } else {
         points[i] = current_position[currentAxis];
       }
@@ -9453,10 +9461,7 @@ inline void gcode_G37() { //BCN3D G37 pattern
       SERIAL_ECHOLNPAIR("T1 offset Y: ", hotend_offset[Y_AXIS][1]);
       if (xOffset < -2 || xOffset > 2) SERIAL_ERRORLNPGM("XYCalibration: offsetTooBig");
       if (yOffset < -2 || yOffset > 2) SERIAL_ERRORLNPGM("XYCalibration: offsetTooBig");
-    } else {
-      SERIAL_ERROR_START();
-      SERIAL_ERRORLNPGM("XYCalibration: missedSignal");
-    }
+    } 
     G40_raisingBedSafely = false; 
 
     //If XY succeeded, give some space between extruder and bed 
