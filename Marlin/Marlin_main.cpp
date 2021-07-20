@@ -372,7 +372,6 @@
        G40_endstop_hit = false,
        G40_raisingBedSafely = false,
        G40_raisingBedFailed = false,
-       G40_doHomeZ = false,
        G293_move = false,
        G293_endstop_hit = false;
 #endif
@@ -9314,9 +9313,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
    */
   inline void gcode_G40() {
     //Go to prove coords.    
-
-    if (G40_doHomeZ) home_axis_from_code(false, false, true); //If XY calibration failed cause bed collapsed, bed will be far down and a Z home will be needed
-    G40_doHomeZ = false;
     
     hotend_offset[X_AXIS][1] = xBedSize > 210 ? 469.5 : 256.6;
     hotend_offset[Y_AXIS][1] = 0;
@@ -9350,7 +9346,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
       planner.synchronize();
       G40_raisingBedSafely = false; 
       G40_raisingBedFailed = false;
-      G40_doHomeZ = true;
       SERIAL_ERRORLNPGM("XYCalibration: bedCollapsed"); 
       return;
     }
@@ -9389,7 +9384,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
           planner.synchronize();
           G40_raisingBedSafely = false; 
           G40_raisingBedFailed = false; 
-          G40_doHomeZ = true;
           SERIAL_ERRORLNPGM("XYCalibration: bedCollapsed"); 
           return;
         }
@@ -9433,7 +9427,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
         current_position[Z_AXIS] = 38;
         planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
         planner.synchronize();
-        G40_doHomeZ = true;
         SERIAL_ERROR_START();
         SERIAL_ERRORLNPGM("XYCalibration: missedSignal");
         return;
@@ -9575,7 +9568,6 @@ inline void gcode_G41() {
           planner.synchronize();
           G40_raisingBedSafely = false; 
           G40_raisingBedFailed = false; 
-          G40_doHomeZ = true;
           SERIAL_ERRORLNPGM("XYCalibration: bedCollapsed"); 
           return;
         }
