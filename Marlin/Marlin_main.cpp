@@ -6282,7 +6282,6 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
    */
   inline void gcode_G30() {
     
-    SERIAL_ECHOLN("ZCalibration: noError"); 
     #if defined(BCN3D_MOD)
      
     const float xpos = parser.linearval('X', current_position[X_AXIS]),
@@ -6329,6 +6328,8 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
       if (raise_after == PROBE_PT_STOW) move_z_after_probing();
     #endif
     report_current_position();
+
+    SERIAL_ECHOLN("ZCalibration: noError"); 
 
   }
 
@@ -8842,7 +8843,6 @@ inline void gcode_G292(){//BCN3D Mesh Bed leveling piezo
 }
 
 inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
-  SERIAL_ECHOLN("meshCalibration: noError"); 
 
 	SYNC_PLAN_POSITION_KINEMATIC();
 
@@ -8894,10 +8894,16 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
       //Possible errors
       if (!G293_endstop_hit) {
         SERIAL_ECHOLN("meshCalibration: missedSignal"); 
+        planner.synchronize();
+	      home_axis_from_code(true, true, false);
+	      tool_change(0);
         return;
       }
       if (mesh_z_points[x][y] < -2 || mesh_z_points[x][y] > 2) {
         SERIAL_ECHOLN("meshCalibration: offsetTooBig"); 
+	      planner.synchronize();
+	      home_axis_from_code(true, true, false);
+	      tool_change(0);
         return;
       }
     }
@@ -8927,6 +8933,8 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
   SERIAL_PROTOCOLPGM(" p33:");
   MYSERIAL0.print(mesh_z_points[2][2], 3);
 	SERIAL_EOL();
+  
+  SERIAL_ECHOLN("meshCalibration: noError"); 
 
 }
 
@@ -9303,7 +9311,6 @@ inline void gcode_G37() { //BCN3D G37 pattern
    */
   inline void gcode_G40() {
     //Go to prove coords.    
-    SERIAL_ECHOLN("XYCalibration: noError"); 
 
     if (G40_doHomeZ) home_axis_from_code(false, false, true); //If XY calibration failed cause bed collapsed, bed will be far down and a Z home will be needed
     G40_doHomeZ = false;
@@ -9453,20 +9460,23 @@ inline void gcode_G37() { //BCN3D G37 pattern
     current_position[Z_AXIS] = 10;
     planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
     planner.synchronize();
+
+    SERIAL_ECHOLN("XYCalibration: noError"); 
+
   }
 
 
 //As G40 but three iteration loop to fine tune piezo sensor offsets
 
 inline void gcode_G41() {
-    //Go to prove coords.
-    #ifdef BCN3D_PRINT_SIMULATION
-    hotend_offset[X_AXIS][1] = 470 + piezoXoffset;
-    hotend_offset[Y_AXIS][1] = 0.5 + piezoYoffset;
-    SERIAL_ECHOLNPAIR("T1 offset X: ", hotend_offset[X_AXIS][1]);
-    SERIAL_ECHOLNPAIR("T1 offset Y: ", hotend_offset[Y_AXIS][1]);
-    SERIAL_ECHOLN("XY autocalibration finished");
-    #else
+  //Go to prove coords.
+  #ifdef BCN3D_PRINT_SIMULATION
+  hotend_offset[X_AXIS][1] = 470 + piezoXoffset;
+  hotend_offset[Y_AXIS][1] = 0.5 + piezoYoffset;
+  SERIAL_ECHOLNPAIR("T1 offset X: ", hotend_offset[X_AXIS][1]);
+  SERIAL_ECHOLNPAIR("T1 offset Y: ", hotend_offset[Y_AXIS][1]);
+  SERIAL_ECHOLN("XY autocalibration finished");
+  #else
 
   double xOffset[3] = {0};
   double yOffset[3] = {0};
@@ -9656,6 +9666,9 @@ inline void gcode_G41() {
   current_position[Z_AXIS] = 10;
   planner.buffer_line(current_position[X_AXIS],current_position[Y_AXIS],current_position[Z_AXIS],current_position[E_AXIS], MMM_TO_MMS(6000),active_extruder);
   planner.synchronize();
+
+  SERIAL_ECHOLN("XYCalibration: noError"); 
+
   #endif
 }
 
