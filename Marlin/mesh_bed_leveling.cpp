@@ -34,7 +34,7 @@
         mesh_bed_leveling::mesh_x_dist,
         mesh_bed_leveling::mesh_y_dist;
 
-  float * mesh_bed_leveling::z_values = (float *)malloc(sizeof(float)*(meshPointsX+meshPointsY)); 
+  float * mesh_bed_leveling::z_values = (float *)malloc(sizeof(float)*(meshPointsX*meshPointsY)); 
 
   float * mesh_bed_leveling::index_to_xpos = (float *)malloc(sizeof(float)*(meshPointsX));
   float * mesh_bed_leveling::index_to_ypos = (float *)malloc(sizeof(float)*(meshPointsY)); 

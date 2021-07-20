@@ -34,9 +34,6 @@ enum MeshLevelingState : char {
   MeshReset
 };
 
-#define MESH_X_DIST ((MESH_MAX_X - (MESH_MIN_X)) / (GRID_MAX_POINTS_X - 1))
-#define MESH_Y_DIST ((MESH_MAX_Y - (MESH_MIN_Y)) / (GRID_MAX_POINTS_Y - 1))
-
 extern uint8_t meshPointsX;
 extern uint8_t meshPointsY;
 extern float xBedSize;
@@ -73,9 +70,9 @@ public:
   static void set_z(const int8_t px, const int8_t py, const float &z) { *((z_values+px)+py) = z; }
 
   static inline void zigzag(const int8_t index, int8_t &px, int8_t &py) {
-    px = index % (GRID_MAX_POINTS_X);
-    py = index / (GRID_MAX_POINTS_X);
-    if (py & 1) px = (GRID_MAX_POINTS_X - 1) - px; // Zig zag
+    px = index % (meshPointsX);
+    py = index / (meshPointsY);
+    if (py & 1) px = (meshPointsX - 1) - px; // Zig zag
   }
 
   static void set_zigzag_z(const int8_t index, const float &z) {
@@ -85,23 +82,23 @@ public:
   }
 
   static int8_t cell_index_x(const float &x) {
-    int8_t cx = (x - (MESH_MIN_X)) * (1.0f / (mesh_x_dist));
-    return constrain(cx, 0, (GRID_MAX_POINTS_X) - 2);
+    int8_t cx = (x - (x_probe_left_extr[1])) * (1.0f / (mesh_x_dist));
+    return constrain(cx, 0, (meshPointsX) - 2);
   }
 
   static int8_t cell_index_y(const float &y) {
-    int8_t cy = (y - (MESH_MIN_Y)) * (1.0f / (mesh_y_dist));
-    return constrain(cy, 0, (GRID_MAX_POINTS_Y) - 2);
+    int8_t cy = (y - (y_probe_left_extr[1])) * (1.0f / (mesh_y_dist));
+    return constrain(cy, 0, (meshPointsY) - 2);
   }
 
   static int8_t probe_index_x(const float &x) {
-    int8_t px = (x - (MESH_MIN_X) + 0.5f * (mesh_x_dist)) * (1.0f / (mesh_x_dist));
-    return WITHIN(px, 0, GRID_MAX_POINTS_X - 1) ? px : -1;
+    int8_t px = (x - (x_probe_left_extr[1]) + 0.5f * (mesh_x_dist)) * (1.0f / (mesh_x_dist));
+    return WITHIN(px, 0, meshPointsX - 1) ? px : -1;
   }
 
   static int8_t probe_index_y(const float &y) {
-    int8_t py = (y - (MESH_MIN_Y) + 0.5f * (mesh_y_dist)) * (1.0f / (mesh_y_dist));
-    return WITHIN(py, 0, GRID_MAX_POINTS_Y - 1) ? py : -1;
+    int8_t py = (y - (x_probe_left_extr[1]) + 0.5f * (mesh_y_dist)) * (1.0f / (mesh_y_dist));
+    return WITHIN(py, 0, meshPointsY - 1) ? py : -1;
   }
 
   static float calc_z0(const float &a0, const float &a1, const float &z1, const float &a2, const float &z2) {
