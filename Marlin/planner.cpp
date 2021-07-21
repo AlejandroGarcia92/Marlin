@@ -1410,7 +1410,7 @@ void Planner::check_axes_activity() {
 
       rz += (
         #if ENABLED(MESH_BED_LEVELING)
-          mbl.get_z(rx, ry
+          mbl->get_z(rx, ry
             #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
               , fade_scaling_factor
             #endif
@@ -1455,7 +1455,7 @@ void Planner::check_axes_activity() {
 
         raw[Z_AXIS] -= (
           #if ENABLED(MESH_BED_LEVELING)
-            mbl.get_z(raw[X_AXIS], raw[Y_AXIS]
+            mbl->get_z(raw[X_AXIS], raw[Y_AXIS]
               #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
                 , fade_scaling_factor
               #endif

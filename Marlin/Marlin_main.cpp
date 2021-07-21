@@ -620,8 +620,8 @@ static bool relative_mode_before_pause = false;
 #endif
 
 //Bed size
-static float xBedSize = X_BED_SIZE;
-static float yBedSize = Y_BED_SIZE;
+float xBedSize = X_BED_SIZE;
+float yBedSize = Y_BED_SIZE;
 
 //Probe offsets
 float xProbeOffset = X_PROBE_OFFSET_FROM_EXTRUDER;
@@ -638,10 +638,10 @@ static float x_screw_bed_calib_3 = SCREW_BED_3_X;
 static float y_screw_bed_calib_3 = SCREW_BED_3_Y;
 
 //Probe positions
-static float x_probe_left_extr[3] = {X_SIGMA_PROBE_1_LEFT_EXTR, X_SIGMA_PROBE_2_LEFT_EXTR, X_SIGMA_PROBE_3_LEFT_EXTR};
-static float y_probe_left_extr[3] = {Y_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_2_LEFT_EXTR, Y_SIGMA_PROBE_3_LEFT_EXTR};
-static float x_probe_right_extr[3] = {X_SIGMA_PROBE_1_RIGHT_EXTR, X_SIGMA_PROBE_2_RIGHT_EXTR, X_SIGMA_PROBE_3_RIGHT_EXTR};
-static float y_probe_right_extr[3] = {Y_SIGMA_PROBE_1_RIGHT_EXTR, Y_SIGMA_PROBE_2_RIGHT_EXTR, Y_SIGMA_PROBE_3_RIGHT_EXTR};
+float x_probe_left_extr[3] = {X_SIGMA_PROBE_1_LEFT_EXTR, X_SIGMA_PROBE_2_LEFT_EXTR, X_SIGMA_PROBE_3_LEFT_EXTR};
+float y_probe_left_extr[3] = {Y_SIGMA_PROBE_1_LEFT_EXTR, Y_SIGMA_PROBE_2_LEFT_EXTR, Y_SIGMA_PROBE_3_LEFT_EXTR};
+float x_probe_right_extr[3] = {X_SIGMA_PROBE_1_RIGHT_EXTR, X_SIGMA_PROBE_2_RIGHT_EXTR, X_SIGMA_PROBE_3_RIGHT_EXTR};
+float y_probe_right_extr[3] = {Y_SIGMA_PROBE_1_RIGHT_EXTR, Y_SIGMA_PROBE_2_RIGHT_EXTR, Y_SIGMA_PROBE_3_RIGHT_EXTR};
 
 //Z safe homming points
 #if ENABLED(Z_SAFE_HOMING)
@@ -664,6 +664,10 @@ bool hasPiezo = false;
 //Piezo offset calibration sense
 static float piezoXoffset = 0;
 static float piezoYoffset = 0;
+
+//Mesh Matrix 
+uint8_t meshPointsX = 4;
+uint8_t meshPointsY = 4;
 
 #endif
 
@@ -2876,7 +2880,7 @@ void clean_up_after_endstop_or_probe_move() {
   bool leveling_is_valid() {
     return
       #if ENABLED(MESH_BED_LEVELING)
-        mbl.has_mesh()
+        mbl->has_mesh()
       #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
         !!bilinear_grid_spacing[X_AXIS]
       #elif ENABLED(AUTO_BED_LEVELING_UBL)
@@ -3007,7 +3011,7 @@ void clean_up_after_endstop_or_probe_move() {
     #endif
     set_bed_leveling_enabled(false);
     #if ENABLED(MESH_BED_LEVELING)
-      mbl.reset();
+      mbl->reset();
     #elif ENABLED(AUTO_BED_LEVELING_UBL)
       ubl.reset();
     #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -5189,14 +5193,14 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
       case MeshReport:
         if (leveling_is_valid()) {
           SERIAL_PROTOCOLLNPAIR("State: ", planner.leveling_active ? MSG_ON : MSG_OFF);
-          mbl.report_mesh();
+          mbl->report_mesh();
         }
         else
           SERIAL_PROTOCOLLNPGM("Mesh bed leveling has no data.");
         break;
 
       case MeshStart:
-        mbl.reset();
+        mbl->reset();
         mbl_probe_index = 0;
         if (!lcd_wait_for_move) {
           enqueue_and_echo_commands_P(PSTR("G28\nG29 S2"));
@@ -5220,7 +5224,7 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
         }
         else {
           // Save Z for the previous mesh position
-          mbl.set_zigzag_z(mbl_probe_index - 1, current_position[Z_AXIS]);
+          mbl->set_zigzag_z(mbl_probe_index - 1, current_position[Z_AXIS]);
           #if HAS_SOFTWARE_ENDSTOPS
             soft_endstops_enabled = enable_soft_endstops;
           #endif
@@ -5233,8 +5237,8 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
             soft_endstops_enabled = false;
           #endif
 
-          mbl.zigzag(mbl_probe_index++, px, py);
-          _manual_goto_xy(mbl.index_to_xpos[px], mbl.index_to_ypos[py]);
+          mbl->zigzag(mbl_probe_index++, px, py);
+          _manual_goto_xy(mbl->index_to_xpos[px], mbl->index_to_ypos[py]);
         }
         else {
           // One last "return to the bed" (as originally coded) at completion
@@ -5267,8 +5271,8 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
       case MeshSet:
         if (parser.seenval('X')) {
           px = parser.value_int() - 1;
-          if (!WITHIN(px, 0, GRID_MAX_POINTS_X - 1)) {
-            SERIAL_PROTOCOLLNPGM("X out of range (1-" STRINGIFY(GRID_MAX_POINTS_X) ").");
+          if (!WITHIN(px, 0, meshPointsX - 1)) {
+            SERIAL_PROTOCOLLNPGM("X out of range (1-" STRINGIFY(meshPointsX) ").");
             return;
           }
         }
@@ -5279,8 +5283,8 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
 
         if (parser.seenval('Y')) {
           py = parser.value_int() - 1;
-          if (!WITHIN(py, 0, GRID_MAX_POINTS_Y - 1)) {
-            SERIAL_PROTOCOLLNPGM("Y out of range (1-" STRINGIFY(GRID_MAX_POINTS_Y) ").");
+          if (!WITHIN(py, 0, meshPointsY - 1)) {
+            SERIAL_PROTOCOLLNPGM("Y out of range (1-" STRINGIFY(meshPointsY) ").");
             return;
           }
         }
@@ -5290,7 +5294,7 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
         }
 
         if (parser.seenval('Z'))
-          mbl.z_values[px][py] = parser.value_linear_units();
+          *((mbl->z_values + px) + py) = parser.value_linear_units();
         else {
           SERIAL_CHAR('Z'); echo_not_entered();
           return;
@@ -5299,7 +5303,7 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
 
       case MeshSetZOffset:
         if (parser.seenval('Z'))
-          mbl.z_offset = parser.value_linear_units();
+          mbl->z_offset = parser.value_linear_units();
         else {
           SERIAL_CHAR('Z'); echo_not_entered();
           return;
@@ -8849,13 +8853,18 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
 	SYNC_PLAN_POSITION_KINEMATIC();
 
   const float start_x = x_probe_left_extr[1];
-  const float shift_x = (xBedSize-start_x*2)/2; 
+  const float shift_x = (xBedSize-start_x*2)/(meshPointsX-1); 
   
   const float start_y = y_probe_left_extr[1];
-  const float shift_y = (yBedSize-start_y*2)/2; 
+  const float shift_y = (yBedSize-start_y*2)/(meshPointsY-1); 
 
-  const float x_probe_mesh_points[3] = {start_x, start_x + shift_x, start_x + shift_x*2};
-  const float y_probe_mesh_points[3] = {start_y, start_y + shift_y, start_y + shift_y*2};
+  float x_probe_mesh_points[meshPointsX];
+  float y_probe_mesh_points[meshPointsY];
+
+  for (int i = 0; i < meshPointsX; i++) {       //Premise X=Y
+    x_probe_mesh_points[i] = start_x + shift_x*i;
+    y_probe_mesh_points[i] = start_y + shift_y*i;
+  }
 
 
 	current_position[X_AXIS] += x_gap_avoid_collision_l;
@@ -8880,10 +8889,12 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
 	SERIAL_PROTOCOLLN(current_position[Z_AXIS]);
   float mesh_z_points[3][3];
 
-  for (int x = 0; x < 3; x++) {
-    for (int y = 0; y < 3; y++) { 
+  for (int x = 0; x < meshPointsX; x++) {
+    for (int y = 0; y < meshPointsY; y++) {
       G293_endstop_hit = false;
       setup_for_endstop_or_probe_move();
+      mesh_z_points[x][y] = probe_pt(x_probe_mesh_points[x], y_probe_mesh_points[y], PROBE_PT_RAISE, 3, true, 1000);
+      clean_up_after_endstop_or_probe_move();
 
       G293_move = true;
       mesh_z_points[x][y] = probe_pt(x_probe_mesh_points[x], y_probe_mesh_points[y], PROBE_PT_RAISE, 3, true, 1000);
@@ -8916,24 +8927,16 @@ inline void gcode_G293(){//BCN3D Mesh Bed leveling piezo
 	home_axis_from_code(true, true, false);
 	tool_change(0);
 
-  SERIAL_PROTOCOLPGM("Piezo Mesh Bed Leveling p11:");
-	MYSERIAL0.print(mesh_z_points[0][0], 3);
-	SERIAL_PROTOCOLPGM(" p12:");
-	MYSERIAL0.print(mesh_z_points[1][0], 3);
-  SERIAL_PROTOCOLPGM(" p13:");
-	MYSERIAL0.print(mesh_z_points[2][0], 3);
-  SERIAL_PROTOCOLPGM(" p21:");
-	MYSERIAL0.print(mesh_z_points[0][1], 3);
-  SERIAL_PROTOCOLPGM(" p22:");
-	MYSERIAL0.print(mesh_z_points[1][1], 3);
-  SERIAL_PROTOCOLPGM(" p23:");
-  MYSERIAL0.print(mesh_z_points[2][1], 3);
-  SERIAL_PROTOCOLPGM(" p31:");
-	MYSERIAL0.print(mesh_z_points[0][2], 3);
-  SERIAL_PROTOCOLPGM(" p32:");
-	MYSERIAL0.print(mesh_z_points[1][2], 3);
-  SERIAL_PROTOCOLPGM(" p33:");
-  MYSERIAL0.print(mesh_z_points[2][2], 3);
+  SERIAL_PROTOCOLPGM("Piezo Mesh Bed Leveling");
+  for (int i = 0; i < meshPointsX; i++) {       
+    for (int j = 0; j < meshPointsY; j++) { 
+      SERIAL_PROTOCOLPGM(" p");
+      MYSERIAL0.print(i+1);
+      MYSERIAL0.print(j+1);
+      MYSERIAL0.print(":");
+      MYSERIAL0.print(mesh_z_points[i][j], 3);
+    }
+  }
 	SERIAL_EOL();
   
   SERIAL_ECHOLN("meshCalibration: noError"); 
@@ -13463,6 +13466,20 @@ inline void gcode_M226() {
 	   SERIAL_ECHOLNPAIR("Y piezo offset sense updated: ", offset);
    }
 
+     /*
+	* M295: Set mesh dim
+	*/
+   inline void gcode_M295() {
+	   meshPointsX = parser.intval('X');
+     meshPointsY = parser.intval('Y');
+     if (meshPointsX >= 3 && meshPointsY >= 3) {
+       delete mbl;
+       mbl = new mesh_bed_leveling();
+     } else {
+       mbl->reset();
+     }
+   }
+
    /*
 	* M305: P#heater or B bed X#IDsensor
    */
@@ -14140,9 +14157,7 @@ void quickstop_stepper() {
 
     #if HAS_MESH
 
-      #if ENABLED(MESH_BED_LEVELING)
-        #define Z_VALUES(X,Y) mbl.z_values[X][Y]
-      #else
+      #if DISABLED(MESH_BED_LEVELING)
         #define Z_VALUES(X,Y) z_values[X][Y]
       #endif
 
@@ -14171,7 +14186,7 @@ void quickstop_stepper() {
             float lo_val = 100, hi_val = -100;
             for (uint8_t x = GRID_MAX_POINTS_X; x--;)
               for (uint8_t y = GRID_MAX_POINTS_Y; y--;) {
-                const float z = Z_VALUES(x, y);
+                const float z = *((mbl->z_values+x)+y);
                 NOMORE(lo_val, z);
                 NOLESS(hi_val, z);
               }
@@ -14186,7 +14201,7 @@ void quickstop_stepper() {
             // Subtract the mean from all values
             for (uint8_t x = GRID_MAX_POINTS_X; x--;)
               for (uint8_t y = GRID_MAX_POINTS_Y; y--;)
-                Z_VALUES(x, y) -= zmean;
+                *((mbl->z_values+x)+y) -= zmean;
             #if ENABLED(ABL_BILINEAR_SUBDIVISION)
               bed_level_virt_interpolate();
             #endif
@@ -14210,7 +14225,7 @@ void quickstop_stepper() {
             #endif
           #elif ENABLED(MESH_BED_LEVELING)
             SERIAL_ECHOLNPGM("Mesh Bed Level data:");
-            mbl.report_mesh();
+            mbl->report_mesh();
           #endif
         }
       #endif
@@ -14261,9 +14276,9 @@ void quickstop_stepper() {
    */
   inline void gcode_M421() {
     const bool hasX = parser.seen('X'), hasI = parser.seen('I');
-    const int8_t ix = hasI ? parser.value_int() : hasX ? mbl.probe_index_x(parser.value_linear_units()) : -1;
+    const int8_t ix = hasI ? parser.value_int() : hasX ? mbl->probe_index_x(parser.value_linear_units()) : -1;
     const bool hasY = parser.seen('Y'), hasJ = parser.seen('J');
-    const int8_t iy = hasJ ? parser.value_int() : hasY ? mbl.probe_index_y(parser.value_linear_units()) : -1;
+    const int8_t iy = hasJ ? parser.value_int() : hasY ? mbl->probe_index_y(parser.value_linear_units()) : -1;
     const bool hasZ = parser.seen('Z'), hasQ = !hasZ && parser.seen('Q');
 
     if (int(hasI && hasJ) + int(hasX && hasY) != 1 || !(hasZ || hasQ)) {
@@ -14275,7 +14290,7 @@ void quickstop_stepper() {
       SERIAL_ERRORLNPGM(MSG_ERR_MESH_XY);
     }
     else
-      mbl.set_z(ix, iy, parser.value_linear_units() + (hasQ ? mbl.z_values[ix][iy] : 0));
+      mbl->set_z(ix, iy, parser.value_linear_units() + (hasQ ? *((mbl->z_values+ix)+iy) : 0));
   }
 
 #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -16736,6 +16751,7 @@ void process_parsed_command() {
       #ifdef BCN3D_MOD
         case 291: gcode_M291(); break;                            // M291: Set Piezo Sense Offset X
         case 292: gcode_M292(); break;                            // M292: Set Piezo Sense Offset Y
+        case 295: gcode_M295(); break;                            // M295: Set Mesh Dim
       #endif
 
       #if HAS_BUZZER

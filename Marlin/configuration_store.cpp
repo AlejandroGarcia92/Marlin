@@ -497,15 +497,11 @@ void MarlinSettings::postprocess() {
 
     #if ENABLED(MESH_BED_LEVELING)
       // Compile time test that sizeof(mbl.z_values) is as expected
-      static_assert(
-        sizeof(mbl.z_values) == GRID_MAX_POINTS * sizeof(mbl.z_values[0][0]),
-        "MBL Z array is the wrong size."
-      );
       const uint8_t mesh_num_x = GRID_MAX_POINTS_X, mesh_num_y = GRID_MAX_POINTS_Y;
-      EEPROM_WRITE(mbl.z_offset);
+      EEPROM_WRITE(mbl->z_offset);
       EEPROM_WRITE(mesh_num_x);
       EEPROM_WRITE(mesh_num_y);
-      EEPROM_WRITE(mbl.z_values);
+      EEPROM_WRITE(mbl->z_values);
     #else // For disabled MBL write a default mesh
       dummy = 0;
       const uint8_t mesh_num_x = 3, mesh_num_y = 3;
@@ -1120,14 +1116,14 @@ void MarlinSettings::postprocess() {
       EEPROM_READ_ALWAYS(mesh_num_y);
 
       #if ENABLED(MESH_BED_LEVELING)
-        if (!validating) mbl.z_offset = dummy;
+        if (!validating) mbl->z_offset = dummy;
         if (mesh_num_x == GRID_MAX_POINTS_X && mesh_num_y == GRID_MAX_POINTS_Y) {
           // EEPROM data fits the current mesh
-          EEPROM_READ(mbl.z_values);
+          EEPROM_READ(mbl->z_values);
         }
         else {
           // EEPROM data is stale
-          if (!validating) mbl.reset();
+          if (!validating) mbl->reset();
           for (uint16_t q = mesh_num_x * mesh_num_y; q--;) EEPROM_READ(dummy);
         }
       #else
@@ -2312,7 +2308,7 @@ void MarlinSettings::reset() {
               SERIAL_ECHOPAIR("  G29 S3 X", (int)px + 1);
               SERIAL_ECHOPAIR(" Y", (int)py + 1);
               SERIAL_ECHOPGM(" Z");
-              SERIAL_ECHO_F(LINEAR_UNIT(mbl.z_values[px][py]), 5);
+              //SERIAL_ECHO_F(LINEAR_UNIT(*(mbl->z_values+px)+py), 5);
               SERIAL_EOL();
             }
           }

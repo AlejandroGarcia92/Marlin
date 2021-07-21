@@ -482,8 +482,8 @@ void report_current_position();
   #define _GET_MESH_X(I) ubl.mesh_index_to_xpos(I)
   #define _GET_MESH_Y(J) ubl.mesh_index_to_ypos(J)
 #elif ENABLED(MESH_BED_LEVELING)
-  #define _GET_MESH_X(I) mbl.index_to_xpos[I]
-  #define _GET_MESH_Y(J) mbl.index_to_ypos[J]
+  #define _GET_MESH_X(I) mbl->index_to_xpos[I]
+  #define _GET_MESH_Y(J) mbl->index_to_ypos[J]
 #endif
 
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
