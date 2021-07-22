@@ -6319,7 +6319,7 @@ void home_axis_from_code(bool x_c, bool y_c, bool z_c){
     #if defined(BCN3D_MOD)
     if (parser.boolval('S', true)) {
       if (!isnan(measured_z)) {       
-        hotend_offset[Z_AXIS][active_extruder] =  -measured_z;
+        hotend_offset[Z_AXIS][active_extruder] =  -measured_z + piezoZoffset;
         if (hotend_offset[Z_AXIS][active_extruder] < -2 || hotend_offset[Z_AXIS][active_extruder] > 2) {
           SERIAL_ERRORLNPGM("ZCalibration: offsetTooBig");
           zFailed = true;
@@ -13209,7 +13209,7 @@ inline void gcode_M226() {
 	*/
    inline void gcode_M279() {
 	   if (parser.seen('P')) {
-        hasPiezo = parser.boolval('P');
+        hasPiezo = false;//parser.boolval('P');
         SERIAL_ECHOLNPAIR("Machine has piezo: ", hasPiezo);
      }
    }
