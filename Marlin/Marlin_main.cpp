@@ -664,6 +664,7 @@ bool hasPiezo = false;
 //Piezo offset calibration sense
 static float piezoXoffset = 0;
 static float piezoYoffset = 0;
+static float piezoZoffset = 0;
 
 //Mesh Matrix 
 uint8_t meshPointsX = 4;
@@ -13457,13 +13458,23 @@ inline void gcode_M226() {
    }
 
       /*
-	* M291: Set piezo Y sense offset
+	* M292: Set piezo Y sense offset
 	*/
    inline void gcode_M292() {
 	   const float offset = parser.floatval('S');
      piezoYoffset = offset;
 	   SERIAL_ECHO_START();
 	   SERIAL_ECHOLNPAIR("Y piezo offset sense updated: ", offset);
+   }
+
+  /*
+	* M293: Set piezo Z sense offset
+	*/
+   inline void gcode_M293() {
+	   const float offset = parser.floatval('S');
+     piezoZoffset = offset;
+	   SERIAL_ECHO_START();
+	   SERIAL_ECHOLNPAIR("Z piezo offset sense updated: ", offset);
    }
 
      /*
